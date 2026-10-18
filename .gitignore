@@ -3,4 +3,5 @@
 /.vscode/
 /target/
 /logs/
-/dist/
+/dist/.distro-cache/
+.distro-cache/

@@ -4,9 +4,9 @@
         {
             "id": "ImperiumMC",
             "name": "ImperiumMC",
-            "description": "Story-driven Roman prison server. Placeholder index: no files are synced yet.",
+            "description": "Story-driven Roman prison server.",
             "icon": "https://raw.githubusercontent.com/MylesThePro1/ImperiumLauncher/master/app/assets/images/SealCircle.png",
-            "version": "0.0.1",
+            "version": "0.1.0",
             "address": "play.imperiummc.net",
             "minecraftVersion": "26.3",
             "mainServer": true,
@@ -19,7 +19,202 @@
                     "minimum": 2048
                 }
             },
-            "modules": []
+            "modules": [
+                {
+                    "id": "net.fabricmc:fabric-loader:0.19.5",
+                    "name": "Fabric Loader",
+                    "type": "Fabric",
+                    "required": {
+                        "value": true,
+                        "def": true
+                    },
+                    "artifact": {
+                        "size": 1984980,
+                        "MD5": "23bf6a8c5ba938db7d13959a2630357f",
+                        "url": "https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.5/fabric-loader-0.19.5.jar"
+                    },
+                    "subModules": [
+                        {
+                            "id": "fabric-loader-0.19.5-26.3",
+                            "name": "Fabric Version Manifest",
+                            "type": "VersionManifest",
+                            "artifact": {
+                                "size": 2778,
+                                "MD5": "ed79f5ec9f86f6fd36eef238e00390c2",
+                                "url": "https://meta.fabricmc.net/v2/versions/loader/26.3/0.19.5/profile/json"
+                            }
+                        },
+                        {
+                            "id": "org.ow2.asm:asm:9.10.1",
+                            "name": "org.ow2.asm:asm",
+                            "type": "Library",
+                            "artifact": {
+                                "size": 126151,
+                                "MD5": "9cb72080438acf27f2607002e1444a7b",
+                                "url": "https://maven.fabricmc.net/org/ow2/asm/asm/9.10.1/asm-9.10.1.jar"
+                            }
+                        },
+                        {
+                            "id": "org.ow2.asm:asm-analysis:9.10.1",
+                            "name": "org.ow2.asm:asm-analysis",
+                            "type": "Library",
+                            "artifact": {
+                                "size": 35140,
+                                "MD5": "6dd9011ec87f65e4b2e14e938c4118e4",
+                                "url": "https://maven.fabricmc.net/org/ow2/asm/asm-analysis/9.10.1/asm-analysis-9.10.1.jar"
+                            }
+                        },
+                        {
+                            "id": "org.ow2.asm:asm-commons:9.10.1",
+                            "name": "org.ow2.asm:asm-commons",
+                            "type": "Library",
+                            "artifact": {
+                                "size": 74840,
+                                "MD5": "8eee0b1bdd046baf472eb83dd5e6bb44",
+                                "url": "https://maven.fabricmc.net/org/ow2/asm/asm-commons/9.10.1/asm-commons-9.10.1.jar"
+                            }
+                        },
+                        {
+                            "id": "org.ow2.asm:asm-tree:9.10.1",
+                            "name": "org.ow2.asm:asm-tree",
+                            "type": "Library",
+                            "artifact": {
+                                "size": 51958,
+                                "MD5": "62541e1dc62331408ef31317555bf4fa",
+                                "url": "https://maven.fabricmc.net/org/ow2/asm/asm-tree/9.10.1/asm-tree-9.10.1.jar"
+                            }
+                        },
+                        {
+                            "id": "org.ow2.asm:asm-util:9.10.1",
+                            "name": "org.ow2.asm:asm-util",
+                            "type": "Library",
+                            "artifact": {
+                                "size": 95628,
+                                "MD5": "d0892ecb209867805e7d2418e5dc6c42",
+                                "url": "https://maven.fabricmc.net/org/ow2/asm/asm-util/9.10.1/asm-util-9.10.1.jar"
+                            }
+                        },
+                        {
+                            "id": "net.fabricmc:sponge-mixin:0.17.4+mixin.0.8.7",
+                            "name": "net.fabricmc:sponge-mixin",
+                            "type": "Library",
+                            "artifact": {
+                                "size": 1539080,
+                                "MD5": "9e33b145b2a46fbc70daf532e3705066",
+                                "url": "https://maven.fabricmc.net/net/fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/sponge-mixin-0.17.4+mixin.0.8.7.jar"
+                            }
+                        }
+                    ]
+                },
+                {
+                    "id": "net.imperiummc:imperium-client:0.1.0",
+                    "name": "Imperium Client",
+                    "type": "FabricMod",
+                    "artifact": {
+                        "size": 8925064,
+                        "MD5": "3ac40fbe87a74121d8cad1147227966e",
+                        "url": "https://github.com/MylesThePro1/ImperiumClient/releases/download/v0.1.0/ImperiumClient-0.1.0+26.3.jar"
+                    }
+                },
+                {
+                    "id": "com.modrinth.fabric-api:0.163.0+26.3",
+                    "name": "[26.3] Fabric API 0.163.0+26.3",
+                    "type": "FabricMod",
+                    "required": {
+                        "value": true,
+                        "def": true
+                    },
+                    "artifact": {
+                        "size": 1774707,
+                        "MD5": "e3de98c7b25b1bdacd8005cd3030ed95",
+                        "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/bq3SsNGk/fabric-api-0.163.0%2B26.3.jar"
+                    }
+                },
+                {
+                    "id": "com.modrinth.sodium:mc26.3-0.9.3-beta.1-fabric",
+                    "name": "Sodium 0.9.3-beta.1 for Fabric 26.3",
+                    "type": "FabricMod",
+                    "required": {
+                        "value": false,
+                        "def": true
+                    },
+                    "artifact": {
+                        "size": 1912496,
+                        "MD5": "acc6ae644c0a71953832d35d9fb475e6",
+                        "url": "https://cdn.modrinth.com/data/AANobbMI/versions/g6ju16VJ/sodium-fabric-0.9.3-beta.1%2Bmc26.3.jar"
+                    }
+                },
+                {
+                    "id": "com.modrinth.lithium:mc26.3-0.26.2-fabric",
+                    "name": "Lithium 0.26.2 for Fabric",
+                    "type": "FabricMod",
+                    "required": {
+                        "value": false,
+                        "def": true
+                    },
+                    "artifact": {
+                        "size": 914543,
+                        "MD5": "4bb4ada83b50bb026550b20aabcad32c",
+                        "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/xS0Q8LSi/lithium-fabric-0.26.2%2Bmc26.3.jar"
+                    }
+                },
+                {
+                    "id": "com.modrinth.ferrite-core:9.0.0-fabric",
+                    "name": "ferritecore-9.0.0-fabric",
+                    "type": "FabricMod",
+                    "required": {
+                        "value": false,
+                        "def": true
+                    },
+                    "artifact": {
+                        "size": 72677,
+                        "MD5": "9d96f643cfd220b75f47c94ea56ebc2a",
+                        "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/d5ddUdiB/ferritecore-9.0.0-fabric.jar"
+                    }
+                },
+                {
+                    "id": "com.modrinth.immediatelyfast:1.17.1+26.3-fabric",
+                    "name": "ImmediatelyFast 1.17.1",
+                    "type": "FabricMod",
+                    "required": {
+                        "value": false,
+                        "def": true
+                    },
+                    "artifact": {
+                        "size": 99586,
+                        "MD5": "72773f07e9918a16f1f058c7e3aa8dea",
+                        "url": "https://cdn.modrinth.com/data/5ZwdcRci/versions/3MP9UR23/ImmediatelyFast-Fabric-1.17.1%2B26.3.jar"
+                    }
+                },
+                {
+                    "id": "com.modrinth.entityculling:1.11.3",
+                    "name": "1.11.3-26.3 - Fabric",
+                    "type": "FabricMod",
+                    "required": {
+                        "value": false,
+                        "def": true
+                    },
+                    "artifact": {
+                        "size": 1508547,
+                        "MD5": "2215f5aec107034e3ed86690ebe2a645",
+                        "url": "https://cdn.modrinth.com/data/NNAgCjsB/versions/X1g3VhTx/entityculling-fabric-1.11.3-mc26.3.jar"
+                    }
+                },
+                {
+                    "id": "com.modrinth.dynamic-fps:3.11.10",
+                    "name": "v3.11.10",
+                    "type": "FabricMod",
+                    "required": {
+                        "value": false,
+                        "def": true
+                    },
+                    "artifact": {
+                        "size": 189474,
+                        "MD5": "0b5600c4d6825890c9cc9a2b9727c5f9",
+                        "url": "https://cdn.modrinth.com/data/LQ3K71Q1/versions/Jwq069rR/dynamic-fps-3.11.10%2Bminecraft-26.3.0-fabric.jar"
+                    }
+                }
+            ]
         }
     ]
 }
