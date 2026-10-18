@@ -432,7 +432,9 @@ ipcRenderer.on(MSFT_OPCODE.REPLY_LOGIN, (_, ...arguments_) => {
                         actualDisplayableError = Lang.queryJS('login.error.unknown')
                     }
 
-                    switchView(getCurrentView(), viewOnClose, 500, 500, () => {
+                    // viewOnClose is the success view; with no account the landing page would be a dead end.
+                    const viewOnError = ConfigManager.getSelectedAccount() == null ? VIEWS.loginOptions : viewOnClose
+                    switchView(getCurrentView(), viewOnError, 500, 500, () => {
                         setOverlayContent(actualDisplayableError.title, actualDisplayableError.desc, Lang.queryJS('login.tryAgain'))
                         setOverlayHandler(() => {
                             toggleOverlay(false)
