@@ -9,7 +9,7 @@ The format is Helios' own. [distro.md](distro.md) documents every field, and [he
 | | |
 | - | - |
 | Launcher setting | `REMOTE_DISTRO_URL` in [`app/assets/js/distromanager.js`](../app/assets/js/distromanager.js) |
-| Now (placeholder) | `https://raw.githubusercontent.com/MylesThePro1/ImperiumLauncher/master/distribution/distribution.json` |
+| Now (placeholder) | `https://raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/distribution/distribution.json` |
 | Planned | An ImperiumMC-hosted URL such as `https://launcher.imperiummc.net/distribution.json` (Cloudflare R2 or Pages), set in milestone 2 |
 
 The placeholder has the server entry but no modules, so the launcher loads and reaches the login screen. Pressing Play fails with `No mod loader found!`.
@@ -79,7 +79,7 @@ Every module with a download needs an `artifact` with `size` (bytes), `MD5` and 
     "id": "net.imperiummc:imperium-client:<version>",
     "name": "Imperium Client",
     "type": "FabricMod",
-    "artifact": { "size": 0, "MD5": "...", "url": "https://github.com/MylesThePro1/ImperiumClient/releases/download/v<version>/imperium-client-<version>.jar" }
+    "artifact": { "size": 0, "MD5": "...", "url": "https://github.com/Imperium-MC/ImperiumClient/releases/download/v<version>/imperium-client-<version>.jar" }
 }
 ```
 

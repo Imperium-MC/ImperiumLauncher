@@ -153,7 +153,7 @@ async function imperiumClientModule(localJarPath) {
   // --client hashes a locally built jar so the index is ready the moment the
   // release is uploaded with that exact jar.
   const VERSION = require('../package.json').version;
-  const releaseUrl = `https://github.com/MylesThePro1/ImperiumClient/releases/download/v${VERSION}/ImperiumClient-${VERSION}+${MC_VERSION}.jar`;
+  const releaseUrl = `https://github.com/Imperium-MC/ImperiumClient/releases/download/v${VERSION}/ImperiumClient-${VERSION}+${MC_VERSION}.jar`;
   let hash, size;
   if (localJarPath) {
     const buf = fs.readFileSync(localJarPath);
@@ -219,7 +219,7 @@ async function main() {
         id: SERVER_ID,
         name: 'ImperiumMC',
         description: 'Story-driven Roman prison server.',
-        icon: 'https://raw.githubusercontent.com/MylesThePro1/ImperiumLauncher/master/app/assets/images/SealCircle.png',
+        icon: 'https://raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/app/assets/images/SealCircle.png',
         version: require('../package.json').version,
         address: 'play.imperium-mc.net',
         minecraftVersion: MC_VERSION,

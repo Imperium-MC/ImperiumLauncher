@@ -59,7 +59,7 @@ More detail: Helios' own guide in [docs/MicrosoftAuth.md](docs/MicrosoftAuth.md)
 Requires [Node.js](https://nodejs.org/) 22 (`engines` in `package.json`). Node 24 also builds.
 
 ```console
-git clone https://github.com/MylesThePro1/ImperiumLauncher.git
+git clone https://github.com/Imperium-MC/ImperiumLauncher.git
 cd ImperiumLauncher
 npm ci
 npm start
