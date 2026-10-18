@@ -273,9 +273,6 @@ body, button {
 */
 
 #welcomeImageSeal {
-    border-radius: 50%;
-    border: 2px solid #d4a54f;
-    background: rgba(1, 2, 1, 0.5);
     height: 125px;
     width: 125px;
     box-shadow: 0px 0px 10px 0px rgb(0, 0, 0);
@@ -487,9 +484,6 @@ body, button {
 
 /* Logo on login form. */
 #loginImageSeal {
-    border-radius: 50%;
-    border: 2px solid #d4a54f;
-    background: rgba(1, 2, 1, 0.5);
     height: 125px;
     width: 125px;
     box-shadow: 0px 0px 10px 0px rgb(0, 0, 0);
@@ -2867,9 +2861,6 @@ input:checked + .toggleSwitchSlider:before {
     height: 70px;
     width: auto;
     position: relative;
-    border: 2px solid white;
-    box-sizing: border-box;
-    border-radius: 50%;
 }
 
 /* Logo container styles. */
@@ -3951,13 +3942,13 @@ input:checked + .toggleSwitchSlider:before {
 /* Stationary image for the spinner. */
 #loadCenterImage {
     position: absolute;
-    width: 277px;
+    width: 200px;
     height: auto;
 }
 
 /* Rotating image for the spinner. */
 #loadSpinnerImage {
-    width: 280px;
+    width: 320px;
     height: auto;
     z-index: 400;
 }
