@@ -372,10 +372,10 @@ ipcRenderer.on(MSFT_OPCODE.REPLY_LOGIN, (_, ...arguments_) => {
                 return
             }
 
-            // Unexpected error.
+            const notConfigured = arguments_[1] === MSFT_ERROR.NOT_CONFIGURED
             setOverlayContent(
-                Lang.queryJS('settings.msftLogin.errorTitle'),
-                Lang.queryJS('settings.msftLogin.errorMessage'),
+                Lang.queryJS(notConfigured ? 'settings.msftLogin.notConfiguredTitle' : 'settings.msftLogin.errorTitle'),
+                Lang.queryJS(notConfigured ? 'settings.msftLogin.notConfiguredMessage' : 'settings.msftLogin.errorMessage'),
                 Lang.queryJS('settings.msftLogin.okButton')
             )
             setOverlayHandler(() => {

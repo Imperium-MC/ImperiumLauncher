@@ -15,36 +15,42 @@ Milestone 1 of the launcher plan (fork, rebrand, Windows installer) is done. Not
 | Area | State |
 | ---- | ----- |
 | Distribution index | Placeholder at [`distribution/distribution.json`](distribution/distribution.json) with no modules, so **Play does not work yet**. See [docs/distribution-index.md](docs/distribution-index.md). |
-| Microsoft login | Uses a placeholder Azure client ID until the steps below are done. The sign-in window opens and Microsoft rejects it. |
+| Microsoft login | No Azure app ID yet, so the launcher shows a "not configured" message instead of opening the Microsoft window. See [Microsoft login](#microsoft-login). |
 | macOS / Linux installers | Config is inherited from Helios but untested. |
 
 ## Microsoft login
 
-Helios' Microsoft login is used unchanged. Imperium needs its own Azure app registration, and Mojang must approve that app before it can call the Minecraft services API. Forks can't reuse another launcher's client ID. Approval can take weeks, so start early.
+Helios' Microsoft login is used unchanged. Imperium needs its own Azure app registration, and Mojang must approve that app before it can call the Minecraft services API. Don't copy another launcher's client ID: reusing one breaks Microsoft's and Mojang's terms. Approval can take weeks, so start early.
+
+### The config value
+
+The app ID is set in one place: `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js). It ships as the placeholder `00000000-0000-0000-0000-000000000000`.
+
+While it's the placeholder, the launcher doesn't open the Microsoft window. Clicking **Login with Microsoft** (or **Add Microsoft Account** in settings) instead shows *"Microsoft login isn't configured yet: this build has no Azure app ID."*
+
+Any valid non-zero GUID turns sign-in on. The client ID is public (it ships in every installer), so it can live in git.
 
 ### 1. Register the Azure app
 
-1. Sign in at <https://portal.azure.com> and open **Microsoft Entra ID** → **App registrations** → **New registration**.
+1. Sign in at <https://portal.azure.com> and open **App registrations** → **New registration**.
 2. **Name:** `Imperium Launcher`.
-3. **Supported account types:** *Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)*. Personal accounts are required, because almost every Minecraft account is one.
-4. Leave **Redirect URI** blank and click **Register**.
-5. Open **Authentication** → **Add a platform** → **Mobile and desktop applications**, and add this redirect URI:
+3. **Supported account types:** *Personal Microsoft accounts only*. The launcher signs in against the `consumers` endpoint, and Minecraft accounts are personal accounts.
+4. **Redirect URI:** choose *Public client/native (mobile & desktop)* and enter
    `https://login.microsoftonline.com/common/oauth2/nativeclient`
-   The launcher's sign-in window ([`index.js`](index.js)) watches for that redirect to collect the auth code.
-6. Open **Certificates & secrets** → **New client secret**, then add one. The launcher never uses it, but Microsoft's review expects the app to have one. Don't commit it.
-7. On **Overview**, copy the **Application (client) ID** and the **Directory (tenant) ID**.
+   The launcher's sign-in window ([`index.js`](index.js)) watches for that redirect to collect the auth code. Click **Register**.
+5. Open **Authentication**, set **Allow public client flows** to **Yes**, and save.
+6. On **Overview**, copy the **Application (client) ID**. Also note the **Directory (tenant) ID** for the review form.
+7. Paste the client ID into `AZURE_CLIENT_ID` and rebuild (`npm run dist`).
 
-### 2. Put the client ID in the launcher
+No client secret is needed. The launcher is a public client, and a secret in an installer wouldn't stay secret anyway.
 
-Set `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js). The client ID is public (it ships in every installer), so it can live in git.
+### 2. Get Minecraft API access
 
-### 3. Get Mojang approval
+1. In the rebuilt launcher, **try to sign in at least once**. It fails, but Microsoft wants to see activity on the app before reviewing it.
+2. Submit the app ID at <https://aka.ms/mce-reviewappid>, describing it as the official launcher for ImperiumMC that signs players in to Minecraft: Java Edition.
+3. Wait for the approval email. After approval it can take up to 24 hours before tokens are accepted.
 
-1. Build the launcher and **try to sign in at least once** with the new client ID. It fails with an error, but Microsoft needs to see activity on the app before it will review it.
-2. Submit the app at <https://aka.ms/mce-reviewappid> with the client ID and tenant ID. Describe it as the official launcher for ImperiumMC that signs players in to launch Minecraft: Java Edition.
-3. Wait for the approval email. After approval it can take up to 24 hours before the Minecraft services API accepts tokens from the app.
-
-Until approval, sign-in fails at the Minecraft services step (`api.minecraftservices.com/authentication/login_with_xbox` returns 403).
+Until approval, the Microsoft and Xbox steps succeed but the Minecraft token step (`api.minecraftservices.com/authentication/login_with_xbox`) returns **403**, and the launcher reports a failed login.
 
 More detail: Helios' own guide in [docs/MicrosoftAuth.md](docs/MicrosoftAuth.md), and Minecraft's [help article on launcher app registration](https://help.minecraft.net/hc/en-us/articles/16254801392141).
 
@@ -89,7 +95,8 @@ On Windows without Developer Mode, electron-builder fails while extracting `winC
 | Azure client ID | `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js) |
 | UI strings, links, welcome text | [`app/assets/lang/_custom.toml`](app/assets/lang/_custom.toml) and `en_US.toml` |
 | Theme | [`app/assets/css/launcher.css`](app/assets/css/launcher.css) (gold `#d4a54f` / `#e8c563` / `#b8923d`, matching imperium-mc.net) |
-| Icons and backgrounds | `app/assets/images/`, `build/icon.png`, `build/icon.ico` |
+| Logo (all icons, header, splash) | The website's `frontend/public/Logo.png`, only resized: `build/icon.png`, `build/icon.ico`, `app/assets/images/SealCircle.{png,ico}`, `LoadingSeal.png` |
+| Backgrounds | `app/assets/images/backgrounds/` |
 | Launcher data on the player's PC | `%APPDATA%\.imperiumlauncher` (Windows) |
 | Auto-update source | GitHub Releases of this repo (`electron-builder` publish config + `dev-app-update.yml`) |
 

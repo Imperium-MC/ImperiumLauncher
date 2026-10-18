@@ -282,6 +282,8 @@ checkingForUpdatesButton = "Checking for Updates.."
 [js.settings.msftLogin]
 errorTitle = "Microsoft Login Failed"
 errorMessage = "We were unable to authenticate your Microsoft account. Please try again."
+notConfiguredTitle = "Microsoft Login Unavailable"
+notConfiguredMessage = "Microsoft login isn't configured yet: this build has no Azure app ID.<br><br>Microsoft sign-in will work in a later build, once Imperium's Azure app has been approved for Minecraft."
 okButton = "OK"
 
 [js.uibinder.startup]

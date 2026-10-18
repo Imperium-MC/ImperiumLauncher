@@ -1,6 +1,9 @@
-// Placeholder until Imperium's Azure app is registered and approved by Mojang.
-// Forks may not reuse another launcher's client ID. See README.md, "Microsoft login".
+// The only place the Azure app ID is set. Forks may not reuse another launcher's ID.
+// See README.md, "Microsoft login".
 exports.AZURE_CLIENT_ID = '00000000-0000-0000-0000-000000000000'
+
+exports.AZURE_CLIENT_ID_CONFIGURED = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(exports.AZURE_CLIENT_ID)
+    && !/^[0-]+$/.test(exports.AZURE_CLIENT_ID)
 
 
 // Opcodes
@@ -18,7 +21,8 @@ exports.MSFT_REPLY_TYPE = {
 // Error types for ERROR reply.
 exports.MSFT_ERROR = {
     ALREADY_OPEN: 'MSFT_AUTH_ERR_ALREADY_OPEN',
-    NOT_FINISHED: 'MSFT_AUTH_ERR_NOT_FINISHED'
+    NOT_FINISHED: 'MSFT_AUTH_ERR_NOT_FINISHED',
+    NOT_CONFIGURED: 'MSFT_AUTH_ERR_NOT_CONFIGURED'
 }
 
 exports.SHELL_OPCODE = {
