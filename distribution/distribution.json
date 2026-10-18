@@ -7,7 +7,7 @@
             "description": "Story-driven Roman prison server. Placeholder index: no files are synced yet.",
             "icon": "https://raw.githubusercontent.com/MylesThePro1/ImperiumLauncher/master/app/assets/images/SealCircle.png",
             "version": "0.0.1",
-            "address": "play.imperium-mc.net",
+            "address": "play.imperiummc.net",
             "minecraftVersion": "26.3",
             "mainServer": true,
             "autoconnect": true,

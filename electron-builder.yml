@@ -1,4 +1,4 @@
-appId: 'net.imperium-mc.launcher'
+appId: 'net.imperiummc.launcher'
 productName: 'Imperium Launcher'
 artifactName: 'Imperium-Launcher-setup-${version}.${ext}'
 
@@ -42,7 +42,7 @@ linux:
   maintainer: 'ImperiumMC'
   vendor: 'ImperiumMC'
   synopsis: 'ImperiumMC Launcher'
-  description: 'Official ImperiumMC launcher. Keeps the Imperium Client pack in sync and joins play.imperium-mc.net.'
+  description: 'Official ImperiumMC launcher. Keeps the Imperium Client pack in sync and joins play.imperiummc.net.'
   category: 'Game'
 
 

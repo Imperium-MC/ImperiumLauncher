@@ -10,7 +10,7 @@ The format is Helios' own. [distro.md](distro.md) documents every field, and [he
 | - | - |
 | Launcher setting | `REMOTE_DISTRO_URL` in [`app/assets/js/distromanager.js`](../app/assets/js/distromanager.js) |
 | Now (placeholder) | `https://raw.githubusercontent.com/MylesThePro1/ImperiumLauncher/master/distribution/distribution.json` |
-| Planned | An ImperiumMC-hosted URL such as `https://launcher.imperium-mc.net/distribution.json` (Cloudflare R2 or Pages), set in milestone 2 |
+| Planned | An ImperiumMC-hosted URL such as `https://launcher.imperiummc.net/distribution.json` (Cloudflare R2 or Pages), set in milestone 2 |
 
 The placeholder has the server entry but no modules, so the launcher loads and reaches the login screen. Pressing Play fails with `No mod loader found!`.
 
@@ -23,7 +23,7 @@ If the index can't be downloaded, the launcher falls back to its last cached cop
 ```json
 {
     "version": "1.0.0",
-    "rss": "https://imperium-mc.net/news.rss",
+    "rss": "https://imperiummc.net/news.rss",
     "discord": { "clientId": "...", "smallImageText": "ImperiumMC", "smallImageKey": "seal" },
     "servers": [ { "...": "the server object below" } ]
 }
@@ -38,7 +38,7 @@ If the index can't be downloaded, the launcher falls back to its last cached cop
 | `id` | `ImperiumMC`. **Never change it.** The launcher keys instance folders and settings by this ID, and changing it wipes players' data. |
 | `name` / `description` / `icon` | Shown on the landing page. |
 | `version` | Bump on every pack change (semver). |
-| `address` | `play.imperium-mc.net` |
+| `address` | `play.imperiummc.net` |
 | `minecraftVersion` | `26.3` |
 | `mainServer` | `true` |
 | `autoconnect` | `true` (joins the server on launch via Quick Play) |
@@ -127,4 +127,4 @@ Writing MD5s and sizes by hand doesn't scale. Use [Nebula](https://github.com/ds
 - [ ] Performance pack mods, each one built for 26.3
 - [ ] Resource pack zip matches the server's `resource-pack-sha1`
 - [ ] Every artifact URL returns 200, and every `size` and `MD5` matches the file served
-- [ ] A clean install (delete `%APPDATA%\.imperiumlauncher`) launches and auto-joins `play.imperium-mc.net`
+- [ ] A clean install (delete `%APPDATA%\.imperiumlauncher`) launches and auto-joins `play.imperiummc.net`
