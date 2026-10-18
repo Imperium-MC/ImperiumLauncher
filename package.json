@@ -1,13 +1,13 @@
 {
-  "name": "helioslauncher",
-  "version": "2.2.1",
-  "productName": "Helios Launcher",
-  "description": "Modded Minecraft Launcher",
-  "author": "Daniel Scalzi (https://github.com/dscalzi/)",
-  "license": "UNLICENSED",
-  "homepage": "https://github.com/dscalzi/HeliosLauncher",
+  "name": "imperiumlauncher",
+  "version": "0.1.0",
+  "productName": "Imperium Launcher",
+  "description": "Official launcher for ImperiumMC, based on Helios Launcher",
+  "author": "ImperiumMC (https://github.com/MylesThePro1)",
+  "license": "MIT",
+  "homepage": "https://github.com/MylesThePro1/ImperiumLauncher",
   "bugs": {
-    "url": "https://github.com/dscalzi/HeliosLauncher/issues"
+    "url": "https://github.com/MylesThePro1/ImperiumLauncher/issues"
   },
   "private": true,
   "main": "index.js",
@@ -47,6 +47,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dscalzi/HeliosLauncher.git"
+    "url": "git+https://github.com/MylesThePro1/ImperiumLauncher.git"
   }
 }

@@ -2,9 +2,9 @@ const { DistributionAPI } = require('helios-core/common')
 
 const ConfigManager = require('./configmanager')
 
-// Old WesterosCraft url.
-// exports.REMOTE_DISTRO_URL = 'http://mc.westeroscraft.com/WesterosCraftLauncher/distribution.json'
-exports.REMOTE_DISTRO_URL = 'https://helios-files.geekcorner.eu.org/distribution.json'
+// Placeholder index with no modules yet; the real one moves to ImperiumMC hosting in milestone 2.
+// See docs/distribution-index.md for what it must contain.
+exports.REMOTE_DISTRO_URL = 'https://raw.githubusercontent.com/MylesThePro1/ImperiumLauncher/master/distribution/distribution.json'
 
 const api = new DistributionAPI(
     ConfigManager.getLauncherDirectory(),
