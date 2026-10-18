@@ -314,6 +314,8 @@ under18Title = "Error During Login:<br>Parental Approval Required"
 under18Desc = "Accounts for users under the age of 18 must be added to a Family by an adult."
 unknownTitle = "Unknown Error During Login"
 unknownDesc = "An unknown error has occurred. Please see the console for details."
+appNotApprovedTitle = "Awaiting Minecraft API Approval"
+appNotApprovedDesc = "Your Microsoft account signed in, but Minecraft hasn't approved Imperium Launcher's app ID yet, so it refused to issue a game token (HTTP 403).<br><br>Nothing is wrong with your account. Sign-in will work once Mojang approves the launcher; approvals can take up to 24 hours to take effect."
 
 [js.auth.mojang.error]
 methodNotAllowedTitle = "Internal Error:<br>Method Not Allowed"

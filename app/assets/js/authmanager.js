@@ -206,6 +206,13 @@ async function fullMicrosoftAuthFlow(entryCode, authMode) {
         }
         const mcTokenResponse = await MicrosoftAuth.getMCAccessToken(xstsResonse.data)
         if(mcTokenResponse.responseStatus === RestResponseStatus.ERROR) {
+            // Minecraft services reject Azure apps that Mojang hasn't approved with a 403.
+            if(mcTokenResponse.error?.response?.statusCode === 403) {
+                return Promise.reject({
+                    title: Lang.queryJS('auth.microsoft.error.appNotApprovedTitle'),
+                    desc: Lang.queryJS('auth.microsoft.error.appNotApprovedDesc')
+                })
+            }
             return Promise.reject(microsoftErrorDisplayable(mcTokenResponse.microsoftErrorCode))
         }
         const mcProfileResponse = await MicrosoftAuth.getMCProfile(mcTokenResponse.data.access_token)

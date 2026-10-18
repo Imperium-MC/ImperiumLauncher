@@ -15,7 +15,7 @@ Milestone 1 of the launcher plan (fork, rebrand, Windows installer) is done. Not
 | Area | State |
 | ---- | ----- |
 | Distribution index | Placeholder at [`distribution/distribution.json`](distribution/distribution.json) with no modules, so **Play does not work yet**. See [docs/distribution-index.md](docs/distribution-index.md). |
-| Microsoft login | No Azure app ID yet, so the launcher shows a "not configured" message instead of opening the Microsoft window. See [Microsoft login](#microsoft-login). |
+| Microsoft login | Azure app registered (`8b0c9e33-b6ce-40ec-ac30-c85a35dd8163`); Minecraft API approval pending. Until Mojang approves it, sign-in ends with an "Awaiting Minecraft API Approval" message. See [Microsoft login](#microsoft-login). |
 | macOS / Linux installers | Config is inherited from Helios but untested. |
 
 ## Microsoft login
@@ -24,9 +24,9 @@ Helios' Microsoft login is used unchanged. Imperium needs its own Azure app regi
 
 ### The config value
 
-The app ID is set in one place: `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js). It ships as the placeholder `00000000-0000-0000-0000-000000000000`.
+The app ID is set in one place: `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js). It is set to Imperium's registered app, `8b0c9e33-b6ce-40ec-ac30-c85a35dd8163` (personal accounts only, `nativeclient` redirect).
 
-While it's the placeholder, the launcher doesn't open the Microsoft window. Clicking **Login with Microsoft** (or **Add Microsoft Account** in settings) instead shows *"Microsoft login isn't configured yet: this build has no Azure app ID."*
+If it's ever set back to the all-zero placeholder, the launcher doesn't open the Microsoft window. Clicking **Login with Microsoft** (or **Add Microsoft Account** in settings) instead shows *"Microsoft login isn't configured yet: this build has no Azure app ID."*
 
 Any valid non-zero GUID turns sign-in on. The client ID is public (it ships in every installer), so it can live in git.
 
@@ -50,7 +50,7 @@ No client secret is needed. The launcher is a public client, and a secret in an 
 2. Submit the app ID at <https://aka.ms/mce-reviewappid>, describing it as the official launcher for ImperiumMC that signs players in to Minecraft: Java Edition.
 3. Wait for the approval email. After approval it can take up to 24 hours before tokens are accepted.
 
-Until approval, the Microsoft and Xbox steps succeed but the Minecraft token step (`api.minecraftservices.com/authentication/login_with_xbox`) returns **403**, and the launcher reports a failed login.
+Until approval, the Microsoft and Xbox steps succeed but the Minecraft token step (`api.minecraftservices.com/authentication/login_with_xbox`) returns **403**. The launcher detects that 403 and shows *Awaiting Minecraft API Approval* instead of a generic error ([`authmanager.js`](app/assets/js/authmanager.js)).
 
 More detail: Helios' own guide in [docs/MicrosoftAuth.md](docs/MicrosoftAuth.md), and Minecraft's [help article on launcher app registration](https://help.minecraft.net/hc/en-us/articles/16254801392141).
 
