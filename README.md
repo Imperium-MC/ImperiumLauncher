@@ -1,211 +1,104 @@
-<p align="center"><img src="./app/assets/images/SealCircle.png" width="150px" height="150px" alt="aventium softworks"></p>
+<p align="center"><img src="./app/assets/images/SealCircle.png" width="150px" height="150px" alt="Imperium"></p>
 
-<h1 align="center">Helios Launcher</h1>
+<h1 align="center">Imperium Launcher</h1>
 
-<em><h5 align="center">(formerly Electron Launcher)</h5></em>
+<p align="center">The official launcher for <a href="https://imperium-mc.net">ImperiumMC</a> (<code>play.imperium-mc.net</code>).<br>It keeps Imperium Client and the server's pack in sync and starts Minecraft with your real Microsoft session.</p>
 
-[<p align="center"><img src="https://img.shields.io/github/actions/workflow/status/dscalzi/HeliosLauncher/build.yml?branch=master&style=for-the-badge" alt="gh actions">](https://github.com/dscalzi/HeliosLauncher/actions) [<img src="https://img.shields.io/github/downloads/dscalzi/HeliosLauncher/total.svg?style=for-the-badge" alt="downloads">](https://github.com/dscalzi/HeliosLauncher/releases) <img src="https://forthebadge.com/images/badges/winter-is-coming.svg"  height="28px" alt="winter-is-coming"></p>
+![Login screen](docs/screenshots/login.jpg)
 
-<p align="center">Join modded servers without worrying about installing Java, Forge, or other mods. We'll handle that for you.</p>
+Imperium Launcher is a fork of [Helios Launcher](https://github.com/dscalzi/HeliosLauncher) by Daniel Scalzi, released under the MIT licence. Almost everything here is Helios' work; this fork changes the branding, theme and distribution index. See [Credits and licence](#credits-and-licence).
 
-![Screenshot 1](https://i.imgur.com/6o7SmH6.png)
-![Screenshot 2](https://i.imgur.com/x3B34n1.png)
+## Status
 
-## Features
+Milestone 1 of the launcher plan (fork, rebrand, Windows installer) is done. Not working yet:
 
-* 🔒 Full account management.
-  * Add multiple accounts and easily switch between them.
-  * Microsoft (OAuth 2.0) + Mojang (Yggdrasil) authentication fully supported.
-  * Credentials are never stored and transmitted directly to Mojang.
-* 📂 Efficient asset management.
-  * Receive client updates as soon as we release them.
-  * Files are validated before launch. Corrupt or incorrect files will be redownloaded.
-* ☕ **Automatic Java validation.**
-  * If you have an incompatible version of Java installed, we'll install the right one *for you*.
-  * You do not need to have Java installed to run the launcher.
-* 📰 News feed natively built into the launcher.
-* ⚙️ Intuitive settings management, including a Java control panel.
-* Supports all of our servers.
-  * Switch between server configurations with ease.
-  * View the player count of the selected server.
-* Automatic updates. That's right, the launcher updates itself.
-*  View the status of Mojang's services.
+| Area | State |
+| ---- | ----- |
+| Distribution index | Placeholder at [`distribution/distribution.json`](distribution/distribution.json) with no modules, so **Play does not work yet**. See [docs/distribution-index.md](docs/distribution-index.md). |
+| Microsoft login | Uses a placeholder Azure client ID until the steps below are done. The sign-in window opens and Microsoft rejects it. |
+| macOS / Linux installers | Config is inherited from Helios but untested. |
 
-This is not an exhaustive list. Download and install the launcher to gauge all it can do!
+## Microsoft login
 
-#### Need Help? [Check the wiki.][wiki]
+Helios' Microsoft login is used unchanged. Imperium needs its own Azure app registration, and Mojang must approve that app before it can call the Minecraft services API. Forks can't reuse another launcher's client ID. Approval can take weeks, so start early.
 
-#### Like the project? Leave a ⭐ star on the repository!
+### 1. Register the Azure app
 
-## Downloads
+1. Sign in at <https://portal.azure.com> and open **Microsoft Entra ID** → **App registrations** → **New registration**.
+2. **Name:** `Imperium Launcher`.
+3. **Supported account types:** *Accounts in any organizational directory (Any Microsoft Entra ID tenant - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)*. Personal accounts are required, because almost every Minecraft account is one.
+4. Leave **Redirect URI** blank and click **Register**.
+5. Open **Authentication** → **Add a platform** → **Mobile and desktop applications**, and add this redirect URI:
+   `https://login.microsoftonline.com/common/oauth2/nativeclient`
+   The launcher's sign-in window ([`index.js`](index.js)) watches for that redirect to collect the auth code.
+6. Open **Certificates & secrets** → **New client secret**, then add one. The launcher never uses it, but Microsoft's review expects the app to have one. Don't commit it.
+7. On **Overview**, copy the **Application (client) ID** and the **Directory (tenant) ID**.
 
-You can download from [GitHub Releases](https://github.com/dscalzi/HeliosLauncher/releases)
+### 2. Put the client ID in the launcher
 
-#### Latest Release
+Set `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js). The client ID is public (it ships in every installer), so it can live in git.
 
-[![](https://img.shields.io/github/release/dscalzi/HeliosLauncher.svg?style=flat-square)](https://github.com/dscalzi/HeliosLauncher/releases/latest)
+### 3. Get Mojang approval
 
-#### Latest Pre-Release
-[![](https://img.shields.io/github/release/dscalzi/HeliosLauncher/all.svg?style=flat-square)](https://github.com/dscalzi/HeliosLauncher/releases)
+1. Build the launcher and **try to sign in at least once** with the new client ID. It fails with an error, but Microsoft needs to see activity on the app before it will review it.
+2. Submit the app at <https://aka.ms/mce-reviewappid> with the client ID and tenant ID. Describe it as the official launcher for ImperiumMC that signs players in to launch Minecraft: Java Edition.
+3. Wait for the approval email. After approval it can take up to 24 hours before the Minecraft services API accepts tokens from the app.
 
-**Supported Platforms**
+Until approval, sign-in fails at the Minecraft services step (`api.minecraftservices.com/authentication/login_with_xbox` returns 403).
 
-If you download from the [Releases](https://github.com/dscalzi/HeliosLauncher/releases) tab, select the installer for your system.
-
-| Platform | File |
-| -------- | ---- |
-| Windows x64 | `Helios-Launcher-setup-VERSION.exe` |
-| macOS x64 | `Helios-Launcher-setup-VERSION-x64.dmg` |
-| macOS arm64 | `Helios-Launcher-setup-VERSION-arm64.dmg` |
-| Linux x64 | `Helios-Launcher-setup-VERSION.AppImage` |
-
-## Console
-
-To open the console, use the following keybind.
-
-```console
-ctrl + shift + i
-```
-
-Ensure that you have the console tab selected. Do not paste anything into the console unless you are 100% sure of what it will do. Pasting the wrong thing can expose sensitive information.
-
-#### Export Output to a File
-
-If you want to export the console output, simply right click anywhere on the console and click **Save as..**
-
-![console example](https://i.imgur.com/T5e73jP.png)
-
+More detail: Helios' own guide in [docs/MicrosoftAuth.md](docs/MicrosoftAuth.md), and Minecraft's [help article on launcher app registration](https://help.minecraft.net/hc/en-us/articles/16254801392141).
 
 ## Development
 
-This section details the setup of a basic developmentment environment.
-
-### Getting Started
-
-**System Requirements**
-
-* [Node.js][nodejs] v22
-
----
-
-**Clone and Install Dependencies**
+Requires [Node.js](https://nodejs.org/) 22 (`engines` in `package.json`). Node 24 also builds.
 
 ```console
-> git clone https://github.com/dscalzi/HeliosLauncher.git
-> cd HeliosLauncher
-> npm install
+git clone https://github.com/MylesThePro1/ImperiumLauncher.git
+cd ImperiumLauncher
+npm ci
+npm start
 ```
 
----
+npm 11 skips dependency install scripts that aren't on its allow list, which leaves `node_modules/electron/dist` empty. If `npm start` says Electron failed to install, run `node node_modules/electron/install.js`, or extract the cached `electron-v<version>-win32-x64.zip` from `%LOCALAPPDATA%\electron\Cache` into `node_modules/electron/dist` and write `electron.exe` to `node_modules/electron/path.txt`.
 
-**Launch Application**
+### Build installers
 
 ```console
-> npm start
+npm run dist
 ```
 
----
+| Platform | Command | Output |
+| -------- | ------- | ------ |
+| Windows x64 | `npm run dist:win` | `dist/Imperium-Launcher-setup-VERSION.exe` |
+| macOS | `npm run dist:mac` | `dist/Imperium-Launcher-setup-VERSION-{x64,arm64}.dmg` |
+| Linux x64 | `npm run dist:linux` | `dist/Imperium-Launcher-setup-VERSION.AppImage` |
 
-**Build Installers**
+Installers aren't code-signed yet, so Windows SmartScreen warns on first run.
 
-To build for your current platform.
+On Windows without Developer Mode, electron-builder fails while extracting `winCodeSign-2.6.0.7z` ("Cannot create symbolic link"). The failing links are macOS-only files. Extract the archive once with errors ignored into `%LOCALAPPDATA%\electron-builder\Cache\winCodeSign\winCodeSign-2.6.0`, and later builds reuse it.
 
-```console
-> npm run dist
-```
+### Console
 
-Build for a specific platform.
+`Ctrl+Shift+I` opens DevTools. Don't paste anything into it unless you know what it does.
 
-| Platform    | Command              |
-| ----------- | -------------------- |
-| Windows x64 | `npm run dist:win`   |
-| macOS       | `npm run dist:mac`   |
-| Linux x64   | `npm run dist:linux` |
+### Where things live
 
-Builds for macOS may not work on Windows/Linux and vice-versa.
+| What | Where |
+| ---- | ----- |
+| Distribution index URL | `REMOTE_DISTRO_URL` in [`app/assets/js/distromanager.js`](app/assets/js/distromanager.js) |
+| Azure client ID | `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js) |
+| UI strings, links, welcome text | [`app/assets/lang/_custom.toml`](app/assets/lang/_custom.toml) and `en_US.toml` |
+| Theme | [`app/assets/css/launcher.css`](app/assets/css/launcher.css) (gold `#d4a54f` / `#e8c563` / `#b8923d`, matching imperium-mc.net) |
+| Icons and backgrounds | `app/assets/images/`, `build/icon.png`, `build/icon.ico` |
+| Launcher data on the player's PC | `%APPDATA%\.imperiumlauncher` (Windows) |
+| Auto-update source | GitHub Releases of this repo (`electron-builder` publish config + `dev-app-update.yml`) |
 
----
+## Credits and licence
 
-### Visual Studio Code
+Imperium Launcher is based on [Helios Launcher](https://github.com/dscalzi/HeliosLauncher), Copyright (c) 2017-2026 Daniel D. Scalzi, used under the MIT licence. The full licence text is in [LICENSE.txt](LICENSE.txt) and must stay with every copy. The Helios source is tracked as the `upstream` remote so fixes can be merged in.
 
-All development of the launcher should be done using [Visual Studio Code][vscode].
+Helios is supported by its own projects: [Nebula](https://github.com/dscalzi/Nebula) generates distribution indexes, and [helios-core](https://github.com/dscalzi/helios-core) handles downloads, Java management and auth.
 
-Paste the following into `.vscode/launch.json`
+ImperiumMC names, logos and artwork are not covered by the MIT licence and belong to ImperiumMC.
 
-```JSON
-{
-  "version": "0.2.0",
-  "configurations": [
-    {
-      "name": "Debug Main Process",
-      "type": "node",
-      "request": "launch",
-      "cwd": "${workspaceFolder}",
-      "program": "${workspaceFolder}/node_modules/electron/cli.js",
-      "args" : ["."],
-      "outputCapture": "std"
-    },
-    {
-      "name": "Debug Renderer Process",
-      "type": "chrome",
-      "request": "launch",
-      "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron",
-      "windows": {
-        "runtimeExecutable": "${workspaceFolder}/node_modules/.bin/electron.cmd"
-      },
-      "runtimeArgs": [
-        "${workspaceFolder}/.",
-        "--remote-debugging-port=9222"
-      ],
-      "webRoot": "${workspaceFolder}"
-    }
-  ]
-}
-```
-
-This adds two debug configurations.
-
-#### Debug Main Process
-
-This allows you to debug Electron's [main process][mainprocess]. You can debug scripts in the [renderer process][rendererprocess] by opening the DevTools Window.
-
-#### Debug Renderer Process
-
-This allows you to debug Electron's [renderer process][rendererprocess]. This requires you to install the [Debugger for Chrome][chromedebugger] extension.
-
-Note that you **cannot** open the DevTools window while using this debug configuration. Chromium only allows one debugger, opening another will crash the program.
-
----
-
-### Note on Third-Party Usage
-
-Please give credit to the original author and provide a link to the original source. This is free software, please do at least this much.
-
-For instructions on setting up Microsoft Authentication, see https://github.com/dscalzi/HeliosLauncher/blob/master/docs/MicrosoftAuth.md.
-
----
-
-## Resources
-
-* [Wiki][wiki]
-* [Nebula (Create Distribution.json)][nebula]
-* [v2 Rewrite Branch (Inactive)][v2branch]
-
-The best way to contact the developers is on Discord.
-
-[![discord](https://discordapp.com/api/guilds/211524927831015424/embed.png?style=banner3)][discord]
-
----
-
-### See you ingame.
-
-
-[nodejs]: https://nodejs.org/en/ 'Node.js'
-[vscode]: https://code.visualstudio.com/ 'Visual Studio Code'
-[mainprocess]: https://electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes 'Main Process'
-[rendererprocess]: https://electronjs.org/docs/tutorial/application-architecture#main-and-renderer-processes 'Renderer Process'
-[chromedebugger]: https://marketplace.visualstudio.com/items?itemName=msjsdiag.debugger-for-chrome 'Debugger for Chrome'
-[discord]: https://discord.gg/zNWUXdt 'Discord'
-[wiki]: https://github.com/dscalzi/HeliosLauncher/wiki 'wiki'
-[nebula]: https://github.com/dscalzi/Nebula 'dscalzi/Nebula'
-[v2branch]: https://github.com/dscalzi/HeliosLauncher/tree/ts-refactor 'v2 branch'
+Imperium Launcher is not an official Minecraft product and is not approved by or associated with Mojang or Microsoft.
