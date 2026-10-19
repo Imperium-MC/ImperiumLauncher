@@ -4,7 +4,7 @@ const ConfigManager = require('./configmanager')
 
 // Placeholder index with no modules yet; the real one moves to ImperiumMC hosting in milestone 2.
 // See docs/distribution-index.md for what it must contain.
-exports.REMOTE_DISTRO_URL = 'https://raw.githubusercontent.com/MylesThePro1/ImperiumLauncher/master/distribution/distribution.json'
+exports.REMOTE_DISTRO_URL = 'https://raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/distribution/distribution.json'
 
 const api = new DistributionAPI(
     ConfigManager.getLauncherDirectory(),
