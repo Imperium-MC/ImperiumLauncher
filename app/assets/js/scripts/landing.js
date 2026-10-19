@@ -13,11 +13,11 @@ const {
     validateLocalFile
 }                             = require('helios-core/common')
 const {
-    FullRepair,
     DistributionIndexProcessor,
     MojangIndexProcessor,
     downloadFile
 }                             = require('helios-core/dl')
+const { ImperiumRepair }      = require('./assets/js/assetdl')
 const {
     validateSelectedJvm,
     ensureJavaDirIsRoot,
@@ -37,6 +37,7 @@ const launch_details          = document.getElementById('launch_details')
 const launch_progress         = document.getElementById('launch_progress')
 const launch_progress_label   = document.getElementById('launch_progress_label')
 const launch_details_text     = document.getElementById('launch_details_text')
+const launch_file_progress    = document.getElementById('launch_file_progress')
 const server_selection_button = document.getElementById('server_selection_button')
 const user_text               = document.getElementById('user_text')
 
@@ -91,11 +92,59 @@ function setDownloadPercentage(percent){
 
 /**
  * Enable or disable the launch button.
- * 
+ *
  * @param {boolean} val True to enable, false to disable.
  */
 function setLaunchEnabled(val){
     document.getElementById('launch_button').disabled = !val
+}
+
+/* Per-artifact download progress detail */
+
+// The download pipeline emits per-file progress far faster than the UI
+// needs to repaint (large files fire a event per chunk). Pending text is
+// cached and flushed on a 250ms interval (~4 updates/second).
+let fileProgressPending = null
+let fileProgressTimer = null
+
+/**
+ * Queue a per-file progress line for display. Throttled to ~4/s.
+ *
+ * @param {string} text The line to display, null clears the queue only.
+ */
+function queueFileProgressDetail(text){
+    fileProgressPending = text
+    if(fileProgressTimer == null){
+        fileProgressTimer = setInterval(() => {
+            if(fileProgressPending != null){
+                launch_file_progress.innerHTML = fileProgressPending
+                fileProgressPending = null
+            }
+        }, 250)
+    }
+}
+
+/**
+ * Display a per-file line immediately, bypassing the throttle.
+ * Used for rare, high-signal events such as retry states.
+ *
+ * @param {string} text The line to display.
+ */
+function showFileProgressDetailNow(text){
+    fileProgressPending = null
+    launch_file_progress.innerHTML = text
+}
+
+/**
+ * Clear and hide the per-file progress line, stopping the flush timer.
+ */
+function clearFileProgressDetail(){
+    if(fileProgressTimer != null){
+        clearInterval(fileProgressTimer)
+        fileProgressTimer = null
+    }
+    fileProgressPending = null
+    launch_file_progress.innerHTML = ''
 }
 
 // Bind launch button
@@ -276,7 +325,7 @@ let serverStatusListener = setInterval(() => refreshServerStatus(true), 300000)
 
 /**
  * Shows an error overlay, toggles off the launch area.
- * 
+ *
  * @param {string} title The overlay title.
  * @param {string} desc The overlay description.
  */
@@ -288,6 +337,32 @@ function showLaunchFailure(title, desc){
     )
     setOverlayHandler(null)
     toggleOverlay(true)
+    toggleLaunchArea(false)
+}
+
+/**
+ * Shows the download failure overlay with a Retry All action.
+ * Retrying re-runs the full sync: files that already downloaded pass
+ * validation, so only the artifacts that failed are fetched again.
+ *
+ * @param {string} desc The overlay description.
+ */
+function showDownloadFailure(desc){
+    setOverlayContent(
+        Lang.queryJS('landing.dlAsync.errorDuringFileDownloadTitle'),
+        desc,
+        Lang.queryJS('landing.dlAsync.retryAll'),
+        Lang.queryJS('landing.dlAsync.cancelSync')
+    )
+    setOverlayHandler(() => {
+        toggleOverlay(false)
+        dlAsync()
+    })
+    setDismissHandler(() => {
+        toggleOverlay(false)
+        toggleLaunchArea(false)
+    })
+    toggleOverlay(true, true)
     toggleLaunchArea(false)
 }
 
@@ -478,7 +553,7 @@ async function dlAsync(login = true) {
     toggleLaunchArea(true)
     setLaunchPercentage(0, 100)
 
-    const fullRepairModule = new FullRepair(
+    const repairModule = new ImperiumRepair(
         ConfigManager.getCommonDirectory(),
         ConfigManager.getInstanceDirectory(),
         ConfigManager.getLauncherDirectory(),
@@ -486,15 +561,28 @@ async function dlAsync(login = true) {
         DistroAPI.isDevMode()
     )
 
-    fullRepairModule.spawnReceiver()
+    // Tracks whether a failure of this sync has already been surfaced to
+    // the user. The receiver child exits non-zero after reporting an error,
+    // and the 'close' handler must not overwrite the actionable failure
+    // overlay (e.g. the download Retry All state) with a generic one.
+    const syncState = {
+        completed: false,
+        failureShown: false
+    }
 
-    fullRepairModule.childProcess.on('error', (err) => {
+    repairModule.spawnReceiver()
+
+    repairModule.childProcess.on('error', (err) => {
         loggerLaunchSuite.error('Error during launch', err)
+        syncState.failureShown = true
+        clearFileProgressDetail()
         showLaunchFailure(Lang.queryJS('landing.dlAsync.errorDuringLaunchTitle'), err.message || Lang.queryJS('landing.dlAsync.errorDuringLaunchText'))
     })
-    fullRepairModule.childProcess.on('close', (code, _signal) => {
-        if(code !== 0){
-            loggerLaunchSuite.error(`Full Repair Module exited with code ${code}, assuming error.`)
+    repairModule.childProcess.on('close', (code, _signal) => {
+        if(code !== 0 && !syncState.completed && !syncState.failureShown){
+            loggerLaunchSuite.error(`Asset download module exited with code ${code}, assuming error.`)
+            syncState.failureShown = true
+            clearFileProgressDetail()
             showLaunchFailure(Lang.queryJS('landing.dlAsync.errorDuringLaunchTitle'), Lang.queryJS('landing.dlAsync.seeConsoleForDetails'))
         }
     })
@@ -503,39 +591,65 @@ async function dlAsync(login = true) {
     setLaunchDetails(Lang.queryJS('landing.dlAsync.validatingFileIntegrity'))
     let invalidFileCount = 0
     try {
-        invalidFileCount = await fullRepairModule.verifyFiles(percent => {
+        invalidFileCount = await repairModule.verifyFiles(percent => {
             setLaunchPercentage(percent)
         })
         setLaunchPercentage(100)
     } catch (err) {
         loggerLaunchSuite.error('Error during file validation.')
+        syncState.failureShown = true
         showLaunchFailure(Lang.queryJS('landing.dlAsync.errorDuringFileVerificationTitle'), err.displayable || Lang.queryJS('landing.dlAsync.seeConsoleForDetails'))
         return
     }
-    
+
 
     if(invalidFileCount > 0) {
         loggerLaunchSuite.info('Downloading files.')
         setLaunchDetails(Lang.queryJS('landing.dlAsync.downloadingFiles'))
         setLaunchPercentage(0)
+        clearFileProgressDetail()
         try {
-            await fullRepairModule.download(percent => {
-                setDownloadPercentage(percent)
-            })
+            await repairModule.download(
+                percent => {
+                    setDownloadPercentage(percent)
+                },
+                file => {
+                    // Per-artifact detail line under the aggregate bar.
+                    queueFileProgressDetail(Lang.queryJS('landing.dlAsync.downloadingFile', {
+                        index: file.index,
+                        count: file.count,
+                        file: file.name,
+                        percent: file.percent != null ? file.percent : 0
+                    }))
+                },
+                retry => {
+                    // Retry states are rare, display them immediately.
+                    showFileProgressDetailNow(Lang.queryJS('landing.dlAsync.retryingFile', {
+                        attempt: retry.attempt,
+                        max: retry.max,
+                        file: retry.name
+                    }))
+                }
+            )
             setDownloadPercentage(100)
         } catch(err) {
             loggerLaunchSuite.error('Error during file download.')
-            showLaunchFailure(Lang.queryJS('landing.dlAsync.errorDuringFileDownloadTitle'), err.displayable || Lang.queryJS('landing.dlAsync.seeConsoleForDetails'))
+            syncState.failureShown = true
+            clearFileProgressDetail()
+            showDownloadFailure(err.displayable || Lang.queryJS('landing.dlAsync.seeConsoleForDetails'))
             return
         }
     } else {
         loggerLaunchSuite.info('No invalid files, skipping download.')
     }
 
+    syncState.completed = true
+    clearFileProgressDetail()
+
     // Remove download bar.
     remote.getCurrentWindow().setProgressBar(-1)
 
-    fullRepairModule.destroyReceiver()
+    repairModule.destroyReceiver()
 
     setLaunchDetails(Lang.queryJS('landing.dlAsync.preparingToLaunch'))
 
@@ -954,20 +1068,29 @@ function displayArticle(articleObject, index){
 
 /**
  * Load news information from the RSS feed specified in the
- * distribution index.
+ * distribution index. Falls back to the ImperiumMC news feed when the
+ * distribution does not declare one. If the feed is unreachable, the
+ * panel resolves with an empty list so it stays gracefully empty.
  */
 async function loadNews(){
 
     const distroData = await DistroAPI.getDistribution()
+
+    const newsFeed = distroData.rawDistribution.rss || 'https://imperiummc.net/news.rss'
     if(!distroData.rawDistribution.rss) {
-        loggerLanding.debug('No RSS feed provided.')
-        return null
+        loggerLanding.debug('No RSS feed declared in distribution index, using default feed.')
     }
 
     const promise = new Promise((resolve, reject) => {
-        
-        const newsFeed = distroData.rawDistribution.rss
-        const newsHost = new URL(newsFeed).origin + '/'
+
+        let newsHost
+        try {
+            newsHost = new URL(newsFeed).origin + '/'
+        } catch(err) {
+            loggerLanding.warn('Invalid RSS feed URL declared.', err)
+            resolve({ articles: [] })
+            return
+        }
         $.ajax({
             url: newsFeed,
             success: (data) => {
@@ -985,8 +1108,9 @@ async function loadNews(){
                     let comments = el.find('slash\\:comments').text() || '0'
                     comments = comments + ' Comment' + (comments === '1' ? '' : 's')
 
+                    // Full content when available, plain description otherwise.
+                    let content = el.find('content\\:encoded').text() || el.find('description').text()
                     // Fix relative links in content.
-                    let content = el.find('content\\:encoded').text()
                     let regex = /src="(?!http:\/\/|https:\/\/)(.+?)"/g
                     let matches
                     while((matches = regex.exec(content))){
@@ -995,7 +1119,7 @@ async function loadNews(){
 
                     let link   = el.find('link').text()
                     let title  = el.find('title').text()
-                    let author = el.find('dc\\:creator').text()
+                    let author = el.find('dc\\:creator').text() || 'ImperiumMC'
 
                     // Generate article.
                     articles.push(
@@ -1014,10 +1138,12 @@ async function loadNews(){
                     articles
                 })
             },
-            timeout: 2500
+            timeout: 5000
         }).catch(err => {
+            // Feed unreachable: keep the news panel gracefully empty.
+            loggerLanding.warn('Unable to load news feed.', err)
             resolve({
-                articles: null
+                articles: []
             })
         })
     })

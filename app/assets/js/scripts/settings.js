@@ -1496,6 +1496,7 @@ const settingsUpdateTitle          = document.getElementById('settingsUpdateTitl
 const settingsUpdateVersionCheck   = document.getElementById('settingsUpdateVersionCheck')
 const settingsUpdateVersionTitle   = document.getElementById('settingsUpdateVersionTitle')
 const settingsUpdateVersionValue   = document.getElementById('settingsUpdateVersionValue')
+const settingsUpdateCurrentText    = document.getElementById('settingsUpdateCurrentText')
 const settingsUpdateChangelogTitle = settingsTabUpdate.getElementsByClassName('settingsChangelogTitle')[0]
 const settingsUpdateChangelogText  = settingsTabUpdate.getElementsByClassName('settingsChangelogText')[0]
 const settingsUpdateChangelogCont  = settingsTabUpdate.getElementsByClassName('settingsChangelogContainer')[0]
@@ -1528,7 +1529,12 @@ function populateSettingsUpdateInformation(data){
         settingsUpdateChangelogTitle.innerHTML = data.releaseName
         settingsUpdateChangelogText.innerHTML = data.releaseNotes
         populateVersionInformation(data.version, settingsUpdateVersionValue, settingsUpdateVersionTitle, settingsUpdateVersionCheck)
-        
+        // Version-check line: current launcher against the available release.
+        settingsUpdateCurrentText.innerHTML = Lang.queryJS('settings.updates.updateAvailableLine', {
+            current: remote.app.getVersion(),
+            available: data.version
+        })
+
         if(process.platform === 'darwin'){
             settingsUpdateButtonStatus(Lang.queryJS('settings.updates.downloadButton'), false, () => {
                 shell.openExternal(data.darwindownload)
@@ -1540,6 +1546,9 @@ function populateSettingsUpdateInformation(data){
         settingsUpdateTitle.innerHTML = Lang.queryJS('settings.updates.latestVersionTitle')
         settingsUpdateChangelogCont.style.display = 'none'
         populateVersionInformation(remote.app.getVersion(), settingsUpdateVersionValue, settingsUpdateVersionTitle, settingsUpdateVersionCheck)
+        settingsUpdateCurrentText.innerHTML = Lang.queryJS('settings.updates.upToDateLine', {
+            current: remote.app.getVersion()
+        })
         settingsUpdateButtonStatus(Lang.queryJS('settings.updates.checkForUpdatesButton'), false, () => {
             if(!isDev){
                 ipcRenderer.send('autoUpdateAction', 'checkForUpdate')

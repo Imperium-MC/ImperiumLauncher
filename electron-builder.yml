@@ -7,6 +7,14 @@ copyright: 'Copyright © 2026 ImperiumMC. Based on Helios Launcher, Copyright ©
 asar: true
 compression: 'maximum'
 
+# Update feed for electron-updater. Builds generate app-update.yml from
+# this block; releases are published manually, never from a local build
+# unless -p is passed explicitly.
+publish:
+  provider: 'github'
+  owner: 'Imperium-MC'
+  repo: 'ImperiumLauncher'
+
 files:
   - '!{dist,.gitignore,.vscode,docs,dev-app-update.yml,.nvmrc,eslint.config.mjs}'
 

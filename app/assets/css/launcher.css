@@ -2569,6 +2569,15 @@ input:checked + .toggleSwitchSlider:before {
     font-variant-numeric: tabular-nums lining-nums;
 }
 
+/* Version-check line: "launcher x.y.z, update available: z". */
+#settingsUpdateCurrentLine {
+    font-size: 10px;
+    color: var(--bronze);
+    font-weight: bold;
+    margin-top: 2px;
+    font-variant-numeric: tabular-nums lining-nums;
+}
+
 /* Update action container. */
 #settingsUpdateActionContainer {
     padding-top: 10px;
@@ -3676,6 +3685,21 @@ input:checked + .toggleSwitchSlider:before {
 /* Span which displays information about the status of the launch process. */
 #launch_details_text {
     font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+/* Per-artifact detail line under the aggregate download bar.
+ * Shows the file currently transferring (file n of m) and retry states.
+ * Min-height reserves the row so the layout does not shift when it fills. */
+#launch_file_progress {
+    display: block;
+    font-size: 10px;
+    letter-spacing: 1px;
+    color: var(--muted);
+    min-height: 13px;
+    margin-top: 1px;
     text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
