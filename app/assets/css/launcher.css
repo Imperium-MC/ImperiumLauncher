@@ -18,8 +18,37 @@
 }
 
 @font-face {
+    font-family: 'Avenir Heavy';
+    src: url('../fonts/Avenir-Heavy.ttf');
+}
+
+@font-face {
     font-family: 'Ringbearer';
     src: url('../fonts/Ringbearer.ttf');
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Imperium Brand Tokens                                                       *
+ * Antique bronze ramp, hue 36. Marble light, rust accent, muted bronze.       *
+ * Hairline rules, square relief tiles, engraved headers. No glyph icons.      *
+ *                                                                             *
+ ******************************************************************************/
+
+:root {
+    --bronze: #cea464;
+    --bronze-light: #e0d1b8;
+    --bronze-dark: #a8823f;
+    --marble: #ece7df;
+    --rust: #9a2d0c;
+    --rust-bright: #b93608;
+    --muted: #a78b62;
+    --ink: #17110a;
+    --stone: rgba(12, 10, 7, 0.45);
+    --stone-deep: rgba(8, 7, 5, 0.65);
+    --hairline: rgba(206, 164, 100, 0.28);
+    --hairline-strong: rgba(206, 164, 100, 0.55);
+    --label-tracking: 2px;
 }
 
 /*******************************************************************************
@@ -109,9 +138,24 @@ body, button {
     padding: 0px 10px;
 }
 #frameTitleText {
-    font-size: 14px;
+    font-size: 12px;
     font-family: 'Avenir Medium';
-    letter-spacing: 0.5px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--bronze-light);
+}
+
+/* Window control glyphs rendered in marble. */
+#frameButton_minimize svg rect {
+    fill: var(--marble);
+    stroke: var(--marble);
+}
+#frameButton_restoredown svg rect {
+    stroke: var(--marble);
+}
+#frameButton_close svg polygon {
+    fill: var(--marble);
+    stroke: var(--marble);
 }
 
 /* Windows frame button dock. */
@@ -144,22 +188,22 @@ body, button {
 }
 .frameButton:hover,
 .frameButton:focus {
-    background: rgba(189, 189, 189, 0.43);
+    background: rgba(206, 164, 100, 0.18);
 }
 .frameButton:active {
-    background: rgba(156, 156, 156, 0.43);
+    background: rgba(206, 164, 100, 0.30);
 }
 .frameButton:focus {
     outline: 0px;
 }
 
-/* Close button is red. */
+/* Close button is rust. */
 #frameButton_close:hover,
 #frameButton_close:focus {
-    background: rgba(255, 53, 53, 0.61) !important;
+    background: rgba(185, 54, 8, 0.85) !important;
 }
 #frameButton_close:active {
-    background: rgba(235, 0, 0, 0.61) !important;
+    background: #9a2d0c !important;
 }
 
 /* Darwin Frame Button Styles. */
@@ -273,6 +317,9 @@ body, button {
 */
 
 #welcomeImageSeal {
+    border-radius: 50%;
+    border: 1px solid var(--hairline-strong);
+    background: var(--stone-deep);
     height: 125px;
     width: 125px;
     box-shadow: 0px 0px 10px 0px rgb(0, 0, 0);
@@ -281,57 +328,64 @@ body, button {
 }
 
 #welcomeHeader {
-    font-family: 'Times New Roman', Georgia, serif;
-    font-weight: bold;
+    font-family: 'Avenir Heavy', 'Avenir Medium', sans-serif;
     text-align: center;
-    color: #e8c563;
+    text-transform: uppercase;
+    color: var(--marble);
     margin-bottom: 25px;
-    letter-spacing: 4px;
-    font-size: 26px;
-    text-shadow: 0px 0px 12px rgba(0, 0, 0, 0.8);
+    letter-spacing: 6px;
+    font-size: 24px;
+    text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.9), 0px 0px 14px rgba(0, 0, 0, 0.75);
 }
 
 #welcomeDescription {
     text-align: justify;
     font-size: 13px;
     font-weight: 100;
-    text-shadow: rgba(255, 255, 255, 0.75) 0px 0px 20px
+    color: var(--marble);
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.85)
 }
 
 #welcomeDescCTA {
     text-align: center;
     font-size: 14px;
     font-weight: 100;
-    text-shadow: rgba(255, 255, 255, 0.75) 0px 0px 20px
+    color: var(--bronze-light);
+    text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.85)
 }
 
-/* Login button styles. */
+/* Login button styles. Primary action: bronze fill. */
 #welcomeButton {
-    background: none;
+    background: var(--bronze);
+    color: var(--ink);
+    font-family: 'Avenir Medium';
     font-weight: bold;
-    letter-spacing: 2px;
+    text-transform: uppercase;
+    letter-spacing: var(--label-tracking);
     border: none;
-    padding: 15px 5px;
+    border-radius: 2px;
+    padding: 12px 28px;
     margin: 10px 0px;
     cursor: pointer;
     position: relative;
     right: -20px;
-    transition: 0.5s ease;
+    transition: background 0.25s ease, color 0.25s ease;
     margin-top: 5%;
     margin-bottom: -5%;
 }
 #welcomeButton:disabled {
-    color: rgba(255, 255, 255, 0.75);
+    background: rgba(167, 139, 98, 0.30);
+    color: rgba(23, 17, 10, 0.55);
     pointer-events: none;
 }
 #welcomeButton:hover,
 #welcomeButton:focus {
-    text-shadow: 0px 0px 20px #fff;
+    background: var(--bronze-light);
     outline: none;
 }
 #welcomeButton:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7;
+    background: var(--bronze-dark);
+    color: var(--marble);
 }
 #welcomeSVG {
     -webkit-transform: translate3d(0, 0, 0);
@@ -344,16 +398,16 @@ body, button {
 }
 #welcomeButton:hover #welcomeSVG,
 #welcomeButton:focus #welcomeSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #fff);
+    -webkit-filter: none;
 }
 #welcomeButton:active #welcomeSVG .arrowLine {
-    stroke: #c7c7c7;
+    stroke: var(--marble);
 }
 #welcomeButton:active #welcomeSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
+    -webkit-filter: none;
 }
 #welcomeButton:disabled #welcomeSVG .arrowLine {
-    stroke: rgba(255, 255, 255, 0.75);
+    stroke: rgba(23, 17, 10, 0.45);
 }
 
 #welcomeButtonContent {
@@ -370,7 +424,7 @@ body, button {
 /* Styles for dimmer login span. */
 .loginSpanDim {
     font-size: 12px;
-    color: #848484;
+    color: var(--muted);
     font-weight: bold;
 }
 
@@ -405,39 +459,42 @@ body, button {
 #loginCancelButton:hover #loginCancelText,
 #loginCancelButton:focus #loginCancelIcon,
 #loginCancelButton:focus #loginCancelText {
-    text-shadow: 0px 0px 20px white;
+    text-shadow: 0px 0px 20px var(--bronze-light);
+    color: var(--bronze-light);
+    border-color: var(--bronze-light);
 }
 #loginCancelButton:hover #loginCancelIcon,
 #loginCancelButton:focus #loginCancelIcon {
-    box-shadow: 0px 0px 20px white;
+    box-shadow: 0px 0px 20px rgba(206, 164, 100, 0.65);
 }
 #loginCancelButton:active #loginCancelIcon,
 #loginCancelButton:active #loginCancelText {
-    text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.75);
-    color: rgba(255, 255, 255, 0.75);
-    border-color: rgba(255, 255, 255, 0.75);
+    text-shadow: 0px 0px 20px rgba(167, 139, 98, 0.75);
+    color: var(--muted);
+    border-color: var(--muted);
 }
 #loginCancelButton:active #loginCancelIcon {
-    box-shadow: 0px 0px 20px rgba(255, 255, 255, 0.75);
+    box-shadow: 0px 0px 20px rgba(167, 139, 98, 0.55);
 }
 #loginCancelButton:disabled {
     pointer-events: none;
 }
 #loginCancelButton:disabled #loginCancelIcon,
 #loginCancelButton:disabled #loginCancelText {
-    color: rgba(255, 255, 255, 0.75);
-    border-color: rgba(255, 255, 255, 0.75);
+    color: rgba(236, 231, 223, 0.40);
+    border-color: rgba(236, 231, 223, 0.40);
 }
 
 /* The X in a circle icon for the cancel button. */
 #loginCancelIcon {
     border-radius: 50%;
-    border: 1px solid white;
+    border: 1px solid var(--marble);
     box-sizing: border-box;
     height: 30px;
     width: 30px;
-    font-size: 19px;
-    line-height: 30px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     margin: 0 auto;
     margin-bottom: 5px;
     transition: 0.25s ease;
@@ -468,22 +525,25 @@ body, button {
 /* Login form anchor styles. */
 #loginForm a {
     font-size: 12px;
-    color: #848484;
+    color: var(--muted);
     font-weight: bold;
     text-decoration: none;
     transition: 0.25s ease;
 }
 #loginForm a:hover,
 #loginForm a:focus {
-    color: #a2a2a2;
+    color: var(--bronze-light);
     outline: none;
 }
 #loginForm a:active {
-    color: #8b8b8b;
+    color: var(--bronze-dark);
 }
 
 /* Logo on login form. */
 #loginImageSeal {
+    border-radius: 50%;
+    border: 1px solid var(--hairline-strong);
+    background: var(--stone-deep);
     height: 125px;
     width: 125px;
     box-shadow: 0px 0px 10px 0px rgb(0, 0, 0);
@@ -495,8 +555,9 @@ body, button {
     font-family: 'Avenir Medium';
     margin-bottom: 25px;
     font-size: 12px;
-    letter-spacing: 1px;
+    letter-spacing: 3px;
     font-weight: bold;
+    color: var(--bronze);
 }
 
 /* Container to organize login field elements. */
@@ -520,7 +581,7 @@ body, button {
     font-family: 'Avenir Medium';
     font-weight: bold;
     font-size: 8px;
-    color: #ff1b0c;
+    color: var(--rust-bright);
     width: 100%;
     text-align: right;
     position: absolute;
@@ -559,23 +620,25 @@ body, button {
     border-style: solid;
     width: 250px;
     margin-bottom: 20px;
-    border-color: #fff;
-    color: rgba(255, 255, 255, 0.75);
+    border-color: rgba(206, 164, 100, 0.65);
+    color: var(--marble);
     font-weight: bold;
     text-align: center;
     box-sizing: border-box;
     padding: 7.5px;
     font-size: 10px;
     letter-spacing: 1px;
+    transition: border-color 0.25s ease;
 }
 .loginField:focus {
     outline: none;
+    border-color: var(--bronze);
 }
 .loginField:disabled {
-    color: rgba(255, 255, 255, 0.50);
+    color: rgba(236, 231, 223, 0.40);
 }
 .loginField::-webkit-input-placeholder {
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(236, 231, 223, 0.55);
     font-size: 10px;
     letter-spacing: 1px;
     text-align: center;
@@ -603,34 +666,40 @@ body, button {
     transition: 0.25s ease;
 }
 
-/* Login button styles. */
+/* Login button styles. Primary action: bronze fill. */
 #loginButton {
-    background: none;
+    background: var(--bronze);
+    color: var(--ink);
+    font-family: 'Avenir Medium';
     font-weight: bold;
-    letter-spacing: 2px;
+    text-transform: uppercase;
+    letter-spacing: var(--label-tracking);
     border: none;
-    padding: 15px 5px;
+    border-radius: 2px;
+    padding: 12px 28px;
     margin: 10px 0px;
     cursor: pointer;
     position: relative;
     right: -20px;
-    transition: 0.5s ease;
+    transition: background 0.25s ease, color 0.25s ease;
 }
 #loginButton:disabled {
-    color: rgba(255, 255, 255, 0.75);
+    background: rgba(167, 139, 98, 0.30);
+    color: rgba(23, 17, 10, 0.55);
     pointer-events: none;
 }
 #loginButton[loading] {
-    color: #fff;
+    background: var(--bronze-dark);
+    color: var(--marble);
 }
 #loginButton:hover,
 #loginButton:focus {
-    text-shadow: 0px 0px 20px #fff;
+    background: var(--bronze-light);
     outline: none;
 }
 #loginButton:active {
-    color: #c7c7c7;
-    text-shadow:  0px 0px 20px #c7c7c7;
+    background: var(--bronze-dark);
+    color: var(--marble);
 }
 #loginSVG {
     -webkit-transform: translate3d(0, 0, 0);
@@ -643,16 +712,19 @@ body, button {
 }
 #loginButton:hover #loginSVG,
 #loginButton:focus #loginSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #fff);
+    -webkit-filter: none;
 }
 #loginButton:active #loginSVG .arrowLine {
-    stroke: #c7c7c7;
+    stroke: var(--marble);
 }
 #loginButton:active #loginSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
+    -webkit-filter: none;
 }
 #loginButton:disabled #loginSVG .arrowLine {
-    stroke: rgba(255, 255, 255, 0.75);
+    stroke: rgba(23, 17, 10, 0.45);
+}
+#loginButton[loading] #loginSVG .arrowLine {
+    stroke: var(--marble);
 }
 
 #loginButtonContent {
@@ -672,8 +744,8 @@ body, button {
 
 .circle-loader {
     margin-left: 20px;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    border-left-color: #ffffff;
+    border: 2px solid rgba(224, 209, 184, 0.35);
+    border-left-color: var(--bronze-light);
     animation-name: loader-spin;
     animation-duration: 1s;
     animation-iteration-count: infinite;
@@ -687,7 +759,7 @@ body, button {
 }
 .load-complete {
     animation: none;
-    border-color: #ffffff;
+    border-color: var(--bronze-light);
     transition: border 500ms ease-out;
 }
 .checkmark {
@@ -704,8 +776,8 @@ body, button {
     height: 8px;
     width: 4px;
     transform-origin: left top;
-    border-right: 2px solid #ffffff;
-    border-top: 2px solid #ffffff;
+    border-right: 2px solid var(--bronze-light);
+    border-top: 2px solid var(--bronze-light);
     content: '';
     left: 2px;
     top: 8px;
@@ -782,7 +854,7 @@ body, button {
 /* Disclaimer text styles. */
 .loginDisclaimerText {
     font-size: 7px;
-    color: #848484;
+    color: var(--muted);
     font-weight: bold;
     text-align: center;
 }
@@ -814,21 +886,21 @@ body, button {
     position: relative;
     height: 10px;
     width: 10px;
-    border: 1px solid #848484;
+    border: 1px solid var(--muted);
     border-radius: 1px;
     background: none;
     transition: 0.25s ease;
 }
-/* On hover and focus, add a grey border color. */
+/* On hover and focus, add a bronze border color. */
 #checkmarkContainer:hover input ~ *,
 #checkmarkContainer input:focus ~ * {
-    color: #a2a2a2;
-    border-color: #a2a2a2;
+    color: var(--bronze-light);
+    border-color: var(--bronze-light);
 }
 /* On keydown, darken the checkbox a bit. */
 #checkmarkContainer input:active ~ *:not(#loginRememberText) {
-    color: #8d8d8d;
-    border-color: #8d8d8d;
+    color: var(--bronze-dark);
+    border-color: var(--bronze-dark);
 }
 #checkmarkContainer[disabled] {
     pointer-events: none;
@@ -850,7 +922,7 @@ body, button {
     top: 0.5px;
     width: 2px;
     height: 6px;
-    border: solid #a2a2a2;
+    border: solid var(--bronze);
     border-width: 0 2px 2px 0;
     transform: rotate(45deg);
 }
@@ -921,12 +993,21 @@ body, button {
     perspective-origin: 50% 50%;
     perspective: 340px;
     background-size: 10em 10em;
-    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+Cjxzdmcgd2lkdGg9IjI2NnB4IiBoZWlnaHQ9IjI5N3B4IiB2aWV3Qm94PSIwIDAgMjY2IDI5NyIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWxuczpza2V0Y2g9Imh0dHA6Ly93d3cuYm9oZW1pYW5jb2RpbmcuY29tL3NrZXRjaC9ucyI+CiAgICA8dGl0bGU+c3Bpbm5lcjwvdGl0bGU+CiAgICA8ZGVzY3JpcHRpb24+Q3JlYXRlZCB3aXRoIFNrZXRjaCAoaHR0cDovL3d3dy5ib2hlbWlhbmNvZGluZy5jb20vc2tldGNoKTwvZGVzY3JpcHRpb24+CiAgICA8ZGVmcz48L2RlZnM+CiAgICA8ZyBpZD0iUGFnZS0xIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBza2V0Y2g6dHlwZT0iTVNQYWdlIj4KICAgICAgICA8cGF0aCBkPSJNMTcxLjUwNzgxMywzLjI1MDAwMDM4IEMyMjYuMjA4MTgzLDEyLjg1NzcxMTEgMjk3LjExMjcyMiw3MS40OTEyODIzIDI1MC44OTU1OTksMTA4LjQxMDE1NSBDMjE2LjU4MjAyNCwxMzUuODIwMzEgMTg2LjUyODQwNSw5Ny4wNjI0OTY0IDE1Ni44MDA3NzQsODUuNzczNDM0NiBDMTI3LjA3MzE0Myw3NC40ODQzNzIxIDc2Ljg4ODQ2MzIsODQuMjE2MTQ2MiA2MC4xMjg5MDY1LDEwOC40MTAxNTMgQy0xNS45ODA0Njg1LDIxOC4yODEyNDcgMTQ1LjI3NzM0NCwyOTYuNjY3OTY4IDE0NS4yNzczNDQsMjk2LjY2Nzk2OCBDMTQ1LjI3NzM0NCwyOTYuNjY3OTY4IC0yNS40NDkyMTg3LDI1Ny4yNDIxOTggMy4zOTg0Mzc1LDEwOC40MTAxNTUgQzE2LjMwNzA2NjEsNDEuODExNDE3NCA4NC43Mjc1ODI5LC0xMS45OTIyOTg1IDE3MS41MDc4MTMsMy4yNTAwMDAzOCBaIiBpZD0iUGF0aC0xIiBmaWxsPSIjZDRhNTRmIiBza2V0Y2g6dHlwZT0iTVNTaGFwZUdyb3VwIj48L3BhdGg+CiAgICA8L2c+Cjwvc3ZnPg==);
+    background-image: url(data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiIHN0YW5kYWxvbmU9Im5vIj8+Cjxzdmcgd2lkdGg9IjI2NnB4IiBoZWlnaHQ9IjI5N3B4IiB2aWV3Qm94PSIwIDAgMjY2IDI5NyIgdmVyc2lvbj0iMS4xIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB4bWxuczpza2V0Y2g9Imh0dHA6Ly93d3cuYm9oZW1pYW5jb2RpbmcuY29tL3NrZXRjaC9ucyI+CiAgICA8dGl0bGU+c3Bpbm5lcjwvdGl0bGU+CiAgICA8ZGVzY3JpcHRpb24+Q3JlYXRlZCB3aXRoIFNrZXRjaCAoaHR0cDovL3d3dy5ib2hlbWlhbmNvZGluZy5jb20vc2tldGNoKTwvZGVzY3JpcHRpb24+CiAgICA8ZGVmcz48L2RlZnM+CiAgICA8ZyBpZD0iUGFnZS0xIiBzdHJva2U9Im5vbmUiIHN0cm9rZS13aWR0aD0iMSIgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIiBza2V0Y2g6dHlwZT0iTVNQYWdlIj4KICAgICAgICA8cGF0aCBkPSJNMTcxLjUwNzgxMywzLjI1MDAwMDM4IEMyMjYuMjA4MTgzLDEyLjg1NzcxMTEgMjk3LjExMjcyMiw3MS40OTEyODIzIDI1MC44OTU1OTksMTA4LjQxMDE1NSBDMjE2LjU4MjAyNCwxMzUuODIwMzEgMTg2LjUyODQwNSw5Ny4wNjI0OTY0IDE1Ni44MDA3NzQsODUuNzczNDM0NiBDMTI3LjA3MzE0Myw3NC40ODQzNzIxIDc2Ljg4ODQ2MzIsODQuMjE2MTQ2MiA2MC4xMjg5MDY1LDEwOC40MTAxNTMgQy0xNS45ODA0Njg1LDIxOC4yODEyNDcgMTQ1LjI3NzM0NCwyOTYuNjY3OTY4IDE0NS4yNzczNDQsMjk2LjY2Nzk2OCBDMTQ1LjI3NzM0NCwyOTYuNjY3OTY4IC0yNS40NDkyMTg3LDI1Ny4yNDIxOTggMy4zOTg0Mzc1LDEwOC40MTAxNTUgQzE2LjMwNzA2NjEsNDEuODExNDE3NCA4NC43Mjc1ODI5LC0xMS45OTIyOTg1IDE3MS41MDc4MTMsMy4yNTAwMDAzOCBaIiBpZD0iUGF0aC0xIiBmaWxsPSIjY2VhNDY0IiBza2V0Y2g6dHlwZT0iTVNTaGFwZUdyb3VwIj48L3BhdGg+CiAgICA8L2c+Cjwvc3ZnPg==);
 }
 
 #waitingTextContainer {
     position: fixed;
     top: 50%;
+}
+
+#waitingTextContainer h2 {
+    font-family: 'Avenir Heavy', 'Avenir Medium', sans-serif;
+    font-size: 18px;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    color: var(--marble);
+    text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.9);
 }
 
 @keyframes rotateBefore {
@@ -977,10 +1058,11 @@ body, button {
 }
 
 .loginOptionsMainContent > h2 {
-    font-family: 'Times New Roman', Georgia, serif;
-    color: #e8c563;
-    letter-spacing: 3px;
+    font-family: 'Avenir Heavy', 'Avenir Medium', sans-serif;
+    color: var(--marble);
+    letter-spacing: 4px;
     text-transform: uppercase;
+    text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.9);
 }
 
 .loginOptionActions {
@@ -993,10 +1075,11 @@ body, button {
     width: 16em;
 }
 
+/* Secondary action: bordered chip. */
 .loginOptionButton {
-    background: rgba(0, 0, 0, 0.45);
-    border: 1px solid rgba(212, 165, 79, 0.6);
-    border-radius: 3px;
+    background: var(--stone);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
     height: 50px;
     width: 100%;
     text-align: left;
@@ -1010,9 +1093,13 @@ body, button {
 }
 .loginOptionButton:hover,
 .loginOptionButton:focus {
-    background: rgba(122, 20, 20, 0.45);
-    border-color: #d4a54f;
-    text-shadow: 0px 0px 20px white;
+    background: rgba(206, 164, 100, 0.10);
+    border-color: var(--bronze);
+    text-shadow: none;
+}
+.loginOptionButton:active {
+    background: rgba(206, 164, 100, 0.20);
+    border-color: var(--bronze-dark);
 }
 
 #loginOptionCancelContainer {
@@ -1026,21 +1113,22 @@ body, button {
     padding: 2px 0px;
     font-size: 16px;
     font-weight: bold;
-    color: lightgrey;
+    color: var(--muted);
     cursor: pointer;
     outline: none;
     transition: 0.25s ease;
 }
 #loginOptionCancelButton:hover,
 #loginOptionCancelButton:focus {
-    text-shadow: 0px 0px 20px lightgrey;
+    text-shadow: 0px 0px 20px var(--bronze-light);
+    color: var(--bronze-light);
 }
 #loginOptionCancelButton:active {
-    text-shadow: 0px 0px 20px rgba(211, 211, 211, 0.75);
-    color: rgba(211, 211, 211, 0.75);
+    text-shadow: 0px 0px 20px rgba(167, 139, 98, 0.75);
+    color: var(--muted);
 }
 #loginOptionCancelButton:disabled {
-    color: rgba(211, 211, 211, 0.75);
+    color: rgba(167, 139, 98, 0.55);
     pointer-events: none;
 }
 
@@ -1096,7 +1184,12 @@ body, button {
     justify-content: center;
 }
 #settingsNavHeaderText {
-    font-size: 20px;
+    font-family: 'Avenir Heavy', 'Avenir Medium', sans-serif;
+    font-size: 18px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--marble);
+    text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.9);
 }
 
 /* Navigation items outer container. */
@@ -1119,22 +1212,28 @@ body, button {
 .settingsNavItem {
     background: none;
     border: none;
+    border-left: 2px solid transparent;
     text-align: left;
     margin: 5px 0px;
-    padding: 0px 20px;
-    color: grey;
+    padding: 0px 18px;
+    color: rgba(236, 231, 223, 0.55);
+    font-family: 'Avenir Medium';
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 12px;
     cursor: pointer;
     outline: none;
     transition: 0.25s ease;
 }
 .settingsNavItem:hover,
 .settingsNavItem:focus {
-    color: #c1c1c1;
-    text-shadow: 0px 0px 20px #c1c1c1;
+    color: var(--bronze-light);
+    text-shadow: none;
 }
 .settingsNavItem[selected] {
     cursor: default;
-    color: white;
+    color: var(--marble);
+    border-left: 2px solid var(--bronze);
     text-shadow: none;
 }
 
@@ -1153,7 +1252,7 @@ body, button {
 .settingsNavDivider {
     width: 75%;
     height: 1px;
-    background: rgba(126, 126, 126, 0.57);
+    background: var(--hairline);
     margin-left: auto;
     margin-bottom: 25px;
 }
@@ -1165,21 +1264,26 @@ body, button {
     text-align: left;
     margin: 5px 0px;
     padding: 0px 20px;
-    color: white;
+    color: var(--bronze-light);
+    font-family: 'Avenir Medium';
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 12px;
     cursor: pointer;
     outline: none;
     transition: 0.25s ease;
 }
 #settingsNavDone:hover,
 #settingsNavDone:focus {
-    text-shadow: 0px 0px 20px white, 0px 0px 20px white, 0px 0px 20px white;
+    color: var(--marble);
+    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.65);
 }
 #settingsNavDone:active {
-    text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.75), 0px 0px 20px rgba(255, 255, 255, 0.75), 0px 0px 20px rgba(255, 255, 255, 0.75);
-    color: rgba(255, 255, 255, 0.75);
+    text-shadow: 0px 0px 20px rgba(167, 139, 98, 0.75);
+    color: var(--muted);
 }
 #settingsNavDone:disabled {
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(167, 139, 98, 0.55);
     pointer-events: none;
 }
 
@@ -1203,8 +1307,8 @@ body, button {
     display: none;
 }
 .settingsTab::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.50);
+    border-radius: 2px;
+    background-color: var(--hairline-strong);
 }
 
 /* Add spacing to the top of each settings tab. */
@@ -1217,25 +1321,33 @@ body, button {
     margin-bottom: 20%;
 }
 
-/* Tab header shared styles. */
+/* Tab header shared styles. Engraved header on a hairline rule. */
 .settingsTabHeader {
     display: flex;
     flex-direction: column;
     margin-bottom: 20px;
+    border-bottom: 1px solid var(--hairline);
+    padding-bottom: 10px;
 }
 .settingsTabHeaderText {
-    font-size: 20px;
-    font-family: 'Avenir Medium';
+    font-size: 18px;
+    font-family: 'Avenir Heavy', 'Avenir Medium', sans-serif;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--marble);
+    text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.9);
 }
 .settingsTabHeaderDesc {
     font-size: 12px;
+    color: var(--muted);
 }
 
-/* Selected server content container */
+/* Java tab selected server container */
 .settingsSelServContainer {
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--stone);
     width: 75%;
-    border-radius: 3px;
+    border-radius: 2px;
+    border: 1px solid var(--hairline);
     display: flex;
     justify-content: space-between;
     margin: 15px 0px;
@@ -1259,11 +1371,11 @@ body, button {
 /* Button to switch server configurations on the mods tab. */
 .settingsSwitchServerButton {
     opacity: 0;
-    border: 1px solid rgb(255, 255, 255);
-    color: rgb(255, 255, 255);
+    border: 1px solid var(--hairline-strong);
+    color: var(--bronze-light);
     background: none;
     font-size: 12px;
-    border-radius: 3px;
+    border-radius: 2px;
     font-family: 'Avenir Medium';
     transition: 0.25s ease;
     cursor: pointer;
@@ -1271,14 +1383,15 @@ body, button {
 }
 .settingsSwitchServerButton:hover,
 .settingsSwitchServerButton:focus {
-    box-shadow: 0px 0px 20px rgb(255, 255, 255);
-    background: rgba(255, 255, 255, 0.25);
+    box-shadow: none;
+    background: rgba(206, 164, 100, 0.18);
+    border-color: var(--bronze);
+    color: var(--marble);
 }
 .settingsSwitchServerButton:active {
-    box-shadow: 0px 0px 20px rgb(187, 187, 187);
-    background: rgba(187, 187, 187, 0.25);
-    border: 1px solid rgb(187, 187, 187);
-    color: rgb(187, 187, 187);
+    background: rgba(168, 130, 63, 0.30);
+    border: 1px solid var(--bronze-dark);
+    color: var(--bronze-light);
 }
 .settingsSelServContainer:hover .settingsSwitchServerButton {
     opacity: 1;
@@ -1292,22 +1405,23 @@ body, button {
 /* Default styles for text/number inputs. */
 #settingsContainer input[type=number],
 #settingsContainer input[type=text] {
-    color: white;
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: 3px;
-    border: 1px solid rgba(126, 126, 126, 0.57);
+    color: var(--marble);
+    background: var(--stone);
+    border-radius: 2px;
+    border: 1px solid var(--hairline);
     font-family: 'Avenir Book';
-    transition: 0.25s ease;
+    font-variant-numeric: tabular-nums lining-nums;
+    transition: border-color 0.25s ease;
 }
 #settingsContainer input[type=number]:focus,
 #settingsContainer input[type=text]:focus {
     outline: none;
-    border-color: rgba(126, 126, 126, 0.87);
+    border-color: var(--bronze);
 }
 #settingsContainer input[type=number][error] {
-    border-color: rgb(255, 27, 12);
-    background: rgba(236, 0, 0, 0.25);
-    color: rgb(255, 27, 12);
+    border-color: var(--rust-bright);
+    background: rgba(185, 54, 8, 0.18);
+    color: var(--rust-bright);
 }
 
 /* Styles for a generic settings entry. */
@@ -1317,7 +1431,7 @@ body, button {
     justify-content: space-between;
     padding: 20px 0px;
     width: 75%;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.50);
+    border-bottom: 1px solid var(--hairline);
 }
 .settingsFieldLeft {
     display: flex;
@@ -1326,17 +1440,17 @@ body, button {
 .settingsFieldTitle {
     font-size: 14px;
     font-family: 'Avenir Medium';
-    color: rgba(255, 255, 255, 0.95);
+    color: var(--marble);
 }
 .settingsFieldDesc {
     font-size: 12px;
-    color: rgba(255, 255, 255, .95);
+    color: var(--muted);
     margin-top: 5px;
 }
 .settingsDivider {
     height: 1px;
     width: 75%;
-    background: rgba(255, 255, 255, 0.25);
+    background: var(--hairline);
 }
 
 /* Toggle Switch */
@@ -1358,10 +1472,10 @@ body, button {
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: rgba(255, 255, 255, 0.35);
+    background-color: rgba(236, 231, 223, 0.15);
     transition: .4s;
     border-radius: 50px;
-    border: 1px solid rgba(126, 126, 126, 0.57);
+    border: 1px solid var(--hairline);
 }
 .toggleSwitchSlider:before {
     position: absolute;
@@ -1370,15 +1484,15 @@ body, button {
     width: 16px;
     left: 3px;
     bottom: 3px;
-    background-color: white;
+    background-color: var(--marble);
     box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.75);
     border-radius: 50px;
     transition: .4s;
 }
 input:checked + .toggleSwitchSlider {
-    background-color: #b8923d;
+    background-color: var(--bronze-dark);
     /* box-shadow: inset 2px 1px 20px black; */
-    border: 1px solid #b8923d;
+    border: 1px solid var(--bronze-dark);
 }
 input:checked + .toggleSwitchSlider:before {
     transform: translateX(15px);
@@ -1389,13 +1503,13 @@ input:checked + .toggleSwitchSlider:before {
     width: 35%;
     height: 5px;
     margin: 15px 0px;
-    background: grey;
+    background: rgba(236, 231, 223, 0.18);
     border-radius: 3px;
     position: relative;
 }
 .rangeSliderBar {
     position: absolute;
-    background: #8be88b;
+    background: var(--bronze);
     width: 50%;
     height: 5px;
     border-radius: 3px 0px 0px 3px;
@@ -1406,8 +1520,8 @@ input:checked + .toggleSwitchSlider:before {
     top: -7.5px;
     width: 7px;
     height: 20px;
-    background: white;
-    border-radius: 3px;
+    background: var(--marble);
+    border-radius: 1px;
     left: 50%;
     cursor: ew-resize;
 }
@@ -1439,15 +1553,15 @@ input:checked + .toggleSwitchSlider:before {
 .settingsFileSelIcon {
     display: flex;
     align-items: center;
-    background: rgba(126, 126, 126, 0.57);
-    border-radius: 3px 0px 0px 3px;
+    background: rgba(168, 130, 63, 0.25);
+    border-radius: 2px 0px 0px 2px;
     padding: 5px;
     transition: 0.25s ease;
 }
 .settingsFileSelSVG {
     width: 20px;
     height: 20px;
-    fill: white;
+    fill: var(--marble);
 }
 
 /* Disabled text field which stores the selected file path. */
@@ -1462,29 +1576,30 @@ input:checked + .toggleSwitchSlider:before {
 /* File selection button. */
 .settingsFileSelButton {
     border: 0px;
-    border-radius: 0px 3px 3px 0px;
+    border-radius: 0px 2px 2px 0px;
     font-size: 12px;
     padding: 0px 5px;
     cursor: pointer;
-    background: rgba(126, 126, 126, 0.57);
+    background: rgba(206, 164, 100, 0.25);
+    color: var(--marble);
     transition: 0.25s ease;
     white-space: nowrap;
     outline: none;
 }
 .settingsFileSelButton:hover,
 .settingsFileSelButton:focus {
-    text-shadow: 0px 0px 20px white;
+    background: rgba(206, 164, 100, 0.40);
 }
 .settingsFileSelButton:active {
-    text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.75);
-    color: rgba(255, 255, 255, 0.75);
+    background: rgba(168, 130, 63, 0.45);
+    color: var(--bronze-light);
 }
 
 /* Description for the file selector. */
 .settingsFileSelDesc {
     font-size: 10px;
     margin: 20px 0px;
-    color: lightgrey;
+    color: var(--muted);
     width: 89%;
 }
 .settingsFileSelDesc strong {
@@ -1507,7 +1622,7 @@ input:checked + .toggleSwitchSlider:before {
     width: 100%;
     justify-content: space-between;
     padding: 10px 0px;
-    border-bottom: 1px solid #ffffff85;
+    border-bottom: 1px solid var(--hairline-strong);
     margin-bottom: 30px;
 }
 
@@ -1522,21 +1637,23 @@ input:checked + .toggleSwitchSlider:before {
     border: none;
     text-align: left;
     padding: 2px 0px;
-    color: white;
+    color: var(--bronze-light);
+    font-family: 'Avenir Medium';
     cursor: pointer;
     outline: none;
     transition: 0.25s ease;
 }
 .settingsAddAuthAccount:hover,
 .settingsAddAuthAccount:focus {
-    text-shadow: 0px 0px 20px white, 0px 0px 20px white, 0px 0px 20px white;
+    color: var(--marble);
+    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.65);
 }
 .settingsAddAuthAccount:active {
-    text-shadow: 0px 0px 20px rgba(255, 255, 255, 0.75), 0px 0px 20px rgba(255, 255, 255, 0.75), 0px 0px 20px rgba(255, 255, 255, 0.75);
-    color: rgba(255, 255, 255, 0.75);
+    text-shadow: 0px 0px 20px rgba(167, 139, 98, 0.75);
+    color: var(--muted);
 }
 .settingsAddAuthAccount:disabled {
-    color: rgba(255, 255, 255, 0.75);
+    color: rgba(167, 139, 98, 0.55);
     pointer-events: none;
 }
 
@@ -1554,9 +1671,9 @@ input:checked + .toggleSwitchSlider:before {
 /* Auth account shared styles. */
 .settingsAuthAccount {
     display: flex;
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: 3px;
-    border: 1px solid rgba(126, 126, 126, 0.57);
+    background: var(--stone);
+    border-radius: 2px;
+    border: 1px solid var(--hairline);
 }
 
 /* Left hand side of an auth account element, for the skin image. */
@@ -1594,9 +1711,11 @@ input:checked + .toggleSwitchSlider:before {
 }
 .settingsAuthAccountDetailTitle {
     font-size: 12px;
-    color: grey;
+    color: var(--muted);
     font-weight: bold;
     font-family: 'Avenir Medium';
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 .settingsAuthAccountDetailValue {
     font-size: 14px;
@@ -1619,12 +1738,14 @@ input:checked + .toggleSwitchSlider:before {
     white-space: nowrap;
     background: none;
     font-family: 'Avenir Medium';
+    color: var(--bronze-light);
     outline: none;
     transition: 0.25s ease;
 }
 .settingsAuthAccountSelect:hover:not([selected]),
 .settingsAuthAccountSelect:focus:not([selected]) {
-    text-shadow: 0px 0px 20px white, 0px 0px 20px white;
+    color: var(--marble);
+    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.65);
     cursor: pointer;
 }
 .settingsAuthAccount:hover .settingsAuthAccountSelect:not([selected]),
@@ -1633,16 +1754,17 @@ input:checked + .toggleSwitchSlider:before {
 }
 .settingsAuthAccountSelect[selected] {
     pointer-events: none;
+    color: var(--bronze);
 }
 
 /* Account logout button shared styles. */
 .settingsAuthAccountLogOut {
     opacity: 0;
-    border: 1px solid rgb(241, 55, 55);
-    color: rgb(241, 55, 55);
+    border: 1px solid var(--rust);
+    color: var(--rust-bright);
     background: none;
     font-size: 12px;
-    border-radius: 3px;
+    border-radius: 2px;
     font-family: 'Avenir Medium';
     transition: 0.25s ease;
     cursor: pointer;
@@ -1650,14 +1772,15 @@ input:checked + .toggleSwitchSlider:before {
 }
 .settingsAuthAccountLogOut:hover,
 .settingsAuthAccountLogOut:focus {
-    box-shadow: 0px 0px 20px rgb(241, 55, 55);
-    background: rgba(241, 55, 55, 0.25);
+    box-shadow: none;
+    background: rgba(185, 54, 8, 0.22);
+    border-color: var(--rust-bright);
 }
 .settingsAuthAccountLogOut:active {
-    box-shadow: 0px 0px 20px rgb(185, 47, 47);
-    background: rgba(185, 47, 47, 0.25);
-    border: 1px solid rgb(185, 47, 47);
-    color: rgb(185, 47, 47);
+    box-shadow: none;
+    background: rgba(154, 45, 12, 0.35);
+    border: 1px solid var(--rust);
+    color: var(--bronze-light);
 }
 .settingsAuthAccount:hover .settingsAuthAccountLogOut {
     opacity: 1;
@@ -1672,7 +1795,7 @@ input:checked + .toggleSwitchSlider:before {
     display: flex;
     flex-direction: column;
     padding-bottom: 20px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.50);
+    border-bottom: 1px solid var(--hairline);
     width: 75%;
 }
 #settingsGameResolutionContent {
@@ -1681,7 +1804,7 @@ input:checked + .toggleSwitchSlider:before {
     padding-top: 10px;
 }
 #settingsGameResolutionCross {
-    color: grey;
+    color: var(--muted);
     padding: 0px 15px;
 }
 #settingsGameWidth,
@@ -1702,8 +1825,13 @@ input:checked + .toggleSwitchSlider:before {
 /* Mod sub-container header text. */
 .settingsModsHeader {
     padding-bottom: 10px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid var(--hairline);
     margin-bottom: 10px;
+    font-family: 'Avenir Medium';
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 12px;
+    color: var(--bronze-light);
 }
 
 /* Mod elements sub-containers. */
@@ -1718,9 +1846,10 @@ input:checked + .toggleSwitchSlider:before {
 #settingsOptModsContent,
 #settingsDropinModsContent {
     font-size: 12px;
-    background: rgba(0, 0, 0, 0.25);
-    border-radius: 3px;
-    color: white;
+    background: var(--stone);
+    border-radius: 2px;
+    border: 1px solid var(--hairline);
+    color: var(--marble);
 }
 
 /* Mod elements. */
@@ -1731,7 +1860,7 @@ input:checked + .toggleSwitchSlider:before {
 .settingsSubMod {
     padding: 10px 0px 10px 15px;
     margin-left: 20px;
-    border-left: 1px solid rgba(255, 255, 255, 0.5);
+    border-left: 1px solid var(--hairline);
 }
 
 /* Main content container for mod element information. */
@@ -1752,8 +1881,8 @@ input:checked + .toggleSwitchSlider:before {
 .settingsModStatus {
     width: 7px;
     height: 7px;
-    border-radius: 50%;
-    background-color: #c32625;
+    border-radius: 1px;
+    background-color: rgba(236, 231, 223, 0.30);
     margin-right: 15px;
     transition: 0.25s ease;
 }
@@ -1766,8 +1895,9 @@ input:checked + .toggleSwitchSlider:before {
 
 /* The version of the mod. */
 .settingsModVersion {
-    color: grey;
+    color: var(--muted);
     font-size: 10px;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Disabled toggleswitch for required mods. */
@@ -1778,7 +1908,7 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Set the status color of an enabled mod. */
 .settingsBaseMod[enabled] > .settingsModContent > .settingsModMainWrapper > .settingsModStatus {
-    background-color: rgb(165, 195, 37);
+    background-color: var(--bronze);
 }
 
 /* Add opacity to submods of a disabled mod. */
@@ -1805,9 +1935,9 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Button to open the mods folder for drop-in mods. */
 #settingsDropinFileSystemButton {
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(126, 126, 126, 0.57);
-    border-radius: 3px;
+    background: var(--stone);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
     height: 50px;
     width: 100%;
     text-align: left;
@@ -1820,13 +1950,15 @@ input:checked + .toggleSwitchSlider:before {
 #settingsDropinFileSystemButton:hover,
 #settingsDropinFileSystemButton:focus,
 #settingsDropinFileSystemButton[drag] {
-    background: rgba(54, 54, 54, 0.25);
-    text-shadow: 0px 0px 20px white;
+    background: rgba(206, 164, 100, 0.10);
+    border-color: var(--bronze);
+    text-shadow: none;
 }
 /* Refresh instructions on the file system button. */
 #settingsDropinRefreshNote {
     font-size: 10px;
     pointer-events: none;
+    color: var(--muted);
 }
 
 /* Button to remove drop-in mods. */
@@ -1836,7 +1968,7 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 10px;
     text-align: left;
     padding: 0px;
-    color: #c32625;
+    color: var(--rust-bright);
     font-weight: bold;
     cursor: pointer;
     outline: none;
@@ -1844,18 +1976,18 @@ input:checked + .toggleSwitchSlider:before {
 }
 .settingsDropinRemoveButton:hover,
 .settingsDropinRemoveButton:focus {
-    text-shadow: 0px 0px 20px #c32625, 0px 0px 20px #c32625, 0px 0px 20px #c32625;
+    text-shadow: 0px 0px 20px rgba(185, 54, 8, 0.75);
 }
 .settingsDropinRemoveButton:active {
-    color: #9b1f1f;
-    text-shadow: 0px 0px 20px #9b1f1f, 0px 0px 20px #9b1f1f, 0px 0px 20px #9b1f1f;
+    color: var(--rust);
+    text-shadow: 0px 0px 20px rgba(154, 45, 12, 0.75);
 }
 
 /* Shaderpack settings description. */
 #settingsShaderpackDesc {
     font-size: 10px;
     margin: 10px 0px;
-    color: lightgrey;
+    color: var(--muted);
     font-weight: bold;
     width: 89%;
 }
@@ -1867,21 +1999,23 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Button to add shaderpacks. */
 #settingsShaderpackButton {
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(126, 126, 126, 0.57);
-    border-radius: 3px;
+    background: var(--stone);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
     cursor: pointer;
     outline: none;
     transition: 0.25s ease;
     font-size: 14px;
     padding: 6px 11px;
     margin-right: 5px;
+    color: var(--bronze-light);
 }
 #settingsShaderpackButton:hover,
 #settingsShaderpackButton:focus,
 #settingsShaderpackButton[drag] {
-    background: rgba(54, 54, 54, 0.25);
-    text-shadow: 0px 0px 20px white;
+    background: rgba(206, 164, 100, 0.10);
+    border-color: var(--bronze);
+    text-shadow: none;
 }
 
 /* Main select container. */
@@ -1892,7 +2026,7 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Div which displays the selected option. */
 .settingsSelectSelected {
-    border-radius: 3px;
+    border-radius: 2px;
     border-width: 1px;
     font-size: 14px;
     padding: 6px 16px;
@@ -1907,16 +2041,16 @@ input:checked + .toggleSwitchSlider:before {
     width: 0;
     height: 0;
     border: 6px solid transparent;
-    border-color: rgba(126, 126, 126, 0.57) transparent transparent transparent;
+    border-color: var(--muted) transparent transparent transparent;
 }
 
 /* Point the arrow upwards when the select box is open (active). */
 .settingsSelectSelected.select-arrow-active:after {
-    border-color: transparent transparent rgba(126, 126, 126, 0.57) transparent;
+    border-color: transparent transparent var(--muted) transparent;
     top: 7px;
 }
 .settingsSelectSelected.select-arrow-active {
-    border-radius: 3px 3px 0px 0px;
+    border-radius: 2px 2px 0px 0px;
 }
 
 /* Options content container. */
@@ -1928,9 +2062,9 @@ input:checked + .toggleSwitchSlider:before {
     z-index: 99;
     max-height: 300%;
     overflow-y: scroll;
-    border: 1px solid rgba(126, 126, 126, 0.57);
+    border: 1px solid var(--hairline-strong);
     border-top: none;
-    border-radius: 0px 0px 3px 3px;
+    border-radius: 0px 0px 2px 2px;
 }
 /* Hide the items when the select box is closed. */
 .settingsSelectOptions[hidden] {
@@ -1943,17 +2077,17 @@ input:checked + .toggleSwitchSlider:before {
     display: none;
 }
 .settingsSelectOptions::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.50);
+    border-radius: 2px;
+    background-color: var(--hairline-strong);
 }
 
 /* Shared styles between options and selection div. */
 .settingsSelectOptions div,
 .settingsSelectSelected {
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--stone);
     border-style: solid;
-    border-color: rgba(126, 126, 126, 0.57);
-    color: #ffffff;
+    border-color: var(--hairline);
+    color: var(--marble);
     cursor: pointer;
 }
 .settingsSelectOptions div {
@@ -1967,7 +2101,7 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Hover + selected styles. */
 .settingsSelectOptions div:hover, .settingsSelectOptions div[selected] {
-    background-color: rgba(255, 255, 255, 0.25) !important;
+    background-color: rgba(206, 164, 100, 0.18) !important;
 }
 
 /* * *
@@ -1977,7 +2111,7 @@ input:checked + .toggleSwitchSlider:before {
 /* Style links on the Java tab. */
 #settingsTabJava a,
 .settingsChangelogText a {
-    color: rgba(202, 202, 202, 0.75);
+    color: var(--muted);
     transition: 0.25s ease;
     outline: none;
 }
@@ -1985,11 +2119,11 @@ input:checked + .toggleSwitchSlider:before {
 #settingsTabJava a:focus,
 .settingsChangelogText a:hover,
 .settingsChangelogText a:focus {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--bronze-light);
 }
 #settingsTabJava a:active,
 .settingsChangelogText a:active {
-    color: rgba(165, 165, 165, 0.75);
+    color: var(--bronze-dark);
 }
 
 /* Main container for memory management. */
@@ -1997,7 +2131,7 @@ input:checked + .toggleSwitchSlider:before {
     width: 75%;
     display: flex;
     flex-direction: column;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.50);
+    border-bottom: 1px solid var(--hairline);
     margin-bottom: 20px;
 }
 
@@ -2005,7 +2139,11 @@ input:checked + .toggleSwitchSlider:before {
 #settingsMemoryTitle {
     margin-bottom: 10px;
     padding-bottom: 5px;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    border-bottom: 1px solid var(--hairline);
+    font-family: 'Avenir Medium';
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-size: 14px;
 }
 
 /* Memory management content. */
@@ -2039,6 +2177,7 @@ input:checked + .toggleSwitchSlider:before {
 .settingsMemoryLabel {
     font-size: 14px;
     margin-right: 2%;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Range sliders for min and max memory settings. */
@@ -2062,26 +2201,29 @@ input:checked + .toggleSwitchSlider:before {
 }
 .settingsMemoryStatusTitle {
     font-size: 12px;
-    color: grey;
+    color: var(--muted);
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 .settingsMemoryStatusValue {
-    color: lightgrey;
+    color: var(--marble);
     font-size: 16px;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Description for memory management. */
 #settingsMemoryDesc {
     font-size: 10px;
     margin: 20px 0px;
-    color: lightgrey;
+    color: var(--muted);
     font-weight: bold;
 }
 
 /* Status text which displays details on the selected executable. */
 #settingsJavaExecDetails {
     font-weight: bold;
-    color: grey;
+    color: var(--muted);
     font-size: 12px;
 }
 
@@ -2109,14 +2251,14 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 12px;
 }
 #settingsJVMOptsContent:focus-within > .settingsJavaIcon {
-    background: rgba(126, 126, 126, 0.87);
+    background: rgba(206, 164, 100, 0.35);
 }
 
 /* Description for the JVM options setting. */
 #settingsJVMOptsDesc {
     font-size: 10px;
     margin: 20px 0px;
-    color: lightgrey;
+    color: var(--muted);
     font-weight: bold;
     width: 89%;
 }
@@ -2138,9 +2280,9 @@ input:checked + .toggleSwitchSlider:before {
 #settingsAboutCurrentContainer {
     display: flex;
     flex-direction: column;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(126, 126, 126, 0.57);
-    border-radius: 3px;
+    background: var(--stone);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
     width: 75%;
     margin-bottom: 20px;
 }
@@ -2157,7 +2299,7 @@ input:checked + .toggleSwitchSlider:before {
     display: flex;
     align-items: center;
     padding-bottom: 5px;
-    border-bottom: 1px solid rgba(126, 126, 126, 0.57);
+    border-bottom: 1px solid var(--hairline-strong);
 }
 #settingsAboutLogo {
     width: 30px;
@@ -2165,7 +2307,9 @@ input:checked + .toggleSwitchSlider:before {
     padding: 5px;
 }
 #settingsAboutTitle {
-    font-size: 23px;
+    font-size: 20px;
+    font-family: 'Avenir Heavy', 'Avenir Medium', sans-serif;
+    letter-spacing: 1px;
     padding-left: 10px;
 }
 
@@ -2179,15 +2323,18 @@ input:checked + .toggleSwitchSlider:before {
 /* Checkmark next to the version information. */
 #settingsAboutCurrentVersionCheck {
     border-radius: 50%;
-    background: #23aa23;
+    background: var(--bronze-dark);
     text-align: center;
     font-weight: bold;
     margin: 11px 12px;
-    color: white;
+    color: var(--marble);
     height: 15px;
     width: 15px;
     font-size: 12px;
     line-height: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Current version details container. */
@@ -2199,15 +2346,18 @@ input:checked + .toggleSwitchSlider:before {
 #settingsAboutCurrentVersionTitle {
     font-size: 12px;
     font-family: 'Avenir Medium';
-    color: #23aa23;
+    color: var(--bronze);
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Current version text. */
 #settingsAboutCurrentVersionLine {
     font-size: 10px;
-    color: grey;
+    color: var(--muted);
     font-weight: bold;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* About information links. */
@@ -2220,7 +2370,7 @@ input:checked + .toggleSwitchSlider:before {
     background: none;
     border: none;
     font-size: 10px;
-    color: grey;
+    color: var(--muted);
     padding: 0px 5px;
     transition: 0.25s ease;
     outline: none;
@@ -2228,19 +2378,19 @@ input:checked + .toggleSwitchSlider:before {
 }
 .settingsAboutButton:hover,
 .settingsAboutButton:focus {
-    color: rgb(165, 165, 165);
+    color: var(--bronze-light);
 }
 .settingsAboutButton:active {
-    color: rgba(124, 124, 124, 0.75);
+    color: var(--bronze-dark);
 }
 
 /* Main changelog container. */
 .settingsChangelogContainer {
     display: flex;
     flex-direction: column;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(126, 126, 126, 0.57);
-    border-radius: 3px;
+    background: var(--stone);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
     width: 75%;
     margin-bottom: 20px;
 }
@@ -2256,13 +2406,15 @@ input:checked + .toggleSwitchSlider:before {
 .settingsChangelogHeadline {
     padding-bottom: 10px;
     margin-bottom: 10px;
-    border-bottom: 1px solid rgba(126, 126, 126, 0.57);
+    border-bottom: 1px solid var(--hairline-strong);
 }
 /* Changelog header label. */
 .settingsChangelogLabel {
     font-size: 12px;
-    color: grey;
+    color: var(--muted);
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Changelog text content container. */
@@ -2276,17 +2428,17 @@ input:checked + .toggleSwitchSlider:before {
     line-height: 1.5;
 }
 .settingsChangelogText blockquote {
-    border-left: 0.25em solid rgba(126, 126, 126, 0.95);
+    border-left: 0.25em solid var(--hairline-strong);
     margin: 0px;
     padding: 0 0 0 1em;
-    color: rgba(255, 255, 255, 0.85);
+    color: rgba(236, 231, 223, 0.85);
 }
 .settingsChangelogText code {
     padding: 0.1em 0.4em;
     font-size: 85%;
-    background-color: rgba(255, 255, 255, 0.25);
-    color: white;
-    border-radius: 3px;
+    background-color: rgba(206, 164, 100, 0.16);
+    color: var(--bronze-light);
+    border-radius: 2px;
     font-family: 'Avenir Book';
 }
 .settingsChangelogText li+li {
@@ -2340,9 +2492,9 @@ input:checked + .toggleSwitchSlider:before {
 #settingsUpdateStatusContainer {
     display: flex;
     flex-direction: column;
-    background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(126, 126, 126, 0.57);
-    border-radius: 3px;
+    background: var(--stone);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
     width: 75%;
     margin-bottom: 20px;
 }
@@ -2359,12 +2511,14 @@ input:checked + .toggleSwitchSlider:before {
     display: flex;
     align-items: center;
     padding-bottom: 5px;
-    border-bottom: 1px solid rgba(126, 126, 126, 0.57);
+    border-bottom: 1px solid var(--hairline-strong);
 }
 #settingsUpdateTitle {
     font-size: 16px;
     padding-left: 10px;
     font-weight: bold;
+    font-family: 'Avenir Medium';
+    letter-spacing: 1px;
 }
 
 /* Update version container. */
@@ -2372,21 +2526,24 @@ input:checked + .toggleSwitchSlider:before {
     display: flex;
     align-items: center;
     padding: 10px 0px;
-    border-bottom: 1px solid rgba(126, 126, 126, 0.57);
+    border-bottom: 1px solid var(--hairline);
 }
 
 /* Checkmark next to the version information. */
 #settingsUpdateVersionCheck {
     border-radius: 50%;
-    background: #23aa23;
+    background: var(--bronze-dark);
     text-align: center;
     font-weight: bold;
     margin: 11px 12px;
-    color: white;
+    color: var(--marble);
     height: 15px;
     width: 15px;
     font-size: 12px;
     line-height: 17px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* Update version details container. */
@@ -2398,15 +2555,18 @@ input:checked + .toggleSwitchSlider:before {
 #settingsUpdateVersionTitle {
     font-size: 12px;
     font-family: 'Avenir Medium';
-    color: #23aa23;
+    color: var(--bronze);
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* Current version text. */
 #settingsUpdateVersionLine {
     font-size: 10px;
-    color: grey;
+    color: var(--muted);
     font-weight: bold;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Update action container. */
@@ -2432,11 +2592,11 @@ input:checked + .toggleSwitchSlider:before {
 }
 #settingsUpdateActionButton:hover,
 #settingsUpdateActionButton:focus {
-    text-shadow: 0px 0px 20px white, 0px 0px 20px white, 0px 0px 20px white;
+    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.75), 0px 0px 20px rgba(206, 164, 100, 0.75);
 }
 #settingsUpdateActionButton:active {
-    text-shadow: 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7;
-    color: #c7c7c7;
+    text-shadow: 0px 0px 20px rgba(167, 139, 98, 0.75), 0px 0px 20px rgba(167, 139, 98, 0.75);
+    color: var(--muted);
 }
 #settingsUpdateActionButton:disabled {
     pointer-events: none;
@@ -2597,7 +2757,7 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 18px;
     font-weight: bold;
     font-family: 'Avenir Medium';
-    color: white;
+    color: var(--marble);
     text-decoration: none;
     transition: 0.25s ease;
     outline: none;
@@ -2605,11 +2765,11 @@ input:checked + .toggleSwitchSlider:before {
 }
 #newsArticleTitle:hover,
 #newsArticleTitle:focus {
-    text-shadow: 0px 0px 20px white;
+    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.75);
 }
 #newsArticleTitle:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7;
+    color: var(--muted);
+    text-shadow: none;
 }
 
 /* News meta container. */
@@ -2632,19 +2792,21 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 10px;
     padding: 0px 5px;
     font-weight: bold;
-    border-radius: 2px;
+    border-radius: 1px;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
-/* Date styles. */
+/* Date styles: marble inscription tile. */
 #newsArticleDate {
-    background: white;
-    color: black;
+    background: var(--marble);
+    color: var(--ink);
     margin-top: 5px;
 }
 
-/* Author styles. */
+/* Author styles: rust tile. */
 #newsArticleAuthor {
-    background: #a02d2a;
+    background: var(--rust);
+    color: var(--bronze-light);
 }
 
 /* News article comments styles. */
@@ -2652,7 +2814,7 @@ input:checked + .toggleSwitchSlider:before {
     margin-top: 5px;
     display: inline-block;
     font-size: 10px;
-    color: #ffffff;
+    color: var(--marble);
     text-decoration: none;
     transition: 0.25s ease;
     outline: none;
@@ -2660,10 +2822,10 @@ input:checked + .toggleSwitchSlider:before {
 }
 #newsArticleComments:focus,
 #newsArticleComments:hover {
-    color: #e0e0e0;
+    color: var(--bronze-light);
 }
 #newsArticleComments:active {
-    color: #c7c7c7;
+    color: var(--muted);
 }
 
 /* Article content container (right). */
@@ -2687,16 +2849,16 @@ input:checked + .toggleSwitchSlider:before {
     margin: 0 auto;
 }
 #newsArticleContentScrollable a {
-    color: rgba(202, 202, 202, 0.75);
+    color: var(--muted);
     transition: 0.25s ease;
     outline: none;
 }
 #newsArticleContentScrollable a:hover,
 #newsArticleContentScrollable a:focus {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--bronze-light);
 }
 #newsArticleContentScrollable a:active {
-    color: rgba(165, 165, 165, 0.75);
+    color: var(--bronze-dark);
 }
 #newsArticleContentScrollable::-webkit-scrollbar {
     width: 2px;
@@ -2705,8 +2867,8 @@ input:checked + .toggleSwitchSlider:before {
     display: none;
 }
 #newsArticleContentScrollable::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.50);
+    border-radius: 2px;
+    background-color: var(--hairline-strong);
 }
 .bbCodeSpoilerButton {
     background: none;
@@ -2716,21 +2878,21 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 16px;
     transition: 0.25s ease;
     width: 100%;
-    border-bottom: 1px solid white;
+    border-bottom: 1px solid var(--hairline-strong);
     padding-bottom: 15px;
 }
 .bbCodeSpoilerButton:hover,
 .bbCodeSpoilerButton:focus {
-    text-shadow: 0px 0px 20px #ffffff, 0px 0px 20px #ffffff, 0px 0px 20px #ffffff;
+    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.75);
 }
 .bbCodeSpoilerButton:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7;
+    color: var(--muted);
+    text-shadow: none;
 }
 .bbCodeSpoilerText {
     display: none;
     padding: 15px 0px;
-    border-bottom: 1px solid white;
+    border-bottom: 1px solid var(--hairline);
 }
 
 
@@ -2763,6 +2925,7 @@ input:checked + .toggleSwitchSlider:before {
 #newsNavigationStatus {
     font-size: 12px;
     margin: 0px 15px;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Left and right navigation button styles. */
@@ -2778,19 +2941,19 @@ input:checked + .toggleSwitchSlider:before {
 #newsNavigateLeft:focus #newsNavigationLeftSVG,
 #newsNavigateRight:hover #newsNavigationRightSVG,
 #newsNavigateRight:focus #newsNavigationRightSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #fff);
+    -webkit-filter: drop-shadow(0px 0px 2px var(--bronze-light));
 }
 #newsNavigateLeft:active #newsNavigationLeftSVG .arrowLine,
 #newsNavigateRight:active #newsNavigationRightSVG .arrowLine {
-    stroke: #c7c7c7;
+    stroke: var(--muted);
 }
 #newsNavigateLeft:active #newsNavigationLeftSVG,
 #newsNavigateRight:active #newsNavigationRightSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
+    -webkit-filter: drop-shadow(0px 0px 2px var(--muted));
 }
 #newsNavigateLeft:disabled #newsNavigationLeftSVG .arrowLine,
 #newsNavigateRight:disabled #newsNavigationRightSVG .arrowLine {
-    stroke: rgba(255, 255, 255, 0.75);
+    stroke: rgba(236, 231, 223, 0.40);
 }
 #newsNavigationLeftSVG {
     transform: rotate(-90deg);
@@ -2839,11 +3002,11 @@ input:checked + .toggleSwitchSlider:before {
 }
 #newsErrorRetry:focus,
 #newsErrorRetry:hover {
-    text-shadow: 0px 0px 20px white;
+    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.75);
 }
 #newsErrorRetry:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7;
+    color: var(--muted);
+    text-shadow: none;
 }
 
 /*******************************************************************************
@@ -2886,9 +3049,9 @@ input:checked + .toggleSwitchSlider:before {
     top: 0%;
     left: 0%;
     border-radius: 50%;
-    box-shadow: 0 0 15px #43c628;
+    box-shadow: 0 0 15px var(--bronze);
     animation: glow-grow 4s ease-out infinite;
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(12, 10, 7, 0.15);
 }
 #image_seal_container[update]:before {
     animation-delay: 2s;
@@ -2901,10 +3064,11 @@ input:checked + .toggleSwitchSlider:before {
     opacity: 0;
     width: 100px;
     height: 15px;
-    background-color: rgb(0, 0, 0);
-    color: #fff;
+    background-color: var(--stone-deep);
+    border: 1px solid var(--hairline);
+    color: var(--bronze-light);
     text-align: center;
-    border-radius: 4px;
+    border-radius: 2px;
     padding: 2px;
     position: absolute;
     z-index: 1;
@@ -2922,7 +3086,7 @@ input:checked + .toggleSwitchSlider:before {
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: transparent transparent rgb(0, 0, 0) transparent;
+    border-color: transparent transparent rgb(8, 7, 5) transparent;
 }
 #image_seal_container[update]:hover #updateAvailableTooltip {
     visibility: visible;
@@ -2971,9 +3135,9 @@ input:checked + .toggleSwitchSlider:before {
 /* User profile avatar container. */
 #avatarContainer {
     border-radius: 50%;
-    border: 2px solid #d4a54f;
+    border: 1px solid var(--bronze);
     box-sizing: border-box;
-    background: rgba(1, 2, 1, 0.5);
+    background: var(--stone-deep);
     height: 70px;
     width: 70px;
     box-shadow: 0px 0px 10px 0px rgb(0, 0, 0);
@@ -3053,13 +3217,13 @@ input:checked + .toggleSwitchSlider:before {
 .mediaDivider {
     height: 1px;
     width: 14px;
-    background: rgb(255, 255, 255);
+    background: var(--hairline-strong);
     margin: 10px 0px;
 }
 
 /* Social media icon shared styles. */
 .mediaSVG {
-    fill: #ffffff;
+    fill: var(--marble);
     height: 12px;
     transition: 0.25s ease;
     cursor: pointer;
@@ -3093,7 +3257,7 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Settings icon colors. */
 #settingsSVG {
-    stroke: #ffffff;
+    stroke: var(--marble);
     height: 15px;
 }
 .mediaButton:hover #settingsSVG,
@@ -3108,9 +3272,11 @@ input:checked + .toggleSwitchSlider:before {
     opacity: 0;
     width: 75px;
     height: 20px;
-    background-color: rgba(0, 0, 0, 0.75);
+    background-color: var(--stone-deep);
+    border: 1px solid var(--hairline);
+    color: var(--bronze-light);
     text-align: center;
-    border-radius: 4px;
+    border-radius: 2px;
     position: absolute;
     z-index: 1;
     right: 130%;
@@ -3126,7 +3292,7 @@ input:checked + .toggleSwitchSlider:before {
     margin-top: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: transparent transparent transparent rgba(0, 0, 0, 0.75);
+    border-color: transparent transparent transparent rgb(8, 7, 5);
 }
 .mediaButton:hover #settingsTooltip,
 .mediaButton:focus #settingsTooltip,
@@ -3182,7 +3348,10 @@ input:checked + .toggleSwitchSlider:before {
 /* Style for a general label on the bottom of the landing view. */
 .bot_label {
     font-size: 9px;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    font-family: 'Avenir Medium';
+    color: var(--marble);
     font-weight: bold;
     text-shadow: 0px 0px 0px #bebcbb;
 }
@@ -3190,8 +3359,8 @@ input:checked + .toggleSwitchSlider:before {
 /* Divider used on the bottom of the landing view. */
 .bot_divider {
     height: 25px;
-    width: 2px;
-    background: rgba(107, 105, 105, 0.7);
+    width: 1px;
+    background: var(--hairline-strong);
     margin-left: 20px;
     margin-right: 20px;
 }
@@ -3208,11 +3377,13 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Span which displays the player count of the selected server. */
 #player_count {
-    color: #949494;
+    color: var(--muted);
     font-size: 8px;
     font-weight: 900;
-    text-shadow: 0px 0px 20px #949494;
+    letter-spacing: 1px;
+    text-shadow: 0px 0px 20px rgba(0, 0, 0, 0.75);
     margin-left: 10px;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Wrapper container for the mojang status bar. */
@@ -3224,10 +3395,13 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Icon which displays the status of the mojang services. */
 #mojang_status_icon {
-    font-size: 30px;
-    color: #848484;
+    color: var(--muted);
     margin-left: 15px;
-    font-family: 'sans-serif';
+    display: inline-flex;
+    align-items: center;
+}
+#mojang_status_icon svg {
+    display: block;
 }
 
 /* Tooltip which displays more details about the mojang statuses. */
@@ -3237,9 +3411,10 @@ input:checked + .toggleSwitchSlider:before {
     opacity: 0;
     width: 145px;
     min-height: 150px;
-    background-color: rgba(0, 0, 0, 0.75);
-    color: #fff;
-    border-radius: 4px;
+    background-color: var(--stone-deep);
+    border: 1px solid var(--hairline);
+    color: var(--marble);
+    border-radius: 2px;
     padding: 5px 10px;
     z-index: 1;
     font-family: 'Avenir Medium';
@@ -3259,7 +3434,7 @@ input:checked + .toggleSwitchSlider:before {
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: rgba(0, 0, 0, 0.75) transparent transparent transparent;
+    border-color: rgb(8, 7, 5) transparent transparent transparent;
 }
 #mojangStatusWrapper:hover #mojangStatusTooltip {
     visibility: visible;
@@ -3272,7 +3447,9 @@ input:checked + .toggleSwitchSlider:before {
     width: 100%;
     text-align: center;
     margin-bottom: 5px;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    font-size: 10px;
 }
 
 /* Wrapper container for the non essential services title. */
@@ -3282,11 +3459,11 @@ input:checked + .toggleSwitchSlider:before {
     margin: 10px 0px;
 }
 
-/* White bar which surrounds the non essential service title. */
+/* Hairline which surrounds the non essential service title. */
 .mojangStatusNEBar {
     height: 1px;
     width: 100%;
-    background: white;
+    background: var(--hairline-strong);
 }
 
 /* Non essential service title text. */
@@ -3294,7 +3471,8 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 10px;
     padding: 0px 3px;
     text-align: center;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
 }
 
 /* Wrapper container for mojang service information. */
@@ -3314,8 +3492,12 @@ input:checked + .toggleSwitchSlider:before {
 /* Displays the status of the mojang service. */
 .mojangStatusIcon {
     margin-right: 10px;
-    font-size: 18.5px;
-    color: #848484;
+    color: var(--muted);
+    display: inline-flex;
+    align-items: center;
+}
+.mojangStatusIcon svg {
+    display: block;
 }
 
 /* * *
@@ -3331,25 +3513,25 @@ input:checked + .toggleSwitchSlider:before {
 }
 #newsButton:hover #newsButtonText,
 #newsButton:focus #newsButtonText {
-    text-shadow: 0px 0px 20px #fff, 0px 0px 20px #fff;
+    text-shadow: 0px 0px 20px var(--bronze-light), 0px 0px 20px var(--bronze-light);
 }
 #newsButton:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7;
+    color: var(--muted);
+    text-shadow: none;
 }
 
 #newsButton:hover #newsButtonSVG,
 #newsButton:focus #newsButtonSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #fff);
+    -webkit-filter: drop-shadow(0px 0px 2px var(--bronze-light));
 }
 #newsButton:active #newsButtonSVG .arrowLine {
-    stroke: #c7c7c7;
+    stroke: var(--muted);
 }
 #newsButton:active #newsButtonSVG {
-    -webkit-filter: drop-shadow(0px 0px 2px #c7c7c7);
+    -webkit-filter: drop-shadow(0px 0px 2px var(--muted));
 }
 #newsButton:disabled #newsButtonSVG .arrowLine {
-    stroke: rgba(255, 255, 255, 0.75);
+    stroke: rgba(236, 231, 223, 0.40);
 }
 
 /* Icon which indicates there is new news. */
@@ -3357,8 +3539,8 @@ input:checked + .toggleSwitchSlider:before {
     width: 5px;
     height: 5px;
     position: absolute;
-    border-radius: 50%;
-    background: red;
+    border-radius: 1px;
+    background: var(--rust-bright);
     right: -1px;
     top: 50%;
 }
@@ -3372,7 +3554,7 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Span which contains the news button text. */
 #newsButtonText {
-    color: white;
+    color: var(--marble);
     font-weight: 900;
     letter-spacing: 2px;
     text-shadow: 0px 0px 0px #bebcbb;
@@ -3391,32 +3573,38 @@ input:checked + .toggleSwitchSlider:before {
     position: relative;
     top: 25px;
     display: inline-flex;
+    align-items: center;
 }
 
-/* The launch button. */
+/* The launch button. Primary action: bronze fill. */
 #launch_button {
-    background: none;
+    background: var(--bronze);
     border: none;
+    border-radius: 2px;
     cursor: pointer;
-    font-weight: 900;
-    letter-spacing: 2px;
-    color: #e8c563;
-    text-shadow: 0px 0px 0px #bebcbb;
-    font-size: 20px;
-    padding: 0px;
-    transition: 0.25s ease;
+    font-family: 'Avenir Medium';
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    color: var(--ink);
+    font-size: 18px;
+    padding: 8px 24px;
+    transition: background 0.25s ease, color 0.25s ease;
     outline: none;
 }
 #launch_button:hover,
 #launch_button:focus {
-    text-shadow: 0px 0px 20px #d4a54f, 0px 0px 20px #d4a54f;
+    background: var(--bronze-light);
+    text-shadow: none;
 }
 #launch_button:active {
-    color: #b8923d;
-    text-shadow: 0px 0px 20px #b8923d, 0px 0px 20px #b8923d;
+    background: var(--bronze-dark);
+    color: var(--marble);
+    text-shadow: none;
 }
 #launch_button:disabled {
-    color: #c7c7c7;
+    background: rgba(167, 139, 98, 0.25);
+    color: rgba(236, 231, 223, 0.40);
     cursor: default;
     pointer-events: none;
 }
@@ -3437,11 +3625,13 @@ input:checked + .toggleSwitchSlider:before {
 #launch_progress_label {
     font-weight: 900;
     letter-spacing: 1px;
+    color: var(--bronze-light);
     text-shadow: 0px 0px 0px #bebcbb;
     font-size: 20px;
     min-width: 53.21px;
     max-width: 53.21px;
     text-align: right;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Right side of launch details container, displays progress bar and details. */
@@ -3463,11 +3653,11 @@ input:checked + .toggleSwitchSlider:before {
 }
 #server_selection_button:hover,
 #server_selection_button:focus {
-    text-shadow: 0px 0px 20px #fff, 0px 0px 20px #fff, 0px 0px 20px #fff;
+    text-shadow: 0px 0px 20px var(--bronze-light), 0px 0px 20px var(--bronze-light);
 }
 #server_selection_button:active {
-    color: #c7c7c7;
-    text-shadow: 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7, 0px 0px 20px #c7c7c7;
+    color: var(--muted);
+    text-shadow: none;
 }
 
 /* Progress bar styles. */
@@ -3477,10 +3667,10 @@ input:checked + .toggleSwitchSlider:before {
     -webkit-appearance: none;
 }
 #launch_progress[value]::-webkit-progress-bar {
-    background-color: transparent;
+    background-color: rgba(236, 231, 223, 0.18);
 }
 #launch_progress[value]::-webkit-progress-value {
-    background-color: #d4a54f;
+    background-color: var(--bronze);
 }
 
 /* Span which displays information about the status of the launch process. */
@@ -3532,17 +3722,17 @@ input:checked + .toggleSwitchSlider:before {
 /* Main overlay content anchor styles. */
 #overlayContent a,
 #overlayDismiss {
-    color: rgba(202, 202, 202, 0.75);
+    color: var(--muted);
     transition: 0.25s ease;
 }
 #overlayContent a:hover,
 #overlayContent a:focus,
 #overlayDismiss:focus {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--bronze-light);
 }
 #overlayContent a:active,
 #overlayDismiss:active {
-    color: rgba(165, 165, 165, 0.75);
+    color: var(--bronze-dark);
 }
 
 /* Add spacing between overlay content elements. */
@@ -3561,7 +3751,8 @@ input:checked + .toggleSwitchSlider:before {
     font-family: 'Avenir Medium';
     font-size: 20px;
     font-weight: bold;
-    letter-spacing: 1px;
+    letter-spacing: 2px;
+    color: var(--marble);
     -webkit-user-select: initial;
 }
 
@@ -3579,32 +3770,39 @@ input:checked + .toggleSwitchSlider:before {
     justify-content: center;
 }
 
-/* Overlay acknowledge button styles. */
+/* Overlay acknowledge button styles. Secondary bordered chip. */
 #overlayAcknowledge {
     background: none;
-    border: 1px solid #ffffff;
-    color: white;
+    border: 1px solid var(--bronze);
+    color: var(--bronze-light);
     font-family: 'Avenir Medium';
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     border-radius: 2px;
-    padding: 0px 8.1px;
+    padding: 4px 12px;
     cursor: pointer;
     transition: 0.25s ease;
 }
 #overlayAcknowledge:hover,
 #overlayAcknowledge:focus {
-    box-shadow: 0px 0px 10px 0px #fff;
+    background: rgba(206, 164, 100, 0.15);
+    box-shadow: none;
     outline: none;
+    color: var(--marble);
 }
 #overlayAcknowledge:active {
-    border-color: rgba(255, 255, 255, 0.75);
-    color: rgba(255, 255, 255, 0.75);
+    border-color: var(--bronze-dark);
+    background: rgba(168, 130, 63, 0.30);
+    color: var(--bronze-light);
 }
 
 /* Overlay dismiss option styles. */
 #overlayDismiss {
     font-weight: bold;
     font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     text-decoration: none;
     padding-top: 2.5px;
     background: none;
@@ -3613,10 +3811,10 @@ input:checked + .toggleSwitchSlider:before {
     cursor: pointer;
 }
 #overlayDismiss:hover {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--bronze-light);
 }
 #overlayDismiss:active {
-    color: rgba(165, 165, 165, 0.75);
+    color: var(--bronze-dark);
 }
 
 /* * *
@@ -3636,11 +3834,14 @@ input:checked + .toggleSwitchSlider:before {
 /* Server selection header. */
 #serverSelectHeader,
 #accountSelectHeader {
-    font-family: 'Avenir Medium';
+    font-family: 'Avenir Heavy', 'Avenir Medium', sans-serif;
     font-size: 20px;
     font-weight: bold;
-    color: #fff;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--marble);
     margin-bottom: 25px;
+    text-shadow: 0px 1px 0px rgba(0, 0, 0, 0.9);
 }
 
 /* Wrapper div for the list of available servers. */
@@ -3670,13 +3871,14 @@ input:checked + .toggleSwitchSlider:before {
 }
 #serverSelectListScrollable::-webkit-scrollbar-thumb,
 #accountSelectListScrollable::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    box-shadow: inset 0 0 10px rgba(255, 255, 255, 0.50);
+    border-radius: 2px;
+    background-color: var(--hairline-strong);
 }
 
 /* Content container for a server listing. */
 .serverListing {
-    border: none;
+    border: 1px solid transparent;
+    border-radius: 2px;
     padding: 0px;
     width: 375px;
     min-height: 60px;
@@ -3687,22 +3889,24 @@ input:checked + .toggleSwitchSlider:before {
     transition: 0.25s ease;
     cursor: pointer;
     position: relative;
-    background: rgba(131, 131, 131, 0.25);
+    background: var(--stone);
 }
 .serverListing[selected] {
     cursor: default;
     opacity: 1.0;
+    border-color: var(--bronze);
 }
 .serverListing:hover,
 .serverListing:focus {
     outline: none;
     opacity: 1.0;
+    border-color: var(--hairline-strong);
 }
 
 .accountListing {
-    color: white;
-    border: 1px solid rgba(126, 126, 126, 0.57);
-    border-radius: 3px;
+    color: var(--marble);
+    border: 1px solid var(--hairline);
+    border-radius: 2px;
     padding: 5px 45px;
     width: 250px;
     display: flex;
@@ -3712,16 +3916,18 @@ input:checked + .toggleSwitchSlider:before {
     transition: 0.25s ease;
     cursor: pointer;
     position: relative;
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--stone);
 }
 .accountListing[selected] {
     cursor: default;
     opacity: 1.0;
+    border-color: var(--bronze);
 }
 .accountListing:hover,
 .accountListing:focus {
     outline: none;
     opacity: 1.0;
+    border-color: var(--hairline-strong);
 }
 
 .accountListingName {
@@ -3748,7 +3954,7 @@ input:checked + .toggleSwitchSlider:before {
 /* Server listing image. */
 .serverListingImg {
     margin: 0px 10px 0px 5px;
-    border: 1px solid #fff;
+    border: 1px solid var(--hairline-strong);
     height: 50px;
     width: 50px;
 }
@@ -3783,7 +3989,7 @@ input:checked + .toggleSwitchSlider:before {
     justify-content: flex-start;
 }
 
-/* The minecraft version of the server listing. */
+/* The minecraft version of the server listing. Bronze tile. */
 .serverListingVersion {
     font-size: 10px;
     text-align: center;
@@ -3792,17 +3998,21 @@ input:checked + .toggleSwitchSlider:before {
     align-items: center;
     line-height: 12px;
     height: 12px;
-    border-radius: 2px;
-    background: rgba(31, 140, 11, 0.8);
+    border-radius: 1px;
+    background: rgba(206, 164, 100, 0.20);
+    border: 1px solid var(--hairline-strong);
+    color: var(--bronze-light);
     padding: 0px 2px;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* The revision version of the server's manifest. */
 .serverListingRevision {
-    color: #969696;
+    color: var(--muted);
     font-size: 10px;
     line-height: 12px;
     padding: 0px 5px;
+    font-variant-numeric: tabular-nums lining-nums;
 }
 
 /* Star which indicates the default (main) server. */
@@ -3818,9 +4028,11 @@ input:checked + .toggleSwitchSlider:before {
     visibility: hidden;
     opacity: 0;
     width: 65px;
-    background-color: rgba(0, 0, 0, 0.40);
+    background-color: var(--stone-deep);
+    border: 1px solid var(--hairline);
+    color: var(--bronze-light);
     text-align: center;
-    border-radius: 4px;
+    border-radius: 2px;
     position: absolute;
     z-index: 1;
     left: 130%;
@@ -3835,7 +4047,15 @@ input:checked + .toggleSwitchSlider:before {
     margin-top: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: transparent rgba(0, 0, 0, 0.40) transparent transparent;
+    border-color: transparent rgb(8, 7, 5) transparent transparent;
+}
+
+/* Main-server star seal rendered in bronze. */
+.serverListingStarWrapper svg .cls-1 {
+    fill: var(--bronze);
+}
+.serverListingStarWrapper svg .cls-2 {
+    stroke: var(--bronze-light);
 }
 .serverListingStarWrapper:hover .serverListingStarTooltip {
     visibility: visible;
@@ -3853,16 +4073,18 @@ input:checked + .toggleSwitchSlider:before {
     margin-top: 25px;
 }
 
-/* Server selection confirm button styles. */
+/* Server selection confirm button styles. Secondary bordered chip. */
 #serverSelectConfirm,
 #accountSelectConfirm {
     background: none;
-    border: 1px solid #ffffff;
-    color: white;
+    border: 1px solid var(--bronze);
+    color: var(--bronze-light);
     font-family: 'Avenir Medium';
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     border-radius: 2px;
-    padding: 0px 8.1px;
+    padding: 4px 12px;
     cursor: pointer;
     transition: 0.25s ease;
     min-height: 20.67px;
@@ -3871,13 +4093,16 @@ input:checked + .toggleSwitchSlider:before {
 #serverSelectConfirm:focus,
 #accountSelectConfirm:hover,
 #accountSelectConfirm:focus {
-    box-shadow: 0px 0px 10px 0px #fff;
+    background: rgba(206, 164, 100, 0.15);
+    box-shadow: none;
+    color: var(--marble);
     outline: none;
 }
 #serverSelectConfirm:active,
 #accountSelectConfirm:active {
-    border-color: rgba(255, 255, 255, 0.75);
-    color: rgba(255, 255, 255, 0.75);
+    border-color: var(--bronze-dark);
+    background: rgba(168, 130, 63, 0.30);
+    color: var(--bronze-light);
 }
 
 /* Server selection cancel button styles. */
@@ -3885,9 +4110,11 @@ input:checked + .toggleSwitchSlider:before {
 #accountSelectCancel {
     font-weight: bold;
     font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
     text-decoration: none;
     padding-top: 2.5px;
-    color: rgba(202, 202, 202, 0.75);
+    color: var(--muted);
     transition: 0.25s ease;
     background: none;
     border: none;
@@ -3898,11 +4125,11 @@ input:checked + .toggleSwitchSlider:before {
 #serverSelectCancel:focus,
 #accountSelectCancel:hover,
 #accountSelectCancel:focus {
-    color: rgba(255, 255, 255, 0.75);
+    color: var(--bronze-light);
 }
 #serverSelectCancel:active,
 #accountSelectCancel:active {
-    color: rgba(165, 165, 165, 0.75);
+    color: var(--bronze-dark);
 }
 
 /*******************************************************************************
@@ -3966,4 +4193,31 @@ input:checked + .toggleSwitchSlider:before {
 /* Class which is applied when the spinner image is spinning. */
 .rotating {
     animation: rotating 10s linear infinite;
+}
+
+/*******************************************************************************
+ *                                                                             *
+ * Imperium Global Layer                                                       *
+ *                                                                             *
+ ******************************************************************************/
+
+/* Arrow line icons: marble strokes (overrides the per-svg internal defs). */
+svg .arrowLine {
+    stroke: var(--marble);
+}
+
+/* Keyboard focus ring: visible, on-brand, never removes contrast. */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+label:focus-visible,
+div[tabindex]:focus-visible {
+    outline: 1px solid var(--bronze-light);
+    outline-offset: 2px;
+}
+
+/* Text selection tinted bronze. */
+::selection {
+    background: rgba(206, 164, 100, 0.35);
+    color: var(--marble);
 }

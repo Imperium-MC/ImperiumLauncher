@@ -10,7 +10,7 @@ mojangStatusTooltipTitle = "Services"
 mojangStatusNETitle = "Non&nbsp;Essential"
 newsButton = "NEWS"
 launchButton = "PLAY"
-launchButtonPlaceholder = "&#8226; No Server Selected"
+launchButtonPlaceholder = "No Server Selected"
 launchDetails = "Please wait.."
 newsNavigationStatus = "{currentPage} of {totalPages}"
 newsErrorLoadSpan = "Checking for News.."
@@ -234,7 +234,7 @@ okButton = "OK"
 
 [js.settings.authAccountSelect]
 selectButton = "Select Account"
-selectedButton = "Selected Account &#10004;"
+selectedButton = "Selected Account"
 
 [js.settings.authAccountLogout]
 lastAccountWarningTitle = "Warning<br>This is Your Last Account"
