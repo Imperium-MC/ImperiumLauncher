@@ -6,7 +6,7 @@
             "name": "ImperiumMC",
             "description": "Story-driven Roman prison server.",
             "icon": "https://raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/app/assets/images/SealCircle.png",
-            "version": "0.1.0-beta.2",
+            "version": "0.2.0-beta.3",
             "address": "play.imperiummc.net",
             "minecraftVersion": "26.3",
             "mainServer": true,
@@ -107,13 +107,13 @@
                     ]
                 },
                 {
-                    "id": "net.imperiummc:imperium-client:0.1.0-beta.2",
+                    "id": "net.imperiummc:imperium-client:0.2.0-beta.3",
                     "name": "Imperium Client",
                     "type": "FabricMod",
                     "artifact": {
-                        "size": 9115253,
-                        "MD5": "ef79f4cd94279f3f96469f269562cb3f",
-                        "url": "https://github.com/Imperium-MC/ImperiumClient/releases/download/v0.1.0-beta.2/ImperiumClient-0.1.0-beta.2+26.3.jar"
+                        "size": 9147405,
+                        "MD5": "914678712ae970332fcf686954c3e543",
+                        "url": "https://github.com/Imperium-MC/ImperiumClient/releases/download/v0.2.0-beta.3/ImperiumClient-0.2.0-beta.3+26.3.jar"
                     }
                 },
                 {
