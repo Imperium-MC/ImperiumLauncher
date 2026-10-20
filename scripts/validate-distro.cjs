@@ -428,7 +428,7 @@ async function checkArtifact(entry, fullMode) {
           try {
             const nestedBuf = readEntryFromWholeFile(buf, e);
             pushNestedMeta(record, nestedBuf, e.name);
-          } catch (_e) { /* one unreadable nested jar must not sink the outer mod */ }
+          } catch { /* one unreadable nested jar must not sink the outer mod */ }
         }
       } else if (probe.total != null) {
         // Large jar: read only the outer fabric.mod.json by ranged GET now and
@@ -473,7 +473,7 @@ async function resolveLazyJij(record) {
         const m = parseMeta(readEntryFromWholeFile(nestedBuf, nestedMeta));
         if (m && m.id) record.jij.push({ id: m.id, version: m.version || '*', from: e.name });
       }
-    } catch (_e) { /* keep going — a missing nested meta just leaves the dep unresolved */ }
+    } catch { /* keep going — a missing nested meta just leaves the dep unresolved */ }
   }
   record.lazy = null;
 }
