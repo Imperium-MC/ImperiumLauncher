@@ -18,6 +18,7 @@
     "dist:win": "npm run dist -- -w",
     "dist:mac": "npm run dist -- -m",
     "dist:linux": "npm run dist -- -l",
+    "validate:distro": "node scripts/validate-distro.cjs",
     "lint": "eslint ."
   },
   "engines": {
