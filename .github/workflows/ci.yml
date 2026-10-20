@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Nightly at 03:00 UTC — Modrinth/GitHub artifact URLs can disappear
+    # without a push, so the distribution index is re-checked every night.
+    - cron: '0 3 * * *'
+
+jobs:
+  validate-distribution:
+    name: Validate distribution index
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      # scripts/validate-distro.cjs has no dependencies (node 18+ fetch),
+      # so there is no npm ci step.
+      - name: Validate distribution index (full hashing)
+        run: node scripts/validate-distro.cjs --full
