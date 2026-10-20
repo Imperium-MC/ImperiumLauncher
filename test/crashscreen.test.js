@@ -51,3 +51,41 @@ test('lang keys for the crash overlay resolve', () => {
     assert.strictEqual(LangLoader.queryJS('landing.crash.providedBy', { mod: 'sodium' }), 'Mod involved: sodium')
     assert.match(LangLoader.queryJS('landing.crash.exited', { code: '1' }), /code 1/)
 })
+
+test('the crash payload carries the already-parsed upload fields', { timeout: 20000 }, async (t) => {
+    const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'imperium-crashscreen-upload-'))
+    t.after(() => fs.remove(workDir))
+    const crashDir = path.join(workDir, 'crash-reports')
+    await fs.ensureDir(crashDir)
+    const reportFile = path.join(crashDir, 'crash-2026-10-18_10.00.00-client.txt')
+    await fs.writeFile(reportFile, '---- Minecraft Crash Report ----\n'.repeat(200))
+
+    const captured = []
+    CrashScreen.setDispatch((payload) => captured.push(payload))
+    t.after(() => CrashScreen.setDispatch(() => {}))
+
+    CrashScreen._show({
+        startedAt: Date.now() - 1000,
+        shown: false,
+        logLines: [
+            '[main/INFO]: Loading Minecraft 26.3 with Fabric Loader 0.16.9',
+            'provided by \'sodium\' at SodiumPreLaunch',
+            'Caused by: java.lang.UnsatisfiedLinkError: Failed to locate library: lwjgl.dll'
+        ],
+        knownCrashFiles: new Set(),
+        pollTimer: null,
+        mcVersion: '26.3',
+        clientVersion: '0.2.0-beta.8'
+    }, crashDir, 1)
+
+    assert.strictEqual(captured.length, 1)
+    const upload = captured[0].upload
+    assert.strictEqual(upload.cause, 'java.lang.UnsatisfiedLinkError: Failed to locate library: lwjgl.dll')
+    assert.strictEqual(upload.mod, 'sodium')
+    assert.strictEqual(upload.mcVersion, '26.3')
+    assert.strictEqual(upload.clientVersion, '0.2.0-beta.8')
+    assert.ok(upload.logTail.includes('Loading Minecraft 26.3'))
+    assert.ok(upload.logTail.includes('lwjgl.dll'))
+    assert.ok(upload.crashReport.includes('Minecraft Crash Report'))
+    assert.ok(Buffer.byteLength(upload.crashReport, 'utf8') <= 64 * 1024)
+})

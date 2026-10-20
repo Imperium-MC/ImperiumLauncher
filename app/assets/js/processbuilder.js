@@ -77,6 +77,11 @@ class ProcessBuilder {
 
         logger.info('Launch Arguments:', loggableArgs)
 
+        // Smoke-mode guard (issue #5): the folder the JVM resolves LWJGL
+        // natives from must contain lwjgl.dll before the game is spawned.
+        // Inert outside CI smoke runs.
+        this._verifySmokeNatives(args, tempNativePath)
+
         const child = child_process.spawn(ConfigManager.getJavaExecutable(this.server.rawServer.id), args, {
             cwd: this.gameDir,
             detached: ConfigManager.getLaunchDetached()
@@ -112,12 +117,40 @@ class ProcessBuilder {
         // (tests), where @electron/remote is not available.
         try {
             const CrashScreen = require('./crashscreen')
-            CrashScreen.attach(child, this.gameDir)
+            CrashScreen.attach(child, this.gameDir, {
+                mcVersion: this.server.rawServer.minecraftVersion,
+                clientVersion: this.server.rawServer.version
+            })
         } catch(err) {
             logger.error('Failed to attach crash screen.', err)
         }
 
         return child
+    }
+
+    /**
+     * The smoke-launch guard (issue #5). Only active when the smoke driver
+     * set IMPERIUM_SMOKE=1: asserts that the folder LWJGL actually loads
+     * its natives from (SharedLibraryExtractPath, else java.library.path)
+     * contains lwjgl.dll, and prints the folder java.library.path resolved
+     * to. Throwing here fails the launch before a broken pack can start
+     * spawning java.
+     *
+     * @param {Array.<string>} args The fully resolved JVM arguments.
+     * @param {string} tempNativePath The ${natives_directory} for this launch.
+     */
+    _verifySmokeNatives(args, tempNativePath){
+        if(process.env.IMPERIUM_SMOKE !== '1'){
+            return
+        }
+        const plan = this._nativeDirPlan(tempNativePath)
+        const libraryPathArg = args.find(arg => typeof arg === 'string' && arg.startsWith('-Djava.library.path='))
+        console.log(`[SMOKE] java.library.path=${libraryPathArg != null ? libraryPathArg.substring('-Djava.library.path='.length) : '(unresolved)'}`)
+        console.log(`[SMOKE] lwjgl natives folder=${plan.lwjgl}`)
+        if(!fs.existsSync(path.join(plan.lwjgl, 'lwjgl.dll'))){
+            throw new Error(`[SMOKE] lwjgl.dll missing from ${plan.lwjgl} (issue #4 regression)`)
+        }
+        console.log('[SMOKE] lwjgl.dll present in the resolved natives folder')
     }
 
     /**

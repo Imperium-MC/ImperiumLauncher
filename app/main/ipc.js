@@ -7,7 +7,7 @@
  * Handlers that change persisted state return a fresh config snapshot so
  * the renderer's mirror can resynchronize.
  */
-const { clipboard, dialog, ipcMain, shell } = require('electron')
+const { app, clipboard, dialog, ipcMain, shell } = require('electron')
 const path   = require('path')
 const fs     = require('fs-extra')
 
@@ -20,6 +20,7 @@ const { RestResponseStatus } = require('helios-core/common')
 
 const launchercore = require('./launchercore')
 const launchservice = require('./launchservice')
+const crashreport   = require('./crashreport')
 
 // Channel names. Mirrored by the preload (app/preload.js).
 const BRIDGE = {
@@ -54,7 +55,8 @@ const BRIDGE = {
     MODS_ADD: 'IMPERIUM_MODS_ADD',
     SHADERS_SCAN: 'IMPERIUM_SHADERS_SCAN',
     SHADER_SET: 'IMPERIUM_SHADER_SET',
-    LOG: 'IMPERIUM_LOG'
+    LOG: 'IMPERIUM_LOG',
+    CRASH_REPORT_UPLOAD: 'IMPERIUM_CRASH_REPORT_UPLOAD'
 }
 
 // Renderer events (main -> renderer).
@@ -576,6 +578,32 @@ exports.register = function(winProvider){
         }
         DropinModUtil.setEnabledShaderpack(instanceDir, pack)
         return { ok: true }
+    })
+
+    /* crash report upload */
+    // The renderer passes the fields the crash screen already parsed; the
+    // fetch happens here (the renderer is sandboxed and CSP-bound, and the
+    // policy deliberately does not include the API host). Truncation and
+    // the timeout live in the crashreport module.
+    ipcMain.handle(BRIDGE.CRASH_REPORT_UPLOAD, (_e, fields) => {
+        const f = fields
+        const shapeOk = f != null && typeof f === 'object'
+            && typeof f.cause === 'string' && f.cause.length > 0 && f.cause.length <= crashreport.LIMITS.cause
+            && typeof f.logTail === 'string' && f.logTail.length <= 2 * crashreport.LIMITS.logTail
+            && (f.crashReport == null || (typeof f.crashReport === 'string' && f.crashReport.length <= 2 * crashreport.LIMITS.crashReport))
+            && (f.mod == null || (typeof f.mod === 'string' && f.mod.length <= crashreport.LIMITS.mod))
+            && (f.clientVersion == null || (typeof f.clientVersion === 'string' && f.clientVersion.length <= crashreport.LIMITS.clientVersion))
+            && (f.mcVersion == null || (typeof f.mcVersion === 'string' && f.mcVersion.length <= crashreport.LIMITS.mcVersion))
+        if(!shapeOk){
+            return invalid('Invalid crash report payload.')
+        }
+        return crashreport.upload(fields, {
+            meta: {
+                launcher: 'ImperiumLauncher',
+                launcherVersion: app.getVersion(),
+                platform: process.platform
+            }
+        })
     })
 
     /* logging */

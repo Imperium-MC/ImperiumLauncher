@@ -221,6 +221,11 @@ unknownCause = "The game crashed. No cause could be read from the log; the full 
 providedBy = "Mod involved: {mod}"
 copyReport = "Copy Report"
 copied = "Copied"
+sendReport = "Send Report"
+sending = "Sending.."
+sendFailed = "Could not send the report. Use Copy Report instead."
+copyLink = "Copy Link"
+linkCopied = "Copied"
 openLogs = "Open Logs Folder"
 close = "Close"
 
