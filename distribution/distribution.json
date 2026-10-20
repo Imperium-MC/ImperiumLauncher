@@ -37,6 +37,7 @@
           "artifact": {
             "size": 1984980,
             "MD5": "23bf6a8c5ba938db7d13959a2630357f",
+            "sha256": "93044e4dd46de5d8136701292f05e868da096d2c9fddb4793e4fdbcc63efc695",
             "url": "https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.5/fabric-loader-0.19.5.jar"
           },
           "subModules": [
@@ -47,6 +48,7 @@
               "artifact": {
                 "size": 2778,
                 "MD5": "e4203a48b1e5a6f9019a5044947a98f7",
+                "sha256": "b95984a9dae4e3e6b58fa3eca4fee91fa8904079306eea2ad0303e14adc5d28a",
                 "url": "https://meta.fabricmc.net/v2/versions/loader/26.3/0.19.5/profile/json"
               }
             },
@@ -119,6 +121,7 @@
           "artifact": {
             "size": 9292138,
             "MD5": "40c7cda0f0b934114e422ab1d5bc29e0",
+            "sha256": "620b1737889960a2b93ec92be582f296b2005b50d87673b574fd607abe18bb9b",
             "url": "https://github.com/Imperium-MC/ImperiumClient/releases/download/v0.2.0-beta.6/ImperiumClient-0.2.0-beta.6%2B26.3.jar"
           }
         },
@@ -133,6 +136,7 @@
           "artifact": {
             "size": 1775592,
             "MD5": "b575042bbfb302fd2f987b7f296387f4",
+            "sha256": "5a75198715a50a86787658617b03b97da9936d32df04896748c12135ba709de3",
             "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/LEklt8GT/fabric-api-0.164.0%2B26.3.jar"
           }
         },
@@ -147,6 +151,7 @@
           "artifact": {
             "size": 1912496,
             "MD5": "acc6ae644c0a71953832d35d9fb475e6",
+            "sha256": "84cdb90d273aadbc00cddbcc82ede6e44fd33ac635f23c1d43fec28cc43b9bd6",
             "url": "https://cdn.modrinth.com/data/AANobbMI/versions/g6ju16VJ/sodium-fabric-0.9.3-beta.1%2Bmc26.3.jar"
           }
         },
@@ -161,6 +166,7 @@
           "artifact": {
             "size": 914543,
             "MD5": "4bb4ada83b50bb026550b20aabcad32c",
+            "sha256": "0be5b17ef9f6e9244cd07b24b227553a73aec0cf93158cf28099f3094c167f1b",
             "url": "https://cdn.modrinth.com/data/gvQqBUqZ/versions/xS0Q8LSi/lithium-fabric-0.26.2%2Bmc26.3.jar"
           }
         },
@@ -175,6 +181,7 @@
           "artifact": {
             "size": 72677,
             "MD5": "9d96f643cfd220b75f47c94ea56ebc2a",
+            "sha256": "213966c72ed967acc7392beb28a866fba301ff56b9976c2e7801c2db7de6bf22",
             "url": "https://cdn.modrinth.com/data/uXXizFIs/versions/d5ddUdiB/ferritecore-9.0.0-fabric.jar"
           }
         },
@@ -189,6 +196,7 @@
           "artifact": {
             "size": 99586,
             "MD5": "72773f07e9918a16f1f058c7e3aa8dea",
+            "sha256": "4b346661cd0811d98a6df8c9faeb8fafd9326ab88248430e8bec845ef1ff6dca",
             "url": "https://cdn.modrinth.com/data/5ZwdcRci/versions/3MP9UR23/ImmediatelyFast-Fabric-1.17.1%2B26.3.jar"
           }
         },
@@ -203,6 +211,7 @@
           "artifact": {
             "size": 1508547,
             "MD5": "2215f5aec107034e3ed86690ebe2a645",
+            "sha256": "d2f80514ee3382b1fa7afda4df762df50743226e3cd320b829ee507357aeafbc",
             "url": "https://cdn.modrinth.com/data/NNAgCjsB/versions/X1g3VhTx/entityculling-fabric-1.11.3-mc26.3.jar"
           }
         },
@@ -217,6 +226,7 @@
           "artifact": {
             "size": 189474,
             "MD5": "0b5600c4d6825890c9cc9a2b9727c5f9",
+            "sha256": "a186d7cdfa3738935cb8425026d118013916fdcfbc060e4397d22368d0bb6594",
             "url": "https://cdn.modrinth.com/data/LQ3K71Q1/versions/Jwq069rR/dynamic-fps-3.11.10%2Bminecraft-26.3.0-fabric.jar"
           }
         }
