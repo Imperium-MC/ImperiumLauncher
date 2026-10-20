@@ -1,0 +1,100 @@
+name: Launch smoke
+
+# Issue #5 part 2: a real launch of the game through the launcher's own
+# main-process pipeline, on a real Windows runner. Expensive (downloads
+# the full client and boots the game), so it never runs per-push: manual
+# dispatch, or release tags.
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  # Temurin 25 JRE (the pack requires Java >=25). Pinned and checksummed.
+  TEMURIN_URL: https://github.com/adoptium/temurin25-binaries/releases/download/jdk-25.0.4.1%2B1/OpenJDK25U-jre_x64_windows_hotspot_25.0.4.1_1.zip
+  TEMURIN_SHA256: 4c95451cea98556def2c54f7782933f52a26d4a36bd85e1d59f0364464828b07
+  # Mesa software OpenGL. GitHub runners have no GPU; the llvmpipe build
+  # lets the game create a real GL context. Pinned and checksummed.
+  MESA_URL: https://github.com/pal1000/mesa-dist-win/releases/download/26.2.4/mesa3d-26.2.4-release-msvc.7z
+  MESA_SHA256: 351fc8c8b695878ffb3eaa044b3ead08672a48b1a045e3c3e3975811df0f6695
+  SERVER_ID: ImperiumMC
+
+jobs:
+  windows-launch-smoke:
+    name: Windows launch smoke test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+
+      - name: Install Dependencies
+        run: npm ci
+        shell: bash
+
+      # Unpacked build only: no installer packaging, no code signing, same
+      # asar contents the shipped build runs.
+      - name: Build the unpacked launcher
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder build --win --dir
+        shell: bash
+
+      - name: Download Temurin 25 JRE (pinned)
+        run: |
+          curl -L --retry 3 -o jre.zip "$TEMURIN_URL"
+          echo "$TEMURIN_SHA256  jre.zip" | sha256sum -c -
+        shell: bash
+
+      - name: Extract and verify the JRE
+        run: |
+          Expand-Archive -Path jre.zip -DestinationPath jre-extract
+          $inner = Get-ChildItem jre-extract -Directory | Select-Object -First 1
+          Move-Item $inner.FullName jre
+          if (-not (Test-Path jre\bin\javaw.exe)) {
+            throw "javaw.exe missing from the Temurin archive"
+          }
+          & .\jre\bin\java.exe -version
+
+      - name: Download Mesa software OpenGL (pinned)
+        run: |
+          curl -L --retry 3 -o mesa.7z "$MESA_URL"
+          echo "$MESA_SHA256  mesa.7z" | sha256sum -c -
+        shell: bash
+
+      - name: Extract opengl32.dll from the Mesa archive
+        run: |
+          7z e mesa.7z -omesa -y x64/opengl32.dll
+          if (-not (Test-Path mesa\opengl32.dll)) {
+            throw "x64/opengl32.dll missing from the Mesa archive"
+          }
+
+      - name: Run the launch smoke test
+        run: >
+          node test/smoke/launch-smoke.cjs
+          --exe "dist/win-unpacked/Imperium Launcher.exe"
+          --data-dir "$env:RUNNER_TEMP\imperium-data"
+          --java-home jre
+          --mesa "mesa\opengl32.dll"
+          --server "$env:SERVER_ID"
+          --artifacts-dir smoke-artifacts
+
+      # Always upload: the logs are the only way to diagnose a failure.
+      - name: Upload game and launcher logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: launch-smoke-logs
+          if-no-files-found: ignore
+          path: |
+            smoke-artifacts/
+            ${{ runner.temp }}/imperium-data/instances/ImperiumMC/logs/
+            ${{ runner.temp }}/imperium-data/instances/ImperiumMC/crash-reports/
+            ${{ runner.temp }}/imperium-data/instances/ImperiumMC/screenshots/

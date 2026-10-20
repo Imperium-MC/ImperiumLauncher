@@ -449,8 +449,17 @@ function getPlatformIcon(filename){
     return path.join(__dirname, 'app', 'assets', 'images', `${filename}.${ext}`)
 }
 
-app.on('ready', createWindow)
-app.on('ready', createMenu)
+if(process.env.IMPERIUM_SMOKE_LAUNCH === '1'){
+    // Headless CI smoke run (issue #5): the smoke driver pre-seeded an
+    // offline account and watches the game log, so no launcher window is
+    // created and no renderer can interfere with the launch.
+    app.on('ready', () => {
+        require('./app/main/smokelaunch').run(LauncherCore, LaunchService)
+    })
+} else {
+    app.on('ready', createWindow)
+    app.on('ready', createMenu)
+}
 app.on('ready', loadStartupDistribution)
 
 app.on('window-all-closed', () => {

@@ -20,7 +20,7 @@ Imperium.onCrashReport((payload) => {
 /**
  * Populate and show the crash overlay.
  *
- * @param {Object} payload {summary, modLine, reportText, gameDir}
+ * @param {Object} payload {summary, modLine, reportText, gameDir, upload}
  */
 function showCrashOverlay(payload){
     document.getElementById('crashTitle').textContent = Lang.queryJS('landing.crash.title')
@@ -44,6 +44,8 @@ function showCrashOverlay(payload){
         }, 2000)
     }
 
+    setupSendReport(payload.upload)
+
     document.getElementById('crashOpenLogs').textContent = Lang.queryJS('landing.crash.openLogs')
     document.getElementById('crashOpenLogs').onclick = async () => {
         // The logs folder when it exists, the game directory otherwise;
@@ -63,4 +65,67 @@ function showCrashOverlay(payload){
         toggleLaunchArea(false)
     }
     toggleOverlay(true, true, 'crashReportContent')
+}
+
+/**
+ * Wire the Send Report action. The POST itself happens in the main
+ * process (the renderer is sandboxed); this only passes the parsed
+ * fields through the bridge and renders the result. The overlay's Close
+ * button stays independent of this flow, so a slow or failed upload can
+ * never trap the player.
+ *
+ * @param {Object} upload The already-parsed endpoint fields
+ * {cause, mod, mcVersion, clientVersion, logTail, crashReport}.
+ */
+function setupSendReport(upload){
+    const sendButton = document.getElementById('crashSendReport')
+    const sendStatus = document.getElementById('crashSendStatus')
+    const copyLinkButton = document.getElementById('crashCopyLink')
+    const sendLabel = Lang.queryJS('landing.crash.sendReport')
+
+    sendStatus.hidden = true
+    sendStatus.textContent = ''
+    copyLinkButton.hidden = true
+    copyLinkButton.textContent = Lang.queryJS('landing.crash.copyLink')
+    copyLinkButton.onclick = () => {
+        Imperium.clipboardWriteText(sendStatus.textContent)
+        copyLinkButton.textContent = Lang.queryJS('landing.crash.linkCopied')
+        setTimeout(() => {
+            copyLinkButton.textContent = Lang.queryJS('landing.crash.copyLink')
+        }, 2000)
+    }
+
+    sendButton.hidden = false
+    sendButton.disabled = false
+    sendButton.textContent = sendLabel
+    sendButton.onclick = () => {
+        sendButton.disabled = true
+        sendButton.textContent = Lang.queryJS('landing.crash.sending')
+        sendStatus.hidden = true
+        sendStatus.textContent = ''
+
+        Imperium.crashReportUpload(upload).then((res) => {
+            if(res != null && res.ok){
+                // Plain text (the staff view path), selectable so it can
+                // also be copied by hand.
+                sendStatus.textContent = res.url
+                sendStatus.hidden = false
+                sendButton.hidden = true
+                copyLinkButton.hidden = false
+            } else {
+                loggerCrashUi.warn('Crash report upload failed.', res != null ? res.error : res)
+                sendStatus.textContent = Lang.queryJS('landing.crash.sendFailed')
+                sendStatus.hidden = false
+                // Keep the button available for a retry.
+                sendButton.disabled = false
+                sendButton.textContent = sendLabel
+            }
+        }).catch((err) => {
+            loggerCrashUi.error('Crash report upload threw.', err)
+            sendStatus.textContent = Lang.queryJS('landing.crash.sendFailed')
+            sendStatus.hidden = false
+            sendButton.disabled = false
+            sendButton.textContent = sendLabel
+        })
+    }
 }

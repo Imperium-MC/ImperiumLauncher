@@ -38,6 +38,7 @@ const ALLOWED_BRIDGE_KEYS = [
     'javaScan', 'javaDownload', 'javaValidate', 'launchPrepare', 'launch',
     'modsScan', 'modsToggle', 'modsAdd', 'shadersScan', 'shaderSet',
     'log',
+    'crashReportUpload',
     'autoUpdateAction', 'onAutoUpdateNotification',
     'msftOpenLogin', 'msftOpenLogout', 'onMsftReplyLogin', 'onMsftReplyLogout',
     'onDistroReady', 'onDevtoolsOpened', 'onLaunchEvent', 'onCrashReport'

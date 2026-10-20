@@ -54,7 +54,8 @@ const CH = {
     MODS_ADD: 'IMPERIUM_MODS_ADD',
     SHADERS_SCAN: 'IMPERIUM_SHADERS_SCAN',
     SHADER_SET: 'IMPERIUM_SHADER_SET',
-    LOG: 'IMPERIUM_LOG'
+    LOG: 'IMPERIUM_LOG',
+    CRASH_REPORT_UPLOAD: 'IMPERIUM_CRASH_REPORT_UPLOAD'
 }
 
 // Pre-existing channels shared with index.js.
@@ -133,6 +134,9 @@ contextBridge.exposeInMainWorld('imperium', {
 
     /* Logging */
     log: (name, level, parts) => ipcRenderer.invoke(CH.LOG, name, level, parts),
+
+    /* Crash report upload (the POST runs in the main process) */
+    crashReportUpload: (fields) => ipcRenderer.invoke(CH.CRASH_REPORT_UPLOAD, fields),
 
     /* Auto update (existing channels, kept as-is) */
     autoUpdateAction: (arg, data) => ipcRenderer.send('autoUpdateAction', arg, data),

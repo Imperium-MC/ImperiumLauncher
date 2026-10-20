@@ -31,6 +31,8 @@ const CRASH_REPORT_POLL_MS = 5000
 const TAIL_LINES = 300
 /** Maximum bytes of a crash report file appended to the clipboard. */
 const CRASH_FILE_CLIPBOARD_LIMIT = 16 * 1024
+/** Maximum bytes of the crash report file handed to the upload endpoint. */
+const CRASH_FILE_UPLOAD_LIMIT = 64 * 1024
 
 const CAUSED_BY_REGEX = /^\s*Caused by:\s*(.+)$/
 const PROVIDED_BY_REGEX = /provided by '([^']+)'/
@@ -63,8 +65,11 @@ const CrashScreen = {
      *
      * @param {ChildProcess} child The spawned game process.
      * @param {string} gameDir The instance's game directory.
+     * @param {Object} [meta] {mcVersion, clientVersion} from the server
+     * entry, forwarded with the crash payload so the upload endpoint can
+     * bucket the report by pack version.
      */
-    attach(child, gameDir){
+    attach(child, gameDir, meta){
         if(child == null || gameDir == null) {
             return
         }
@@ -74,7 +79,9 @@ const CrashScreen = {
             shown: false,
             logLines: [],
             knownCrashFiles: new Set(),
-            pollTimer: null
+            pollTimer: null,
+            mcVersion: meta != null && typeof meta.mcVersion === 'string' ? meta.mcVersion : null,
+            clientVersion: meta != null && typeof meta.clientVersion === 'string' ? meta.clientVersion : null
         }
 
         const pushLines = (data) => {
@@ -193,6 +200,9 @@ const CrashScreen = {
         const crashFiles = CrashScreen._listCrashReports(crashDir, state.startedAt)
         const crashReportPath = crashFiles.length > 0 ? path.join(crashDir, crashFiles[crashFiles.length - 1]) : null
         const crashReportTail = crashReportPath != null ? CrashScreen._readTail(crashReportPath, CRASH_FILE_CLIPBOARD_LIMIT) : null
+        // The upload endpoint accepts a longer excerpt than the clipboard
+        // report; read the file again with the endpoint's budget.
+        const crashReportUploadTail = crashReportPath != null ? CrashScreen._readTail(crashReportPath, CRASH_FILE_UPLOAD_LIMIT) : null
 
         // Summary line for the overlay, resolved main-side so the renderer
         // never has to interpret raw log text.
@@ -226,7 +236,18 @@ const CrashScreen = {
             modLine: mod != null ? Lang.queryJS('landing.crash.providedBy', { mod }) : null,
             reportText,
             gameDir,
-            logsDir
+            logsDir,
+            // Already-parsed fields for the crash-report endpoint. The
+            // renderer passes this verbatim through the bridge; the main
+            // process clamps sizes and performs the POST.
+            upload: {
+                cause: cause != null ? cause : summary,
+                mod,
+                mcVersion: state.mcVersion,
+                clientVersion: state.clientVersion,
+                logTail: tail.join('\n'),
+                crashReport: crashReportUploadTail
+            }
         }
 
         if(typeof dispatch === 'function') {
