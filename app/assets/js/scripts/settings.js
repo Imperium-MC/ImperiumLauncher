@@ -1,9 +1,14 @@
-// Requirements
-const os     = require('os')
-const semver = require('semver')
+// Shared globals (bridge.js): $, Imperium, isDev, Lang, LoggerUtil,
+// NewsSanitize, ConfigManager, DistroAPI, AuthManager, MSFT_OPCODE,
+// MSFT_REPLY_TYPE, MSFT_ERROR, SHELL_OPCODE, isPrereleaseVersion,
+// isDisplayableError.
+//
+// File system work (drop-in mods, shaderpacks) and dialogs run in the
+// main process through the imperative bridge.
 
-const DropinModUtil  = require('./assets/js/dropinmodutil')
-const { MSFT_OPCODE, MSFT_REPLY_TYPE, MSFT_ERROR } = require('./assets/js/ipcconstants')
+// Total system memory in bytes (constant for the session); used by the
+// memory sliders' color thresholds.
+const SETTINGS_TOTAL_MEM = Imperium.env.mem.total
 
 const settingsState = {
     invalid: new Set()
@@ -43,7 +48,7 @@ bindSettingsSelect()
 
 function bindFileSelectors(){
     for(let ele of document.getElementsByClassName('settingsFileSelButton')){
-        
+
         ele.onclick = async e => {
             const isJavaExecSel = ele.id === 'settingsJavaExecSel'
             const directoryDialog = ele.hasAttribute('dialogDirectory') && ele.getAttribute('dialogDirectory') == 'true'
@@ -57,15 +62,15 @@ function bindFileSelectors(){
                 options.title = ele.getAttribute('dialogTitle')
             }
 
-            if(isJavaExecSel && process.platform === 'win32') {
+            if(isJavaExecSel && Imperium.env.platform === 'win32') {
                 options.filters = [
                     { name: Lang.queryJS('settings.fileSelectors.executables'), extensions: ['exe'] },
                     { name: Lang.queryJS('settings.fileSelectors.allFiles'), extensions: ['*'] }
                 ]
             }
 
-            const res = await remote.dialog.showOpenDialog(remote.getCurrentWindow(), options)
-            if(!res.canceled) {
+            const res = await Imperium.showOpenDialog(options)
+            if(res.ok && !res.canceled && res.filePaths.length > 0) {
                 ele.previousElementSibling.value = res.filePaths[0]
                 if(isJavaExecSel) {
                     await populateJavaExecDetails(ele.previousElementSibling.value)
@@ -142,7 +147,7 @@ async function initSettingsValues(){
                         await populateJavaExecDetails(v.value)
                     } else if (cVal === 'DataDirectory'){
                         v.value = gFn.apply(null, gFnOpts)
-                    } else if(cVal === 'JVMOptions'){
+                    } else if (cVal === 'JVMOptions'){
                         v.value = gFn.apply(null, gFnOpts).join(' ')
                     } else {
                         v.value = gFn.apply(null, gFnOpts)
@@ -237,7 +242,7 @@ let selectedSettingsTab = 'settingsTabAccount'
 /**
  * Modify the settings container UI when the scroll threshold reaches
  * a certain poin.
- * 
+ *
  * @param {UIEvent} e The scroll event.
  */
 function settingsTabScrollListener(e){
@@ -264,7 +269,7 @@ function setupSettingsTabs(){
 /**
  * Settings nav item onclick lisener. Function is exposed so that
  * other UI elements can quickly toggle to a certain tab from other views.
- * 
+ *
  * @param {Element} ele The nav item which has been clicked.
  * @param {boolean} fade Optional. True to fade transition.
  */
@@ -314,7 +319,7 @@ const settingsNavDone = document.getElementById('settingsNavDone')
 
 /**
  * Set if the settings save (done) button is disabled.
- * 
+ *
  * @param {boolean} v True to disable, false to enable.
  */
 function settingsSaveDisabled(v){
@@ -354,12 +359,12 @@ document.getElementById('settingsAddMojangAccount').onclick = (e) => {
 // Bind the add microsoft account button.
 document.getElementById('settingsAddMicrosoftAccount').onclick = (e) => {
     switchView(getCurrentView(), VIEWS.waiting, 500, 500, () => {
-        ipcRenderer.send(MSFT_OPCODE.OPEN_LOGIN, VIEWS.settings, VIEWS.settings)
+        Imperium.msftOpenLogin(VIEWS.settings, VIEWS.settings)
     })
 }
 
 // Bind reply for Microsoft Login.
-ipcRenderer.on(MSFT_OPCODE.REPLY_LOGIN, (_, ...arguments_) => {
+Imperium.onMsftReplyLogin((...arguments_) => {
     if (arguments_[0] === MSFT_REPLY_TYPE.ERROR) {
 
         const viewOnClose = arguments_[2]
@@ -391,7 +396,7 @@ ipcRenderer.on(MSFT_OPCODE.REPLY_LOGIN, (_, ...arguments_) => {
         if (Object.prototype.hasOwnProperty.call(queryMap, 'error')) {
             switchView(getCurrentView(), viewOnClose, 500, 500, () => {
                 // TODO Dont know what these errors are. Just show them I guess.
-                // This is probably if you messed up the app registration with Azure.      
+                // This is probably if you messed up the app registration with Azure.
                 let error = queryMap.error // Error might be 'access_denied' ?
                 let errorDesc = queryMap.error_description
                 console.log('Error getting authCode, is Azure application registered correctly?')
@@ -498,7 +503,7 @@ function bindAuthAccountLogOut(){
             } else {
                 processLogOut(val, isLastAccount)
             }
-            
+
         }
     })
 }
@@ -506,7 +511,7 @@ function bindAuthAccountLogOut(){
 let msAccDomElementCache
 /**
  * Process a log out.
- * 
+ *
  * @param {Element} val The log out button element.
  * @param {boolean} isLastAccount If this logout is on the last added account.
  */
@@ -518,7 +523,7 @@ function processLogOut(val, isLastAccount){
     if(targetAcc.type === 'microsoft') {
         msAccDomElementCache = parent
         switchView(getCurrentView(), VIEWS.waiting, 500, 500, () => {
-            ipcRenderer.send(MSFT_OPCODE.OPEN_LOGOUT, uuid, isLastAccount)
+            Imperium.msftOpenLogout(uuid, isLastAccount)
         })
     } else {
         AuthManager.removeMojangAccount(uuid).then(() => {
@@ -542,7 +547,7 @@ function processLogOut(val, isLastAccount){
 }
 
 // Bind reply for Microsoft Logout.
-ipcRenderer.on(MSFT_OPCODE.REPLY_LOGOUT, (_, ...arguments_) => {
+Imperium.onMsftReplyLogout((...arguments_) => {
     if (arguments_[0] === MSFT_REPLY_TYPE.ERROR) {
         switchView(getCurrentView(), VIEWS.settings, 500, 500, () => {
 
@@ -564,13 +569,13 @@ ipcRenderer.on(MSFT_OPCODE.REPLY_LOGOUT, (_, ...arguments_) => {
             toggleOverlay(true)
         })
     } else if(arguments_[0] === MSFT_REPLY_TYPE.SUCCESS) {
-        
+
         const uuid = arguments_[1]
         const isLastAccount = arguments_[2]
         const prevSelAcc = ConfigManager.getSelectedAccount()
 
         msftLogoutLogger.info('Logout Successful. uuid:', uuid)
-        
+
         AuthManager.removeMicrosoftAccount(uuid)
             .then(() => {
                 if(!isLastAccount && uuid === prevSelAcc.uuid){
@@ -602,7 +607,7 @@ ipcRenderer.on(MSFT_OPCODE.REPLY_LOGOUT, (_, ...arguments_) => {
 /**
  * Refreshes the status of the selected account on the auth account
  * elements.
- * 
+ *
  * @param {string} uuid The UUID of the new selected account.
  */
 function refreshAuthAccountSelected(uuid){
@@ -735,7 +740,7 @@ async function resolveModsForUI(){
 
 /**
  * Recursively build the mod UI elements.
- * 
+ *
  * @param {Object[]} mdls An array of modules to parse.
  * @param {boolean} submodules Whether or not we are parsing submodules.
  * @param {Object} servConf The server configuration object for this module level.
@@ -849,7 +854,7 @@ function saveModConfiguration(){
 
 /**
  * Recursively save mod config with submods.
- * 
+ *
  * @param {Object} modConf Mod config object to save.
  */
 function _saveModConfiguration(modConf){
@@ -877,13 +882,25 @@ let CACHE_SETTINGS_MODS_DIR
 let CACHE_DROPIN_MODS
 
 /**
+ * Whether a discovered drop-in mod is enabled. Purely derived from the
+ * file name (.disabled suffix).
+ *
+ * @param {string} fullName The full name of the discovered mod.
+ * @returns {boolean} True if the mod is enabled.
+ */
+function isDropinModEnabled(fullName){
+    return !fullName.endsWith('.disabled')
+}
+
+/**
  * Resolve any located drop-in mods for this server and
  * populate the results onto the UI.
  */
 async function resolveDropinModsForUI(){
     const serv = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
-    CACHE_SETTINGS_MODS_DIR = path.join(ConfigManager.getInstanceDirectory(), serv.rawServer.id, 'mods')
-    CACHE_DROPIN_MODS = DropinModUtil.scanForDropinMods(CACHE_SETTINGS_MODS_DIR, serv.rawServer.minecraftVersion)
+    const scan = await Imperium.modsScan(serv.rawServer.id)
+    CACHE_SETTINGS_MODS_DIR = scan.modsDir
+    CACHE_DROPIN_MODS = scan.mods
 
     const dropinMods = document.createDocumentFragment()
 
@@ -926,8 +943,11 @@ function bindDropinModsRemoveButton(){
     Array.from(sEls).map((v, index, arr) => {
         v.onclick = async () => {
             const fullName = v.getAttribute('remmod')
-            const res = await DropinModUtil.deleteDropinMod(CACHE_SETTINGS_MODS_DIR, fullName)
-            if(res){
+            const dropin = CACHE_DROPIN_MODS.find(d => d.fullName === fullName)
+            const res = dropin != null
+                ? await Imperium.trashItem(dropin.path)
+                : { result: false, error: 'Unknown mod.' }
+            if(res.result){
                 document.getElementById(fullName).remove()
             } else {
                 setOverlayContent(
@@ -949,8 +969,8 @@ function bindDropinModsRemoveButton(){
 function bindDropinModFileSystemButton(){
     const fsBtn = document.getElementById('settingsDropinFileSystemButton')
     fsBtn.onclick = () => {
-        DropinModUtil.validateDir(CACHE_SETTINGS_MODS_DIR)
-        shell.openPath(CACHE_SETTINGS_MODS_DIR)
+        Imperium.openPath(CACHE_SETTINGS_MODS_DIR)
+            .catch(err => msftLoginLogger.error('Unable to open mods folder.', err))
     }
     fsBtn.ondragenter = e => {
         e.dataTransfer.dropEffect = 'move'
@@ -968,8 +988,33 @@ function bindDropinModFileSystemButton(){
         fsBtn.removeAttribute('drag')
         e.preventDefault()
 
-        DropinModUtil.addDropinMods(e.dataTransfer.files, CACHE_SETTINGS_MODS_DIR)
+        await addDroppedFiles(e.dataTransfer.files, 'mod')
         await reloadDropinMods()
+    }
+}
+
+/**
+ * Move dropped files into the server's mods or shaderpacks folder via
+ * the main process. Absolute source paths are resolved in the preload
+ * (webUtils), names re-validated main-side.
+ *
+ * @param {FileList} files The dropped files.
+ * @param {string} kind 'mod' or 'shader'.
+ */
+async function addDroppedFiles(files, kind){
+    const names = []
+    const paths = []
+    for(const file of files){
+        names.push(file.name)
+        paths.push(Imperium.pathForFile(file))
+    }
+    if(names.length === 0){
+        return
+    }
+    const serverId = ConfigManager.getSelectedServer()
+    const res = await Imperium.modsAdd(serverId, kind, names, paths)
+    if(!res.ok){
+        msftLoginLogger.error('Unable to add dropped files.', res.error)
     }
 }
 
@@ -982,18 +1027,30 @@ function saveDropinModConfiguration(){
         const dropinUI = document.getElementById(dropin.fullName)
         if(dropinUI != null){
             const dropinUIEnabled = dropinUI.hasAttribute('enabled')
-            if(DropinModUtil.isDropinModEnabled(dropin.fullName) != dropinUIEnabled){
-                DropinModUtil.toggleDropinMod(CACHE_SETTINGS_MODS_DIR, dropin.fullName, dropinUIEnabled).catch(err => {
-                    if(!isOverlayVisible()){
-                        setOverlayContent(
-                            Lang.queryJS('settings.dropinMods.failedToggleTitle'),
-                            err.message,
-                            Lang.queryJS('settings.dropinMods.okButton')
-                        )
-                        setOverlayHandler(null)
-                        toggleOverlay(true)
-                    }
-                })
+            if(isDropinModEnabled(dropin.fullName) != dropinUIEnabled){
+                Imperium.modsToggle(ConfigManager.getSelectedServer(), dropin.fullName, dropinUIEnabled)
+                    .then(res => {
+                        if(!res.ok && !isOverlayVisible()){
+                            setOverlayContent(
+                                Lang.queryJS('settings.dropinMods.failedToggleTitle'),
+                                res.error?.desc || Lang.queryJS('settings.dropinMods.okButton'),
+                                Lang.queryJS('settings.dropinMods.okButton')
+                            )
+                            setOverlayHandler(null)
+                            toggleOverlay(true)
+                        }
+                    })
+                    .catch(err => {
+                        if(!isOverlayVisible()){
+                            setOverlayContent(
+                                Lang.queryJS('settings.dropinMods.failedToggleTitle'),
+                                err?.message || Lang.queryJS('settings.dropinMods.okButton'),
+                                Lang.queryJS('settings.dropinMods.okButton')
+                            )
+                            setOverlayHandler(null)
+                            toggleOverlay(true)
+                        }
+                    })
             }
         }
     }
@@ -1029,9 +1086,10 @@ let CACHE_SELECTED_SHADERPACK
  */
 async function resolveShaderpacksForUI(){
     const serv = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
-    CACHE_SETTINGS_INSTANCE_DIR = path.join(ConfigManager.getInstanceDirectory(), serv.rawServer.id)
-    CACHE_SHADERPACKS = DropinModUtil.scanForShaderpacks(CACHE_SETTINGS_INSTANCE_DIR)
-    CACHE_SELECTED_SHADERPACK = DropinModUtil.getEnabledShaderpack(CACHE_SETTINGS_INSTANCE_DIR)
+    const scan = await Imperium.shadersScan(serv.rawServer.id)
+    CACHE_SETTINGS_INSTANCE_DIR = scan.instanceDir
+    CACHE_SHADERPACKS = scan.packs
+    CACHE_SELECTED_SHADERPACK = scan.selected
 
     setShadersOptions(CACHE_SHADERPACKS, CACHE_SELECTED_SHADERPACK)
 }
@@ -1062,19 +1120,19 @@ function setShadersOptions(arr, selected){
 function saveShaderpackSettings(){
     let sel = 'OFF'
     for(let opt of document.getElementById('settingsShadersOptions').childNodes){
-        if(opt.hasAttribute('selected')){
+        if(opt.hasAttribute && opt.hasAttribute('selected')){
             sel = opt.getAttribute('value')
         }
     }
-    DropinModUtil.setEnabledShaderpack(CACHE_SETTINGS_INSTANCE_DIR, sel)
+    Imperium.shaderSet(ConfigManager.getSelectedServer(), sel)
 }
 
 function bindShaderpackButton() {
     const spBtn = document.getElementById('settingsShaderpackButton')
     spBtn.onclick = () => {
-        const p = path.join(CACHE_SETTINGS_INSTANCE_DIR, 'shaderpacks')
-        DropinModUtil.validateDir(p)
-        shell.openPath(p)
+        const p = CACHE_SETTINGS_INSTANCE_DIR + '/shaderpacks'
+        Imperium.openPath(p)
+            .catch(err => msftLoginLogger.error('Unable to open shaderpacks folder.', err))
     }
     spBtn.ondragenter = e => {
         e.dataTransfer.dropEffect = 'move'
@@ -1092,7 +1150,7 @@ function bindShaderpackButton() {
         spBtn.removeAttribute('drag')
         e.preventDefault()
 
-        DropinModUtil.addShaderpacks(e.dataTransfer.files, CACHE_SETTINGS_INSTANCE_DIR)
+        await addDroppedFiles(e.dataTransfer.files, 'shader')
         saveShaderpackSettings()
         await resolveShaderpacksForUI()
     }
@@ -1111,7 +1169,7 @@ async function loadSelectedServerOnModsTab(){
     }
 }
 
-// Bind functionality to the server switch button.
+// Bind functionality for the server switch button.
 Array.from(document.getElementsByClassName('settingsSwitchServerButton')).forEach(el => {
     el.addEventListener('click', async e => {
         e.target.blur()
@@ -1178,7 +1236,7 @@ settingsMinRAMRange.onchange = (e) => {
     // Get reference to range bar.
     const bar = e.target.getElementsByClassName('rangeSliderBar')[0]
     // Calculate effective total memory.
-    const max = os.totalmem()/1073741824
+    const max = SETTINGS_TOTAL_MEM/1073741824
 
     // Change range bar color based on the selected value.
     if(sMinV >= max/2){
@@ -1210,7 +1268,7 @@ settingsMaxRAMRange.onchange = (e) => {
     // Get reference to range bar.
     const bar = e.target.getElementsByClassName('rangeSliderBar')[0]
     // Calculate effective total memory.
-    const max = os.totalmem()/1073741824
+    const max = SETTINGS_TOTAL_MEM/1073741824
 
     // Change range bar color based on the selected value.
     if(sMaxV >= max/2){
@@ -1233,8 +1291,8 @@ settingsMaxRAMRange.onchange = (e) => {
 
 /**
  * Calculate common values for a ranged slider.
- * 
- * @param {Element} v The range slider to calculate against. 
+ *
+ * @param {Element} v The range slider to calculate against.
  * @returns {Object} An object with meta values for the provided ranged slider.
  */
 function calculateRangeSliderMeta(v){
@@ -1278,7 +1336,7 @@ function bindRangeSlider(){
 
                 // Distance from the beginning of the bar in pixels.
                 const diff = e.pageX - v.offsetLeft - track.offsetWidth/2
-                
+
                 // Don't move the track off the bar.
                 if(diff >= 0 && diff <= v.offsetWidth-track.offsetWidth/2){
 
@@ -1294,12 +1352,12 @@ function bindRangeSlider(){
                 }
             }
         }
-    }) 
+    })
 }
 
 /**
  * Update a ranged slider's value and position.
- * 
+ *
  * @param {Element} element The ranged slider to update.
  * @param {string | number} value The new value for the ranged slider.
  * @param {number} notch The notch that the slider should now be at.
@@ -1308,7 +1366,7 @@ function updateRangedSlider(element, value, notch){
     const oldVal = element.getAttribute('value')
     const bar = element.getElementsByClassName('rangeSliderBar')[0]
     const track = element.getElementsByClassName('rangeSliderTrack')[0]
-    
+
     element.setAttribute('value', value)
 
     if(notch < 0){
@@ -1337,21 +1395,24 @@ function updateRangedSlider(element, value, notch){
 /**
  * Display the total and available RAM.
  */
-function populateMemoryStatus(){
-    settingsMemoryTotal.textContent = Number((os.totalmem()-1073741824)/1073741824).toFixed(1) + 'G'
-    settingsMemoryAvail.textContent = Number(os.freemem()/1073741824).toFixed(1) + 'G'
+async function populateMemoryStatus(){
+    const snapshot = await Imperium.configRefresh()
+    const mem = snapshot?.snapshot?.mem
+    if(mem != null){
+        settingsMemoryTotal.textContent = Number((mem.total-1073741824)/1073741824).toFixed(1) + 'G'
+        settingsMemoryAvail.textContent = Number(mem.free/1073741824).toFixed(1) + 'G'
+    }
 }
 
 /**
  * Validate the provided executable path and display the data on
  * the UI.
- * 
+ *
  * @param {string} execPath The executable path to populate against.
  */
 async function populateJavaExecDetails(execPath){
-    const server = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
-
-    const details = await validateSelectedJvm(ensureJavaDirIsRoot(execPath), server.effectiveJavaOptions.supported)
+    const res = await Imperium.javaValidate(execPath)
+    const details = res.details
 
     if(details != null) {
         settingsJavaExecDetails.textContent = Lang.queryJS('settings.java.selectedJava', { version: details.semverStr, vendor: details.vendor })
@@ -1378,7 +1439,7 @@ function populateJvmOptsLink(server) {
         optsUrl = `https://docs.oracle.com/javase/${major}/tools/java.htm`
     }
     else {
-        optsUrl = `https://docs.oracle.com/javase/${major}/docs/technotes/tools/${process.platform === 'win32' ? 'windows' : 'unix'}/java.html`
+        optsUrl = `https://docs.oracle.com/javase/${major}/docs/technotes/tools/${Imperium.env.platform === 'win32' ? 'windows' : 'unix'}/java.html`
     }
     // The major version comes from the distribution index; only a URL
     // that survives the link policy is exposed on the element.
@@ -1424,25 +1485,23 @@ const settingsAboutChangelogButton = settingsTabAbout.getElementsByClassName('se
 
 // Bind the devtools toggle button.
 document.getElementById('settingsAboutDevToolsButton').onclick = (e) => {
-    let window = remote.getCurrentWindow()
-    window.toggleDevTools()
+    Imperium.toggleDevTools()
 }
 
 /**
  * Return whether or not the provided version is a prerelease.
- * 
+ *
  * @param {string} version The semver version to test.
  * @returns {boolean} True if the version is a prerelease, otherwise false.
  */
 function isPrerelease(version){
-    const preRelComp = semver.prerelease(version)
-    return preRelComp != null && preRelComp.length > 0
+    return isPrereleaseVersion(version)
 }
 
 /**
  * Utility method to display version information on the
  * About and Update settings tabs.
- * 
+ *
  * @param {string} version The semver version to display.
  * @param {Element} valueElement The value element.
  * @param {Element} titleElement The title element.
@@ -1465,7 +1524,7 @@ function populateVersionInformation(version, valueElement, titleElement, checkEl
  * Retrieve the version information and display it on the UI.
  */
 function populateAboutVersionInformation(){
-    populateVersionInformation(remote.app.getVersion(), document.getElementById('settingsAboutCurrentVersionValue'), document.getElementById('settingsAboutCurrentVersionTitle'), document.getElementById('settingsAboutCurrentVersionCheck'))
+    populateVersionInformation(Imperium.appVersion(), document.getElementById('settingsAboutCurrentVersionValue'), document.getElementById('settingsAboutCurrentVersionTitle'), document.getElementById('settingsAboutCurrentVersionCheck'))
 }
 
 /**
@@ -1476,9 +1535,9 @@ function populateReleaseNotes(){
     $.ajax({
         url: 'https://github.com/Imperium-MC/ImperiumLauncher/releases.atom',
         success: (data) => {
-            const version = 'v' + remote.app.getVersion()
+            const version = 'v' + Imperium.appVersion()
             const entries = $(data).find('entry')
-            
+
             for(let i=0; i<entries.length; i++){
                 const entry = $(entries[i])
                 let id = entry.find('id').text()
@@ -1528,7 +1587,7 @@ const settingsUpdateActionButton   = document.getElementById('settingsUpdateActi
 
 /**
  * Update the properties of the update action button.
- * 
+ *
  * @param {string} text The new button text.
  * @param {boolean} disabled Optional. Disable or enable the button
  * @param {function} handler Optional. New button event handler.
@@ -1543,7 +1602,7 @@ function settingsUpdateButtonStatus(text, disabled = false, handler = null){
 
 /**
  * Populate the update tab with relevant information.
- * 
+ *
  * @param {Object} data The update data.
  */
 function populateSettingsUpdateInformation(data){
@@ -1555,13 +1614,13 @@ function populateSettingsUpdateInformation(data){
         populateVersionInformation(data.version, settingsUpdateVersionValue, settingsUpdateVersionTitle, settingsUpdateVersionCheck)
         // Version-check line: current launcher against the available release.
         settingsUpdateCurrentText.textContent = Lang.queryJS('settings.updates.updateAvailableLine', {
-            current: remote.app.getVersion(),
+            current: Imperium.appVersion(),
             available: data.version
         })
 
-        if(process.platform === 'darwin'){
+        if(Imperium.env.platform === 'darwin'){
             settingsUpdateButtonStatus(Lang.queryJS('settings.updates.downloadButton'), false, () => {
-                ipcRenderer.invoke(SHELL_OPCODE.OPEN_EXTERNAL, data.darwindownload)
+                Imperium.openExternal(data.darwindownload)
                     .catch(err => msftLoginLogger.error('Unable to open download page.', err))
             })
         } else {
@@ -1570,13 +1629,13 @@ function populateSettingsUpdateInformation(data){
     } else {
         settingsUpdateTitle.textContent = Lang.queryJS('settings.updates.latestVersionTitle')
         settingsUpdateChangelogCont.style.display = 'none'
-        populateVersionInformation(remote.app.getVersion(), settingsUpdateVersionValue, settingsUpdateVersionTitle, settingsUpdateVersionCheck)
+        populateVersionInformation(Imperium.appVersion(), settingsUpdateVersionValue, settingsUpdateVersionTitle, settingsUpdateVersionCheck)
         settingsUpdateCurrentText.textContent = Lang.queryJS('settings.updates.upToDateLine', {
-            current: remote.app.getVersion()
+            current: Imperium.appVersion()
         })
         settingsUpdateButtonStatus(Lang.queryJS('settings.updates.checkForUpdatesButton'), false, () => {
             if(!isDev){
-                ipcRenderer.send('autoUpdateAction', 'checkForUpdate')
+                Imperium.autoUpdateAction('checkForUpdate')
                 settingsUpdateButtonStatus(Lang.queryJS('settings.updates.checkingForUpdatesButton'), true)
             }
         })
@@ -1585,7 +1644,7 @@ function populateSettingsUpdateInformation(data){
 
 /**
  * Prepare update tab for display.
- * 
+ *
  * @param {Object} data The update data.
  */
 function prepareUpdateTab(data = null){
@@ -1598,7 +1657,7 @@ function prepareUpdateTab(data = null){
 
 /**
   * Prepare the entire settings UI.
-  * 
+  *
   * @param {boolean} first Whether or not it is the first load.
   */
 async function prepareSettings(first = false) {

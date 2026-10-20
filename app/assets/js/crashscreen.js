@@ -1,22 +1,20 @@
 /**
- * crashscreen.js — crash report overlay for the launched game process.
+ * crashscreen.js — crash report watcher for the launched game process.
  *
  * The launcher used to log "Exited with code" and move on, leaving the
  * player with a silently closed game. This module watches the game
- * process ProcessBuilder spawned and surfaces a crash overlay when:
+ * process ProcessBuilder spawned and detects a crash when:
  *
  *   - the process exits non-zero within the first EARLY_CRASH_WINDOW_MS
  *     (a launch that dies that fast is a crash, not a quit), OR
  *   - a new file appears under the instance's crash-reports/ directory
  *     during the session (the game wrote a crash report).
  *
- * The overlay shows the deepest "Caused by:" line from the game log tail
- * and, when Fabric names one, the mod that provided the failing
- * entrypoint. Buttons copy the full report (log tail + crash report) to
- * the clipboard, open the logs folder, and close the overlay.
- *
- * DOM content is populated with textContent only; nothing from the game
- * log is ever interpreted as HTML.
+ * This module runs in the main process: it collects the log tail, parses
+ * the crash summary and builds the clipboard report, then hands a plain
+ * payload to the renderer, which owns the overlay DOM (see
+ * app/assets/js/scripts/crashui.js). Nothing from the game log is ever
+ * interpreted as HTML; the renderer attaches every value as text.
  */
 const fs     = require('fs-extra')
 const path   = require('path')
@@ -38,11 +36,30 @@ const CAUSED_BY_REGEX = /^\s*Caused by:\s*(.+)$/
 const PROVIDED_BY_REGEX = /provided by '([^']+)'/
 const CRASH_REPORT_REGEX = /^crash-(\d{4}-\d{2}-\d{2}_\d{2}\.\d{2}\.\d{2})/
 
+/**
+ * Payload sink. The IPC layer registers the function that forwards the
+ * payload to the renderer window. Without a sink (plain node, tests)
+ * detected crashes are only logged.
+ *
+ * @type {function(Object): void}
+ */
+let dispatch = null
+
 const CrashScreen = {
 
     /**
-     * Watch a spawned game process and show the crash overlay when it
-     * crashes. Attached from ProcessBuilder.build().
+     * Register the crash payload sink (called once by the main IPC
+     * wiring).
+     *
+     * @param {function(Object): void} fn The dispatch function.
+     */
+    setDispatch(fn){
+        dispatch = fn
+    },
+
+    /**
+     * Watch a spawned game process and report a crash when it happens.
+     * Attached from ProcessBuilder.build().
      *
      * @param {ChildProcess} child The spawned game process.
      * @param {string} gameDir The instance's game directory.
@@ -160,7 +177,7 @@ const CrashScreen = {
     },
 
     /**
-     * Show the crash overlay.
+     * Collect the crash payload and forward it to the renderer.
      *
      * @param {Object} state The watcher state (log tail, timestamps).
      * @param {string} crashDir The crash-reports directory.
@@ -177,72 +194,50 @@ const CrashScreen = {
         const crashReportPath = crashFiles.length > 0 ? path.join(crashDir, crashFiles[crashFiles.length - 1]) : null
         const crashReportTail = crashReportPath != null ? CrashScreen._readTail(crashReportPath, CRASH_FILE_CLIPBOARD_LIMIT) : null
 
-        // ---- Overlay population (textContent only) ----
-        document.getElementById('crashTitle').textContent = Lang.queryJS('landing.crash.title')
-
-        const desc = document.getElementById('crashCause')
+        // Summary line for the overlay, resolved main-side so the renderer
+        // never has to interpret raw log text.
+        let summary
         if(cause != null) {
-            desc.textContent = cause
+            summary = cause
         } else if(exitCode != null) {
-            desc.textContent = Lang.queryJS('landing.crash.exited', { code: exitCode })
+            summary = Lang.queryJS('landing.crash.exited', { code: exitCode })
         } else {
-            desc.textContent = Lang.queryJS('landing.crash.unknownCause')
+            summary = Lang.queryJS('landing.crash.unknownCause')
         }
 
-        const modLine = document.getElementById('crashMod')
-        if(mod != null) {
-            modLine.hidden = false
-            modLine.textContent = Lang.queryJS('landing.crash.providedBy', { mod })
-        } else {
-            modLine.hidden = true
+        const reportText = [
+            'ImperiumMC crash report',
+            `Time: ${new Date().toISOString()}`,
+            exitCode != null ? `Exit code: ${exitCode}` : 'Exit code: n/a (crash report detected)',
+            cause != null ? `Cause: ${cause}` : 'Cause: not parsed from the log',
+            mod != null ? `Mod: ${mod}` : 'Mod: not identified',
+            crashReportPath != null ? `Crash report: ${crashReportPath}` : 'Crash report: none',
+            '',
+            crashReportTail != null ? '--- crash report (tail) ---\n' + crashReportTail + '\n' : '',
+            '--- game log (last ' + tail.length + ' lines) ---',
+            tail.join('\n')
+        ].join('\n')
+
+        const gameDir = CrashScreen._gameDirFromCrashDir(crashDir)
+        const logsDir = fs.existsSync(path.join(gameDir, 'logs')) ? path.join(gameDir, 'logs') : gameDir
+
+        const payload = {
+            summary,
+            modLine: mod != null ? Lang.queryJS('landing.crash.providedBy', { mod }) : null,
+            reportText,
+            gameDir,
+            logsDir
         }
 
-        const copyButton = document.getElementById('crashCopyReport')
-        copyButton.textContent = Lang.queryJS('landing.crash.copyReport')
-        copyButton.onclick = () => {
-            const report = [
-                'ImperiumMC crash report',
-                `Time: ${new Date().toISOString()}`,
-                exitCode != null ? `Exit code: ${exitCode}` : 'Exit code: n/a (crash report detected)',
-                cause != null ? `Cause: ${cause}` : 'Cause: not parsed from the log',
-                mod != null ? `Mod: ${mod}` : 'Mod: not identified',
-                crashReportPath != null ? `Crash report: ${crashReportPath}` : 'Crash report: none',
-                '',
-                crashReportTail != null ? '--- crash report (tail) ---\n' + crashReportTail + '\n' : '',
-                '--- game log (last ' + tail.length + ' lines) ---',
-                tail.join('\n')
-            ].join('\n')
-            // Required lazily: this module is also loaded in plain node by
-            // the test suite, where @electron/remote is unavailable.
-            const remote = require('@electron/remote')
-            remote.clipboard.writeText(report)
-            copyButton.textContent = Lang.queryJS('landing.crash.copied')
-            setTimeout(() => {
-                copyButton.textContent = Lang.queryJS('landing.crash.copyReport')
-            }, 2000)
-        }
-
-        document.getElementById('crashOpenLogs').textContent = Lang.queryJS('landing.crash.openLogs')
-        document.getElementById('crashOpenLogs').onclick = async () => {
-            const remote = require('@electron/remote')
-            const logsDir = path.join(CrashScreen._gameDirFromCrashDir(crashDir), 'logs')
-            const target = await fs.pathExists(logsDir) ? logsDir : CrashScreen._gameDirFromCrashDir(crashDir)
-            const error = await remote.shell.openPath(target)
-            if(error) {
-                logger.error(`Failed to open ${target}:`, error)
+        if(typeof dispatch === 'function') {
+            try {
+                dispatch(payload)
+            } catch(err) {
+                logger.error('Failed to forward crash payload.', err)
             }
         }
 
-        document.getElementById('crashClose').textContent = Lang.queryJS('landing.crash.close')
-        document.getElementById('crashClose').onclick = () => {
-            toggleOverlay(false)
-        }
-
-        if(typeof toggleLaunchArea === 'function') {
-            toggleLaunchArea(false)
-        }
-        toggleOverlay(true, true, 'crashReportContent')
-        logger.info(`Crash screen shown (exitCode=${exitCode}, crashReport=${crashReportPath}).`)
+        logger.info(`Crash detected (exitCode=${exitCode}, crashReport=${crashReportPath}).`)
     },
 
     /**

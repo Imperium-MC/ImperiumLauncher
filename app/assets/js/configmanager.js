@@ -3,13 +3,17 @@ const { LoggerUtil } = require('helios-core')
 const os   = require('os')
 const path = require('path')
 
+// Loaded in the main process; the electron app object provides the same
+// userData path @electron/remote used to expose to the renderer.
+const { app } = require('electron')
+
 const logger = LoggerUtil.getLogger('ConfigManager')
 
 const sysRoot = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME)
 
 const dataPath = path.join(sysRoot, '.imperiumlauncher')
 
-const launcherDir = require('@electron/remote').app.getPath('userData')
+const launcherDir = app.getPath('userData')
 
 /**
  * Retrieve the absolute path of the launcher directory.
@@ -628,15 +632,25 @@ exports.setJavaExecutable = function(serverid, executable){
 }
 
 /**
- * Retrieve the additional arguments for JVM initialization. Required arguments,
+ * Set the additional arguments for JVM initialization. Required arguments,
  * such as memory allocation, will be dynamically resolved and will not be included
  * in this value.
- * 
- * @param {string} serverid The server id.
+ *
+ * @param {string} serverid The id of the server.
  * @returns {Array.<string>} An array of the additional arguments for JVM initialization.
  */
 exports.getJVMOptions = function(serverid){
     return config.javaConfig[serverid].jvmOptions
+}
+
+/**
+ * Retrieve the raw per-server java configuration map. Main-process only;
+ * used to build the renderer's config mirror.
+ *
+ * @returns {Object} The javaConfig object.
+ */
+exports.getJavaConfigs = function(){
+    return config.javaConfig
 }
 
 /**

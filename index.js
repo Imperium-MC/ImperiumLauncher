@@ -1,6 +1,3 @@
-const remoteMain = require('@electron/remote/main')
-remoteMain.initialize()
-
 // Requirements
 const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron')
 const autoUpdater                       = require('electron-updater').autoUpdater
@@ -14,6 +11,12 @@ const { AZURE_CLIENT_ID, AZURE_CLIENT_ID_CONFIGURED, MSFT_OPCODE, MSFT_REPLY_TYP
 const { isAllowedLink }             = require('./app/assets/js/newsSanitize')
 const LangLoader                        = require('./app/assets/js/langloader')
 
+// Main-process launcher core (configuration, distribution index, launch
+// pipeline) plus the validated renderer bridge.
+const LauncherCore = require('./app/main/launchercore')
+const LaunchService = require('./app/main/launchservice')
+const BridgeIpc = require('./app/main/ipc')
+
 // Setup Lang
 LangLoader.setupLanguage()
 
@@ -26,7 +29,7 @@ function initAutoUpdater(event, data) {
         // Defaults to true if application version contains prerelease components (e.g. 0.12.1-alpha.1)
         // autoUpdater.allowPrerelease = true
     }
-    
+
     if(isDev){
         autoUpdater.autoInstallOnAppQuit = false
         autoUpdater.updateConfigPath = path.join(__dirname, 'dev-app-update.yml')
@@ -48,7 +51,7 @@ function initAutoUpdater(event, data) {
     })
     autoUpdater.on('error', (err) => {
         event.sender.send('autoUpdateNotification', 'realerror', err)
-    }) 
+    })
 }
 
 // Open channel to listen for update actions.
@@ -85,18 +88,26 @@ ipcMain.on('autoUpdateAction', (event, arg, data) => {
             break
     }
 })
-// Redirect distribution index event from preloader to renderer.
-ipcMain.on('distributionIndexDone', (event, res) => {
-    event.sender.send('distributionIndexDone', res)
-})
 
-// Handle trash item.
+// Handle trash item. Only paths inside the launcher's own data
+// directories are eligible; anything else is rejected before reaching
+// the OS.
 ipcMain.handle(SHELL_OPCODE.TRASH_ITEM, async (event, ...args) => {
     try {
         if(typeof args[0] !== 'string' || args[0].length === 0){
             throw new Error('Invalid path.')
         }
-        await shell.trashItem(args[0])
+        const target = path.resolve(args[0])
+        const roots = [
+            LauncherCore.ConfigManager.getInstanceDirectory(),
+            LauncherCore.ConfigManager.getCommonDirectory(),
+            LauncherCore.ConfigManager.getDataDirectory()
+        ].map(root => path.resolve(root))
+        const contained = roots.some(root => target === root || target.startsWith(root + path.sep))
+        if(!contained){
+            throw new Error('Path is outside the launcher data directory.')
+        }
+        await shell.trashItem(target)
         return {
             result: true
         }
@@ -178,10 +189,10 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGIN, (ipcEvent, ...arguments_) => {
     msftAuthWindow.webContents.on('did-navigate', (_, uri) => {
         if (uri.startsWith(REDIRECT_URI_PREFIX)) {
             let queryMap = {}
-            
+
             new URL(uri).searchParams.forEach((v, k) => {
-                queryMap[k] = v;
-            });
+                queryMap[k] = v
+            })
 
             ipcEvent.reply(MSFT_OPCODE.REPLY_LOGIN, MSFT_REPLY_TYPE.SUCCESS, queryMap, msftAuthViewSuccess)
 
@@ -228,7 +239,7 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
             ipcEvent.reply(MSFT_OPCODE.REPLY_LOGOUT, MSFT_REPLY_TYPE.SUCCESS, uuid, isLastAccount)
         }
     })
-    
+
     msftLogoutWindow.webContents.on('did-navigate', (_, uri) => {
         if(uri.startsWith('https://login.microsoftonline.com/common/oauth2/v2.0/logoutsession')) {
             msftLogoutSuccess = true
@@ -245,7 +256,7 @@ ipcMain.on(MSFT_OPCODE.OPEN_LOGOUT, (ipcEvent, uuid, isLastAccount) => {
             }, 5000)
         }
     })
-    
+
     msftLogoutWindow.removeMenu()
     msftLogoutWindow.loadURL('https://login.microsoftonline.com/common/oauth2/v2.0/logout')
 })
@@ -262,13 +273,13 @@ function createWindow() {
         icon: getPlatformIcon('SealCircle'),
         frame: false,
         webPreferences: {
-            preload: path.join(__dirname, 'app', 'assets', 'js', 'preloader.js'),
-            nodeIntegration: true,
-            contextIsolation: false
+            preload: path.join(__dirname, 'app', 'preload.js'),
+            contextIsolation: true,
+            nodeIntegration: false,
+            sandbox: true
         },
         backgroundColor: '#0f0e0c'
     })
-    remoteMain.enable(win.webContents)
 
     const data = {
         bkid: Math.floor((Math.random() * fs.readdirSync(path.join(__dirname, 'app', 'assets', 'images', 'backgrounds')).length)),
@@ -299,6 +310,26 @@ function createWindow() {
         return { action: 'deny' }
     })
 
+    // Scam warning when the console is opened (displayed by the renderer).
+    win.webContents.on('devtools-opened', () => {
+        BridgeIpc.notifyDevtoolsOpened()
+    })
+
+    // The renderer scripts subscribe to the distribution-ready event once
+    // the page has loaded; deliver pending notifications at that point.
+    // (Every load, so a dev reload also receives the cached state.)
+    win.webContents.on('did-finish-load', () => {
+        pageLoaded = true
+        if(distroState !== null){
+            BridgeIpc.notifyDistroReady(distroState)
+        }
+    })
+
+    win.on('closed', () => {
+        win = null
+        pageLoaded = false
+    })
+
     /*win.once('ready-to-show', () => {
         win.show()
     })*/
@@ -306,14 +337,38 @@ function createWindow() {
     win.removeMenu()
 
     win.resizable = true
+}
 
-    win.on('closed', () => {
-        win = null
-    })
+/* Startup sequence formerly owned by the renderer preloader. */
+
+LauncherCore.init()
+LauncherCore.cleanTempNatives()
+LaunchService.init(LauncherCore, BridgeIpc.emitLaunchEvent)
+BridgeIpc.register(() => win)
+
+let distroState = null // null = loading, true = ok, false = fatal
+let pageLoaded = false
+
+/**
+ * Load the distribution index and sync stored configuration against it,
+ * then notify the renderer when it is ready.
+ */
+async function loadStartupDistribution(){
+    try {
+        const data = await LauncherCore.loadDistribution()
+        LauncherCore.syncConfigurationWithDistribution(data)
+        distroState = data != null
+    } catch(err){
+        console.error('[Startup] Unable to load distribution index.', err)
+        distroState = false
+    }
+    if(pageLoaded && win != null){
+        BridgeIpc.notifyDistroReady(distroState)
+    }
 }
 
 function createMenu() {
-    
+
     if(process.platform === 'darwin') {
 
         // Extend default included application menu to continue support for quit keyboard shortcut
@@ -359,6 +414,8 @@ function createMenu() {
                 accelerator: 'CmdOrCtrl+V',
                 selector: 'paste:'
             }, {
+                type: 'separator'
+            }, {
                 label: 'Select All',
                 accelerator: 'CmdOrCtrl+A',
                 selector: 'selectAll:'
@@ -369,7 +426,7 @@ function createMenu() {
         let menuTemplate = [applicationSubMenu, editSubMenu]
         let menuObject = Menu.buildFromTemplate(menuTemplate)
 
-        // Assign it to the application
+        // Assign the application menu
         Menu.setApplicationMenu(menuObject)
 
     }
@@ -394,6 +451,7 @@ function getPlatformIcon(filename){
 
 app.on('ready', createWindow)
 app.on('ready', createMenu)
+app.on('ready', loadStartupDistribution)
 
 app.on('window-all-closed', () => {
     // On macOS it is common for applications and their menu bar

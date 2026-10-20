@@ -126,6 +126,12 @@ const INNERHTML_ALLOWLIST = [
 function listJsFiles(dir){
     const out = []
     for(const entry of fs.readdirSync(dir, { withFileTypes: true })){
+        // Vendored third-party builds (jquery, DOMPurify) ship as minified
+        // browser bundles; they are upstream code, not launcher code, and
+        // are outside the scope of this audit.
+        if(entry.isDirectory() && entry.name === 'vendor'){
+            continue
+        }
         const full = path.join(dir, entry.name)
         if(entry.isDirectory()){
             out.push(...listJsFiles(full))
