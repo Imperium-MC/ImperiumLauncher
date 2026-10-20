@@ -10,12 +10,13 @@ Imperium Launcher is a fork of [Helios Launcher](https://github.com/dscalzi/Heli
 
 ## Status
 
-Milestone 1 of the launcher plan (fork, rebrand, Windows installer) is done. Not working yet:
+Fully functional end to end (2026-10-19):
 
 | Area | State |
 | ---- | ----- |
-| Distribution index | Placeholder at [`distribution/distribution.json`](distribution/distribution.json) with no modules, so **Play does not work yet**. See [docs/distribution-index.md](docs/distribution-index.md). |
-| Microsoft login | Azure app registered (`8b0c9e33-b6ce-40ec-ac30-c85a35dd8163`); Minecraft API approval pending. Until Mojang approves it, sign-in ends with an "Awaiting Minecraft API Approval" message. See [Microsoft login](#microsoft-login). |
+| Distribution index | Live at [`distribution/distribution.json`](distribution/distribution.json) - Minecraft 26.3, Fabric, Imperium Client 0.2.0-beta.5, Fabric API and the performance mods, every file hash-verified on each launch. |
+| Microsoft login | **Approved.** Mojang Enforcement allow-listed the Azure app (`8b0c0e33` replaced by `8b0c9e33-b6ce-40ec-ac30-c85a35dd8163`) on 2026-10-19; Microsoft noted up to 24 hours for the change to propagate. |
+| Self-update | Auto-updater wired to this repo's GitHub releases. |
 | macOS / Linux installers | Config is inherited from Helios but untested. |
 
 ## Microsoft login
