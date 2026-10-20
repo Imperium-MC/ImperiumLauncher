@@ -583,14 +583,16 @@ exports.register = function(winProvider){
     /* crash report upload */
     // The renderer passes the fields the crash screen already parsed; the
     // fetch happens here (the renderer is sandboxed and CSP-bound, and the
-    // policy deliberately does not include the API host). Truncation and
-    // the timeout live in the crashreport module.
+    // policy deliberately does not include the API host). The size sanity
+    // bounds below are deliberately loose: the crashreport module clamps
+    // logTail/crashReport to the endpoint limits itself, so an oversized
+    // but genuine log is truncated, never rejected.
     ipcMain.handle(BRIDGE.CRASH_REPORT_UPLOAD, (_e, fields) => {
         const f = fields
         const shapeOk = f != null && typeof f === 'object'
             && typeof f.cause === 'string' && f.cause.length > 0 && f.cause.length <= crashreport.LIMITS.cause
-            && typeof f.logTail === 'string' && f.logTail.length <= 2 * crashreport.LIMITS.logTail
-            && (f.crashReport == null || (typeof f.crashReport === 'string' && f.crashReport.length <= 2 * crashreport.LIMITS.crashReport))
+            && typeof f.logTail === 'string' && f.logTail.length <= 512 * 1024
+            && (f.crashReport == null || (typeof f.crashReport === 'string' && f.crashReport.length <= 128 * 1024))
             && (f.mod == null || (typeof f.mod === 'string' && f.mod.length <= crashreport.LIMITS.mod))
             && (f.clientVersion == null || (typeof f.clientVersion === 'string' && f.clientVersion.length <= crashreport.LIMITS.clientVersion))
             && (f.mcVersion == null || (typeof f.mcVersion === 'string' && f.mcVersion.length <= crashreport.LIMITS.mcVersion))

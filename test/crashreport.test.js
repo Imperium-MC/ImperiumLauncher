@@ -65,6 +65,12 @@ test('buildBody clamps logTail and crashReport to the endpoint limits', () => {
     assert.strictEqual(built.body.mod, 'sodium')
     assert.strictEqual(built.body.mcVersion, '26.3')
     assert.strictEqual(built.body.clientVersion, '0.2.0-beta.8')
+
+    // A genuinely huge tail (the bridge's loose sanity bound lets it
+    // through) is still clamped, never rejected.
+    const huge = CrashReport.buildBody(sampleFields({ logTail: 'z'.repeat(200 * 1024) }), SAMPLE_META)
+    assert.strictEqual(huge.ok, true)
+    assert.ok(Buffer.byteLength(huge.body.logTail, 'utf8') <= CrashReport.LIMITS.logTail)
 })
 
 test('buildBody truncates on a code point boundary', () => {
