@@ -10,12 +10,13 @@ Imperium Launcher is a fork of [Helios Launcher](https://github.com/dscalzi/Heli
 
 ## Status
 
-Fully functional end to end (2026-10-19):
+Fully functional end to end (2026-10-20):
 
 | Area | State |
 | ---- | ----- |
-| Distribution index | Live at [`distribution/distribution.json`](distribution/distribution.json) - Minecraft 26.3, Fabric, Imperium Client 0.2.0-beta.5, Fabric API and the performance mods, every file hash-verified on each launch. |
-| Microsoft login | **Approved.** Mojang Enforcement allow-listed the Azure app (`8b0c0e33` replaced by `8b0c9e33-b6ce-40ec-ac30-c85a35dd8163`) on 2026-10-19; Microsoft noted up to 24 hours for the change to propagate. |
+| Distribution index | Live at [`distribution/distribution.json`](distribution/distribution.json) - Minecraft 26.3, Fabric, Imperium Client 0.2.0-beta.6, Fabric API and the performance mods, every file hash-verified on each launch. |
+| Microsoft login | **Working - owner-verified sign-in 2026-10-20.** Mojang Enforcement allow-listed the Azure app (`8b0c9e33-b6ce-40ec-ac30-c85a35dd8163`) on 2026-10-19. |
+| Logo | All launcher branding (exe/installer icon, window icon, welcome/login seal, loading emblem) is the website's `Logo.png` emblem, byte-identical for the PNGs, multi-size ICOs generated from it. |
 | Self-update | Auto-updater wired to this repo's GitHub releases. |
 | macOS / Linux installers | Config is inherited from Helios but untested. |
 
