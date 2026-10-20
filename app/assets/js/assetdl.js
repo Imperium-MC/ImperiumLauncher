@@ -1,6 +1,10 @@
 /**
  * assetdl.js — Imperium asset download pipeline.
  *
+ * Forked from helios-core 2.3.0's FullRepair
+ * (dist/dl/receivers/FullRepairReceiver.js receiver, dist/dl/AssetGaurdTransmitter.js
+ * transmitter). Re-diff against those files when pulling in upstream fixes.
+ *
  * Two roles in one module:
  *
  *  1. When forked as a child process (by ImperiumRepair.spawnReceiver),
@@ -15,6 +19,14 @@
  *     Each artifact is retried up to MAX_RETRIES times with exponential
  *     backoff (1s / 2s / 4s) before the whole sync is declared failed.
  *
+ *     Unlike upstream, EVERY completed download is verified against the
+ *     distro hash regardless of the received size: a same-size corrupt
+ *     file must never pass. A mismatch deletes the file and counts as a
+ *     failed attempt, so the retry ladder applies; after the final attempt
+ *     the sync fails with "<file> failed verification" and the game is
+ *     never spawned. SHA-256 is preferred whenever the distro carries it
+ *     (artifact.sha256), with MD5 kept as the fallback.
+ *
  *  2. When required from the renderer (landing.js), it exports
  *     ImperiumRepair, the transmitter half. It mirrors the public surface
  *     of helios-core's FullRepair (spawnReceiver/destroyReceiver/
@@ -24,7 +36,8 @@
  * The receiver reimplements the validate/download stages with
  * helios-core's public API (DistributionAPI, MojangIndexProcessor,
  * DistributionIndexProcessor) so the behavior stays identical to the
- * upstream FullRepairReceiver, with the retry and per-file events added.
+ * upstream FullRepairReceiver, with the retry, verification and per-file
+ * events added.
  */
 
 const childProcess = require('child_process')
@@ -87,7 +100,47 @@ function parseDisplayableError(error) {
 
 const receiver = {
     processors: [],
-    assets: []
+    assets: [],
+    sha256ById: {}
+}
+
+/**
+ * Pick the strongest hash an asset can be verified with: the distro's
+ * sha256 when it carries one, the processor-provided hash otherwise
+ * (MD5 for distro modules, SHA-1 for Mojang artifacts).
+ *
+ * @param {Object} asset An asset produced by the validate stage.
+ * @param {{[id: string]: string}} sha256ById sha256 hashes keyed by module id.
+ * @returns {{algo: string, hash: string}} The verification to run.
+ */
+function pickVerification(asset, sha256ById) {
+    const sha256 = sha256ById?.[asset.id]
+    if(typeof sha256 === 'string' && sha256.length > 0) {
+        return { algo: 'sha256', hash: sha256 }
+    }
+    return { algo: asset.algo, hash: asset.hash }
+}
+
+/**
+ * Walk the server's module tree and index every artifact that carries a
+ * sha256, so downloads can be verified against it in pickVerification.
+ *
+ * @param {Array.<Object>} modules Distribution modules (raw model objects).
+ * @returns {{[id: string]: string}} sha256 hashes keyed by module id.
+ */
+function collectSha256(modules) {
+    const sha256ById = {}
+    const walk = (mods) => {
+        for(const module of mods ?? []){
+            const artifact = module.rawModule?.artifact
+            if(typeof artifact?.sha256 === 'string' && artifact.sha256.length > 0) {
+                sha256ById[module.rawModule.id] = artifact.sha256
+            }
+            walk(module.subModules ?? [])
+        }
+    }
+    walk(modules)
+    return sha256ById
 }
 
 /**
@@ -103,6 +156,9 @@ async function receiverValidate(message) {
     )
     const distribution = await api.getDistributionLocalLoadOnly()
     const server = distribution.getServerById(message.serverId)
+
+    // Index distro-declared sha256 hashes for the download-stage verification.
+    receiver.sha256ById = collectSha256(server?.modules ?? [])
 
     const mojangIndexProcessor = new MojangIndexProcessor(message.commonDirectory, server.rawServer.minecraftVersion)
     const distributionIndexProcessor = new DistributionIndexProcessor(message.commonDirectory, distribution, message.serverId)
@@ -208,11 +264,15 @@ async function receiverDownload(message = {}) {
 
     /**
      * Download one artifact with bounded retry and exponential backoff.
-     * Emits a downloadRetry message before each retry so the UI can
-     * display a "retrying (n/3)" state.
+     * Every completed download is verified against the distro hash; a
+     * mismatch deletes the file and counts as a failed attempt so the
+     * same ladder applies as for network errors. Emits a downloadRetry
+     * message before each retry so the UI can display a "retrying (n/3)"
+     * state.
      */
     async function downloadArtifact(asset, index) {
         const name = path.basename(asset.path)
+        const verification = pickVerification(asset, receiver.sha256ById)
         for(let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
             if(attempt > 0) {
                 const delayMs = RETRY_BASE_DELAY_MS * Math.pow(2, attempt - 1)
@@ -226,7 +286,6 @@ async function receiverDownload(message = {}) {
             }
             try {
                 await streamArtifact(asset, index)
-                return
             } catch(err) {
                 log.error(`Download attempt ${attempt + 1}/${MAX_RETRIES + 1} failed for ${asset.id}: ${err.message || err}`)
                 if(attempt === MAX_RETRIES) {
@@ -236,6 +295,28 @@ async function receiverDownload(message = {}) {
                     wrapped.displayable = `${displayable}<br><span style="font-size: 10px;">${cause}</span>`
                     throw wrapped
                 }
+                continue
+            }
+
+            // Verify every download against the distro hash, whatever the
+            // received size: a corrupt file with an intact size must not pass.
+            const verified = await validateLocalFile(asset.path, verification.algo, verification.hash)
+            if(verified) {
+                if(asset.size !== receivedEach[asset.id]) {
+                    log.warn(`Asset ${asset.id} declared a size of ${asset.size} bytes, but ${receivedEach[asset.id]} were received (hash valid).`)
+                }
+                return
+            }
+
+            log.error(`Download attempt ${attempt + 1}/${MAX_RETRIES + 1} failed verification for ${asset.id} (${verification.algo} mismatch).`)
+            // Never leave an unverified file on disk for the next sync to trust.
+            await fs.remove(asset.path)
+            if(attempt === MAX_RETRIES) {
+                const displayable = `File ${name} failed verification.`
+                const cause = `hash mismatch (${verification.algo}) after ${MAX_RETRIES + 1} attempts`
+                const wrapped = new Error(`${displayable} (${cause})`)
+                wrapped.displayable = `${displayable}<br><span style="font-size: 10px;">${cause}</span>`
+                throw wrapped
             }
         }
     }
@@ -257,15 +338,8 @@ async function receiverDownload(message = {}) {
     }
     await Promise.all(workers)
 
-    // Size/hash sanity pass, mirrors helios-core behavior.
-    for(const asset of assets) {
-        if(asset.size !== receivedEach[asset.id]) {
-            log.warn(`Asset ${asset.id} declared a size of ${asset.size} bytes, but ${receivedEach[asset.id]} were received!`)
-            if(!await validateLocalFile(asset.path, asset.algo, asset.hash)) {
-                log.error(`Hashes do not match, ${asset.id} may be corrupted.`)
-            }
-        }
-    }
+    // Every artifact has been hash-verified inline by downloadArtifact, no
+    // post-pass required.
     for(const processor of receiver.processors) {
         await processor.postDownload()
     }
@@ -438,6 +512,8 @@ class ImperiumRepair {
 exports.ImperiumRepair = ImperiumRepair
 exports.MAX_RETRIES = MAX_RETRIES
 exports.RETRY_BASE_DELAY_MS = RETRY_BASE_DELAY_MS
+// Exposed for tests: hash selection for the post-download verification.
+exports.pickVerification = pickVerification
 
 // Fork guard: only run the receiver loop when executed as a child process.
 if(process.send != null && process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {

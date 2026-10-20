@@ -2,7 +2,8 @@
 /**
  * Imperium distribution index generator (milestone 2).
  *
- * Builds distribution/distribution.json with REAL artifacts: sizes, MD5s and URLs
+ * Builds distribution/distribution.json with REAL artifacts: sizes, MD5s
+ * (validation baseline), SHA-256s (stronger post-download verification) and URLs
  * for everything the launcher must sync — Fabric loader + its profile libraries
  * (MD5s straight from meta.fabricmc.net), Imperium Client (from a local jar or a
  * published GitHub release), Fabric API, and the performance-pack mods (resolved
@@ -51,22 +52,33 @@ async function fetchJson(url) {
   return res.json();
 }
 
-/** Download once, cache forever (content-addressed by URL hash). Returns { size, md5 }. */
+/** Download once, cache forever (content-addressed by URL hash). Returns { size, md5, sha256 }. */
 async function hashArtifact(url) {
   const key = crypto.createHash('md5').update(url).digest('hex');
   const metaPath = path.join(CACHE_DIR, `${key}.json`);
-  if (fs.existsSync(metaPath)) return JSON.parse(fs.readFileSync(metaPath, 'utf8'));
+  const cached = fs.existsSync(metaPath) ? JSON.parse(fs.readFileSync(metaPath, 'utf8')) : null;
+  if (cached && cached.sha256) return cached;
   const res = await fetch(url, { headers: UA });
   if (!res.ok) throw new Error(`download ${url} -> ${res.status}`);
   const buf = Buffer.from(await res.arrayBuffer());
-  const meta = { size: buf.length, md5: crypto.createHash('md5').update(buf).digest('hex') };
+  const meta = {
+    size: buf.length,
+    md5: crypto.createHash('md5').update(buf).digest('hex'),
+    sha256: crypto.createHash('sha256').update(buf).digest('hex'),
+  };
   fs.mkdirSync(CACHE_DIR, { recursive: true });
   fs.writeFileSync(metaPath, JSON.stringify(meta));
   return meta;
 }
 
-function artifact(url, hash, size) {
-  return { size, MD5: hash, url };
+/**
+ * Build a distribution artifact entry. MD5 stays the validation baseline for
+ * helios-core's DistributionIndexProcessor; sha256 is emitted alongside it
+ * whenever we hashed the file locally, so the launcher's post-download
+ * verification can prefer the stronger hash.
+ */
+function artifact(url, hash, size, sha256) {
+  return { size, MD5: hash, ...(sha256 ? { sha256 } : {}), url };
 }
 
 async function fabricModules() {
@@ -86,7 +98,8 @@ async function fabricModules() {
       artifact: artifact(
         profileUrl,
         crypto.createHash('md5').update(Buffer.from(profileBuf)).digest('hex'),
-        profileBuf.byteLength
+        profileBuf.byteLength,
+        crypto.createHash('sha256').update(Buffer.from(profileBuf)).digest('hex')
       ),
     },
     // Every library from the profile with hash metadata. The profile's library list
@@ -114,7 +127,7 @@ async function fabricModules() {
       name: 'Fabric Loader',
       type: 'Fabric',
       required: { value: true, def: true },
-      artifact: artifact(loaderJarUrl, loaderJar.md5, loaderJar.size),
+      artifact: artifact(loaderJarUrl, loaderJar.md5, loaderJar.size, loaderJar.sha256),
       subModules,
     },
     loaderVersion,
@@ -144,7 +157,7 @@ async function modrinthModule(slug) {
     name: version.name || slug,
     type: 'FabricMod',
     required: { value: false, def: true },
-    artifact: artifact(file.url, hashed.md5, hashed.size),
+    artifact: artifact(file.url, hashed.md5, hashed.size, hashed.sha256),
   };
 }
 
@@ -154,10 +167,11 @@ async function imperiumClientModule(localJarPath) {
   // release is uploaded with that exact jar.
   const VERSION = require('../package.json').version;
   const releaseUrl = `https://github.com/Imperium-MC/ImperiumClient/releases/download/v${VERSION}/ImperiumClient-${VERSION}+${MC_VERSION}.jar`;
-  let hash, size;
+  let hash, size, sha256;
   if (localJarPath) {
     const buf = fs.readFileSync(localJarPath);
     hash = crypto.createHash('md5').update(buf).digest('hex');
+    sha256 = crypto.createHash('sha256').update(buf).digest('hex');
     size = buf.length;
     console.log(`  client: hashed local jar ${path.basename(localJarPath)} (${size} bytes)`);
   } else {
@@ -168,13 +182,14 @@ async function imperiumClientModule(localJarPath) {
       );
     }
     hash = cached.md5;
+    sha256 = cached.sha256;
     size = cached.size;
   }
   return {
     id: `net.imperiummc:imperium-client:${VERSION}`,
     name: 'Imperium Client',
     type: 'FabricMod',
-    artifact: artifact(releaseUrl, hash, size),
+    artifact: artifact(releaseUrl, hash, size, sha256),
   };
 }
 
@@ -239,7 +254,7 @@ async function main() {
   fs.writeFileSync(OUT, JSON.stringify(index, null, 4) + '\n');
   const modules = index.servers[0].modules.length;
   console.log(`\nWrote ${OUT} (${modules} top-level modules, ${fabric.subModules.length} loader submodules).`);
-  console.log('Next: verify every artifact URL serves its size+MD5 (docs checklist),');
+  console.log('Next: verify every artifact URL serves its size+MD5+sha256 (docs checklist),');
   console.log('fill the discord clientId (or drop the discord block), then bump REMOTE_DISTRO_URL.');
 }
 
