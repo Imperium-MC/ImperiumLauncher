@@ -25,7 +25,7 @@ jobs:
   windows-launch-smoke:
     name: Windows launch smoke test
     runs-on: windows-latest
-    timeout-minutes: 30
+    timeout-minutes: 55
     steps:
       - name: Check out Git repository
         uses: actions/checkout@v6

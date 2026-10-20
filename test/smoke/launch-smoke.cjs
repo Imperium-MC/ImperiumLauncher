@@ -171,7 +171,7 @@ function userDataDir(pkg, appData){
 
 const DEFAULTS = {
     syncTimeoutMs: 18 * 60 * 1000,   // distribution + full client download
-    gameTimeoutMs: 8 * 60 * 1000,    // spawn -> title screen
+    gameTimeoutMs: 20 * 60 * 1000,   // spawn -> title screen (software GL boots slowly)
     pollMs: 2000,
     serverId: 'ImperiumMC',
     uuid: '00000000-0000-0000-0000-000000000000',
@@ -327,6 +327,7 @@ async function runSmoke(options, deps = {}){
         }
         await sleep(options.pollMs || DEFAULTS.pollMs)
     }
+    try { fs.copyFileSync(latestLog, path.join(artifactsDir, 'latest.log')) } catch { /* absent */ }
     return finish(false, 'timed out waiting for the title-screen marker in the game log')
 }
 
