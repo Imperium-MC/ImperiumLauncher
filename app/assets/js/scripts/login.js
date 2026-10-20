@@ -24,12 +24,12 @@ let lu = false, lp = false
 
 /**
  * Show a login error.
- * 
+ *
  * @param {HTMLElement} element The element on which to display the error.
  * @param {string} value The error text.
  */
 function showError(element, value){
-    element.innerHTML = value
+    element.textContent = value
     element.style.opacity = 1
 }
 
@@ -120,17 +120,27 @@ function loginDisabled(v){
 }
 
 /**
+ * Set the label of the login button. The label element contains only
+ * language text, applied via textContent.
+ *
+ * @param {string} key The language key for the button label.
+ */
+function setLoginButtonLabel(key){
+    document.getElementById('loginButtonText').textContent = Lang.queryJS(key)
+}
+
+/**
  * Enable or disable loading elements.
- * 
+ *
  * @param {boolean} v True to enable, false to disable.
  */
 function loginLoading(v){
     if(v){
         loginButton.setAttribute('loading', v)
-        loginButton.innerHTML = loginButton.innerHTML.replace(Lang.queryJS('login.login'), Lang.queryJS('login.loggingIn'))
+        setLoginButtonLabel('login.loggingIn')
     } else {
         loginButton.removeAttribute('loading')
-        loginButton.innerHTML = loginButton.innerHTML.replace(Lang.queryJS('login.loggingIn'), Lang.queryJS('login.login'))
+        setLoginButtonLabel('login.login')
     }
 }
 
@@ -189,7 +199,7 @@ loginButton.addEventListener('click', () => {
 
     AuthManager.addMojangAccount(loginUsername.value, loginPassword.value).then((value) => {
         updateSelectedAccount(value)
-        loginButton.innerHTML = loginButton.innerHTML.replace(Lang.queryJS('login.loggingIn'), Lang.queryJS('login.success'))
+        setLoginButtonLabel('login.success')
         $('.circle-loader').toggleClass('load-complete')
         $('.checkmark').toggle()
         setTimeout(() => {
@@ -206,7 +216,6 @@ loginButton.addEventListener('click', () => {
                 $('.circle-loader').toggleClass('load-complete')
                 $('.checkmark').toggle()
                 loginLoading(false)
-                loginButton.innerHTML = loginButton.innerHTML.replace(Lang.queryJS('login.success'), Lang.queryJS('login.login'))
                 formDisabled(false)
             })
         }, 1000)
