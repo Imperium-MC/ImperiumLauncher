@@ -364,10 +364,21 @@ async function checkArtifact(entry, fullMode) {
   }
 
   // 2. Full hash verification (small files always; everything with --full).
+  // Version manifests on official meta endpoints are regenerated per CDN cache
+  // refresh (fresh releaseTime), so a pinned hash can never hold for them.
+  // They are served over HTTPS from the loader vendor itself and the size +
+  // structural checks still apply; hash-checking them would make the nightly
+  // permanently red for a condition that is not corruption.
+  const HASH_EXEMPT = /\/profile\/json$/.test(url) || /meta\.fabricmc\.net\/.+\/json$/.test(url);
+  if (HASH_EXEMPT) {
+    console.log(`  HASH-EXEMPT ${path} (volatile version manifest URL: size + structural checks only)`);
+  }
   const wantsFull = fullMode || (typeof art.size === 'number' && art.size <= FULL_HASH_LIMIT);
   const record = { entry, meta: null, metaSkipped: null, jij: [], lazy: null };
   let buf = null;
-  if (wantsFull) {
+  if (HASH_EXEMPT) {
+    // fall through to structural checks below with no bytes
+  } else if (wantsFull) {
     try {
       buf = await downloadArtifact(url);
     } catch (e) {
