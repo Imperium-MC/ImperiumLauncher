@@ -124,15 +124,21 @@ async function toggleServerSelection(toggleState){
 
 /**
  * Set the content of the overlay.
- * 
+ *
+ * Titles and descriptions mix shipped language markup (which may
+ * contain simple tags) with runtime values such as error text and
+ * account names. They are sanitized at this single sink so only
+ * allowlisted markup ever reaches the document. The button labels are
+ * always language strings shipped with the app.
+ *
  * @param {string} title Overlay title text.
  * @param {string} description Overlay description text.
  * @param {string} acknowledge Acknowledge button text.
  * @param {string} dismiss Dismiss button text.
  */
 function setOverlayContent(title, description, acknowledge, dismiss = Lang.queryJS('overlay.dismiss')){
-    document.getElementById('overlayTitle').innerHTML = title
-    document.getElementById('overlayDesc').innerHTML = description
+    NewsSanitize.setSanitizedHtml(document.getElementById('overlayTitle'), title)
+    NewsSanitize.setSanitizedHtml(document.getElementById('overlayDesc'), description)
     document.getElementById('overlayAcknowledge').innerHTML = acknowledge
     document.getElementById('overlayDismiss').innerHTML = dismiss
 }
@@ -271,45 +277,35 @@ async function populateServerListings(){
     const distro = await DistroAPI.getDistribution()
     const giaSel = ConfigManager.getSelectedServer()
     const servers = distro.servers
-    let htmlString = ''
+    const listings = document.createDocumentFragment()
     for(const serv of servers){
-        htmlString += `<button class="serverListing" servid="${serv.rawServer.id}" ${serv.rawServer.id === giaSel ? 'selected' : ''}>
-            <img class="serverListingImg" src="${serv.rawServer.icon}"/>
-            <div class="serverListingDetails">
-                <span class="serverListingName">${serv.rawServer.name}</span>
-                <span class="serverListingDescription">${serv.rawServer.description}</span>
-                <div class="serverListingInfo">
-                    <div class="serverListingVersion">${serv.rawServer.minecraftVersion}</div>
-                    <div class="serverListingRevision">${serv.rawServer.version}</div>
-                    ${serv.rawServer.mainServer ? `<div class="serverListingStarWrapper">
-                        <svg id="Layer_1" viewBox="0 0 107.45 104.74" width="20px" height="20px">
-                            <defs>
-                                <style>.cls-1{fill:#fff;}.cls-2{fill:none;stroke:#fff;stroke-miterlimit:10;}</style>
-                            </defs>
-                            <path class="cls-1" d="M100.93,65.54C89,62,68.18,55.65,63.54,52.13c2.7-5.23,18.8-19.2,28-27.55C81.36,31.74,63.74,43.87,58.09,45.3c-2.41-5.37-3.61-26.52-4.37-39-.77,12.46-2,33.64-4.36,39-5.7-1.46-23.3-13.57-33.49-20.72,9.26,8.37,25.39,22.36,28,27.55C39.21,55.68,18.47,62,6.52,65.55c12.32-2,33.63-6.06,39.34-4.9-.16,5.87-8.41,26.16-13.11,37.69,6.1-10.89,16.52-30.16,21-33.9,4.5,3.79,14.93,23.09,21,34C70,86.84,61.73,66.48,61.59,60.65,67.36,59.49,88.64,63.52,100.93,65.54Z"/>
-                            <circle class="cls-2" cx="53.73" cy="53.9" r="38"/>
-                        </svg>
-                        <span class="serverListingStarTooltip">${Lang.queryJS('settings.serverListing.mainServer')}</span>
-                    </div>` : ''}
-                </div>
-            </div>
-        </button>`
+        const button = RenderUtil.el('button', { class: 'serverListing', servid: serv.rawServer.id })
+        if(serv.rawServer.id === giaSel){
+            button.setAttribute('selected', '')
+        }
+        for(const child of RenderUtil.buildServerListingChildren(serv.rawServer, Lang.queryJS('settings.serverListing.mainServer'))){
+            button.appendChild(child)
+        }
+        listings.appendChild(button)
     }
-    document.getElementById('serverSelectListScrollable').innerHTML = htmlString
+    document.getElementById('serverSelectListScrollable').replaceChildren(listings)
 
 }
 
 function populateAccountListings(){
     const accountsObj = ConfigManager.getAuthAccounts()
     const accounts = Array.from(Object.keys(accountsObj), v=>accountsObj[v])
-    let htmlString = ''
+    const listings = document.createDocumentFragment()
     for(let i=0; i<accounts.length; i++){
-        htmlString += `<button class="accountListing" uuid="${accounts[i].uuid}" ${i===0 ? 'selected' : ''}>
-            <img src="https://mc-heads.net/head/${accounts[i].uuid}/40">
-            <div class="accountListingName">${accounts[i].displayName}</div>
-        </button>`
+        const button = RenderUtil.el('button', { class: 'accountListing', uuid: accounts[i].uuid })
+        if(i === 0){
+            button.setAttribute('selected', '')
+        }
+        button.appendChild(RenderUtil.el('img', { src: `https://mc-heads.net/head/${accounts[i].uuid}/40` }))
+        button.appendChild(RenderUtil.el('div', { class: 'accountListingName' }, accounts[i].displayName))
+        listings.appendChild(button)
     }
-    document.getElementById('accountSelectListScrollable').innerHTML = htmlString
+    document.getElementById('accountSelectListScrollable').replaceChildren(listings)
 
 }
 

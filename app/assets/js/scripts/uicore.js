@@ -11,6 +11,9 @@ const remote                         = require('@electron/remote')
 const isDev                          = require('./assets/js/isdev')
 const { LoggerUtil }                 = require('helios-core')
 const Lang                           = require('./assets/js/langloader')
+const RenderUtil               = require('./assets/js/renderutil')
+const NewsSanitize             = require('./assets/js/newsSanitize')
+const { SHELL_OPCODE }               = require('./assets/js/ipcconstants')
 
 const loggerUICore             = LoggerUtil.getLogger('UICore')
 const loggerAutoUpdater        = LoggerUtil.getLogger('AutoUpdater')
@@ -193,11 +196,14 @@ document.addEventListener('readystatechange', function () {
 }, false)
 
 /**
- * Open web links in the user's default browser.
+ * Open web links in the user's default browser. Requests are routed to
+ * the main process, which validates the URL against the external link
+ * policy before anything is handed to the OS.
  */
 $(document).on('click', 'a[href^="http"]', function(event) {
     event.preventDefault()
-    shell.openExternal(this.href)
+    ipcRenderer.invoke(SHELL_OPCODE.OPEN_EXTERNAL, this.href)
+        .catch(err => loggerUICore.error('Unable to open external link.', err))
 })
 
 /**

@@ -11,6 +11,7 @@ const path                              = require('path')
 const semver                            = require('semver')
 const { pathToFileURL }                 = require('url')
 const { AZURE_CLIENT_ID, AZURE_CLIENT_ID_CONFIGURED, MSFT_OPCODE, MSFT_REPLY_TYPE, MSFT_ERROR, SHELL_OPCODE } = require('./app/assets/js/ipcconstants')
+const { isAllowedLink }             = require('./app/assets/js/newsSanitize')
 const LangLoader                        = require('./app/assets/js/langloader')
 
 // Setup Lang
@@ -92,7 +93,34 @@ ipcMain.on('distributionIndexDone', (event, res) => {
 // Handle trash item.
 ipcMain.handle(SHELL_OPCODE.TRASH_ITEM, async (event, ...args) => {
     try {
+        if(typeof args[0] !== 'string' || args[0].length === 0){
+            throw new Error('Invalid path.')
+        }
         await shell.trashItem(args[0])
+        return {
+            result: true
+        }
+    } catch(error) {
+        return {
+            result: false,
+            error: error
+        }
+    }
+})
+
+// Open an external link in the OS browser. The URL is validated in this
+// process against the same policy the renderer applies; anything that is
+// not an allowlisted https URL is rejected here.
+ipcMain.handle(SHELL_OPCODE.OPEN_EXTERNAL, async (event, ...args) => {
+    const url = args[0]
+    if(!isAllowedLink(url)){
+        return {
+            result: false,
+            error: 'URL is not allowed.'
+        }
+    }
+    try {
+        await shell.openExternal(url)
         return {
             result: true
         }
@@ -249,6 +277,27 @@ function createWindow() {
     Object.entries(data).forEach(([key, val]) => ejse.data(key, val))
 
     win.loadURL(pathToFileURL(path.join(__dirname, 'app', 'app.ejs')).toString())
+
+    // The launcher UI is a local document. In-window navigation away
+    // from it is never expected, so it is blocked outright. External
+    // destinations go through the validated openExternal path instead.
+    win.webContents.on('will-navigate', (event, url) => {
+        const pageUrl = pathToFileURL(path.join(__dirname, 'app', 'app.ejs')).toString()
+        if(url !== pageUrl){
+            event.preventDefault()
+            if(isAllowedLink(url)){
+                shell.openExternal(url).catch(() => {})
+            }
+        }
+    })
+
+    // The launcher never opens child windows; requests to do so are denied.
+    win.webContents.setWindowOpenHandler(({ url }) => {
+        if(isAllowedLink(url)){
+            shell.openExternal(url).catch(() => {})
+        }
+        return { action: 'deny' }
+    })
 
     /*win.once('ready-to-show', () => {
         win.show()

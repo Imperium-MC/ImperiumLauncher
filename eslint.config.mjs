@@ -51,5 +51,12 @@ export default defineConfig(
       'no-unused-vars': 'off',
       'no-undef': 'off'
     }
+  },
+  {
+    // Renderer-side modules that touch the DOM but live outside scripts/.
+    files: ['app/assets/js/renderutil.js', 'app/assets/js/newsSanitize.js'],
+    rules: {
+      'no-undef': 'off'
+    }
   }
 );

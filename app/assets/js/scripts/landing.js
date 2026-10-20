@@ -66,18 +66,18 @@ function toggleLaunchArea(loading){
  * @param {string} details The new text for the loading details.
  */
 function setLaunchDetails(details){
-    launch_details_text.innerHTML = details
+    launch_details_text.textContent = details
 }
 
 /**
  * Set the value of the loading progress bar and display that value.
- * 
+ *
  * @param {number} percent Percentage (0-100)
  */
 function setLaunchPercentage(percent){
     launch_progress.setAttribute('max', 100)
     launch_progress.setAttribute('value', percent)
-    launch_progress_label.innerHTML = percent + '%'
+    launch_progress_label.textContent = percent + '%'
 }
 
 /**
@@ -117,7 +117,7 @@ function queueFileProgressDetail(text){
     if(fileProgressTimer == null){
         fileProgressTimer = setInterval(() => {
             if(fileProgressPending != null){
-                launch_file_progress.innerHTML = fileProgressPending
+                launch_file_progress.textContent = fileProgressPending
                 fileProgressPending = null
             }
         }, 250)
@@ -132,7 +132,7 @@ function queueFileProgressDetail(text){
  */
 function showFileProgressDetailNow(text){
     fileProgressPending = null
-    launch_file_progress.innerHTML = text
+    launch_file_progress.textContent = text
 }
 
 /**
@@ -144,7 +144,7 @@ function clearFileProgressDetail(){
         fileProgressTimer = null
     }
     fileProgressPending = null
-    launch_file_progress.innerHTML = ''
+    launch_file_progress.textContent = ''
 }
 
 // Bind launch button
@@ -201,7 +201,7 @@ function updateSelectedAccount(authUser){
             document.getElementById('avatarContainer').style.backgroundImage = `url('https://mc-heads.net/body/${authUser.uuid}/right')`
         }
     }
-    user_text.innerHTML = username
+    user_text.textContent = username
 }
 updateSelectedAccount(ConfigManager.getSelectedAccount())
 
@@ -212,26 +212,68 @@ function updateSelectedServer(serv){
     }
     ConfigManager.setSelectedServer(serv != null ? serv.rawServer.id : null)
     ConfigManager.save()
-    server_selection_button.innerHTML = serv != null ? serv.rawServer.name : Lang.queryJS('landing.noSelection')
+    server_selection_button.textContent = serv != null ? serv.rawServer.name : Lang.queryJS('landing.noSelection')
     if(getCurrentView() === VIEWS.settings){
         animateSettingsTabRefresh()
     }
     setLaunchEnabled(serv != null)
 }
 // Real text is set in uibinder.js on distributionIndexDone.
-server_selection_button.innerHTML = Lang.queryJS('landing.selectedServer.loading')
+server_selection_button.textContent = Lang.queryJS('landing.selectedServer.loading')
 server_selection_button.onclick = async e => {
     e.target.blur()
     await toggleServerSelection(true)
 }
 
 // Update Mojang Status Color
+
+/**
+ * Resolve a Mojang service status to its display color. Unknown or
+ * malformed values resolve to grey rather than being trusted.
+ *
+ * @param {string} status The raw status value.
+ * @returns {string} A hex color.
+ */
+function mojangStatusColor(status){
+    switch(typeof status === 'string' ? status.toLowerCase() : ''){
+        case 'green':
+            return '#a5c325'
+        case 'yellow':
+            return '#eac918'
+        case 'red':
+            return '#c32625'
+        default:
+            return '#848484'
+    }
+}
+
+/**
+ * Build one row of the Mojang status tooltip. The service name comes
+ * from the status API, so it is attached as text only.
+ *
+ * @param {Object} service A Mojang status entry.
+ * @returns {HTMLElement} The tooltip row.
+ */
+function buildMojangStatusRow(service){
+    const icon = RenderUtil.el('span', { class: 'mojangStatusIcon' })
+    icon.style.color = mojangStatusColor(service.status)
+    const rect = RenderUtil.svgEl('rect', { x: '0.5', y: '0.5', width: '7', height: '7', fill: 'currentColor' })
+    const svg = RenderUtil.svgEl('svg', { width: '8', height: '8', viewBox: '0 0 8 8' })
+    svg.appendChild(rect)
+    icon.appendChild(svg)
+
+    return RenderUtil.el('div', { class: 'mojangStatusContainer' }, [
+        icon,
+        RenderUtil.el('span', { class: 'mojangStatusName' }, service.name)
+    ])
+}
+
 const refreshMojangStatuses = async function(){
     loggerLanding.info('Refreshing Mojang Statuses..')
 
     let status = 'grey'
-    let tooltipEssentialHTML = ''
-    let tooltipNonEssentialHTML = ''
+    const tooltipEssential = document.createDocumentFragment()
+    const tooltipNonEssential = document.createDocumentFragment()
 
     const response = await MojangRestAPI.status()
     let statuses
@@ -241,21 +283,17 @@ const refreshMojangStatuses = async function(){
         loggerLanding.warn('Unable to refresh Mojang service status.')
         statuses = MojangRestAPI.getDefaultStatuses()
     }
-    
+
     greenCount = 0
     greyCount = 0
 
     for(let i=0; i<statuses.length; i++){
         const service = statuses[i]
 
-        const tooltipHTML = `<div class="mojangStatusContainer">
-            <span class="mojangStatusIcon" style="color: ${MojangRestAPI.statusToHex(service.status)};"><svg width="8" height="8" viewBox="0 0 8 8"><rect x="0.5" y="0.5" width="7" height="7" fill="currentColor"></rect></svg></span>
-            <span class="mojangStatusName">${service.name}</span>
-        </div>`
         if(service.essential){
-            tooltipEssentialHTML += tooltipHTML
+            tooltipEssential.appendChild(buildMojangStatusRow(service))
         } else {
-            tooltipNonEssentialHTML += tooltipHTML
+            tooltipNonEssential.appendChild(buildMojangStatusRow(service))
         }
 
         if(service.status === 'yellow' && status !== 'red'){
@@ -278,10 +316,22 @@ const refreshMojangStatuses = async function(){
             status = 'green'
         }
     }
-    
-    document.getElementById('mojangStatusEssentialContainer').innerHTML = tooltipEssentialHTML
-    document.getElementById('mojangStatusNonEssentialContainer').innerHTML = tooltipNonEssentialHTML
-    document.getElementById('mojang_status_icon').style.color = MojangRestAPI.statusToHex(status)
+
+    document.getElementById('mojangStatusEssentialContainer').replaceChildren(tooltipEssential)
+    document.getElementById('mojangStatusNonEssentialContainer').replaceChildren(tooltipNonEssential)
+    document.getElementById('mojang_status_icon').style.color = mojangStatusColor(status)
+}
+
+/**
+ * Coerce a server status player count to a displayable value. The
+ * status ping is unauthenticated, so the value is only ever rendered
+ * as text and non-numeric data degrades to a placeholder.
+ *
+ * @param {*} value The raw player count.
+ * @returns {string} The displayable count.
+ */
+function formatPlayerCount(value){
+    return Number.isFinite(value) ? String(value) : '?'
 }
 
 const refreshServerStatus = async (fade = false) => {
@@ -294,9 +344,8 @@ const refreshServerStatus = async (fade = false) => {
     try {
 
         const servStat = await getServerStatus(47, serv.hostname, serv.port)
-        console.log(servStat)
         pLabel = Lang.queryJS('landing.serverStatus.players')
-        pVal = servStat.players.online + '/' + servStat.players.max
+        pVal = formatPlayerCount(servStat?.players?.online) + '/' + formatPlayerCount(servStat?.players?.max)
 
     } catch (err) {
         loggerLanding.warn('Unable to refresh server status, assuming offline.')
@@ -304,15 +353,15 @@ const refreshServerStatus = async (fade = false) => {
     }
     if(fade){
         $('#server_status_wrapper').fadeOut(250, () => {
-            document.getElementById('landingPlayerLabel').innerHTML = pLabel
-            document.getElementById('player_count').innerHTML = pVal
+            document.getElementById('landingPlayerLabel').textContent = pLabel
+            document.getElementById('player_count').textContent = pVal
             $('#server_status_wrapper').fadeIn(500)
         })
     } else {
-        document.getElementById('landingPlayerLabel').innerHTML = pLabel
-        document.getElementById('player_count').innerHTML = pVal
+        document.getElementById('landingPlayerLabel').textContent = pLabel
+        document.getElementById('player_count').textContent = pVal
     }
-    
+
 }
 
 refreshMojangStatuses()
@@ -852,14 +901,14 @@ function setNewsLoading(val){
     if(val){
         const nLStr = Lang.queryJS('landing.news.checking')
         let dotStr = '..'
-        nELoadSpan.innerHTML = nLStr + dotStr
+        nELoadSpan.textContent = nLStr + dotStr
         newsLoadingListener = setInterval(() => {
             if(dotStr.length >= 3){
                 dotStr = ''
             } else {
                 dotStr += '.'
             }
-            nELoadSpan.innerHTML = nLStr + dotStr
+            nELoadSpan.textContent = nLStr + dotStr
         }, 750)
     } else {
         if(newsLoadingListener != null){
@@ -1043,26 +1092,49 @@ document.addEventListener('keydown', (e) => {
 })
 
 /**
+ * Set an anchor's href only when the target passes the external link
+ * policy. Anything else leaves the element without a navigable target.
+ *
+ * @param {HTMLAnchorElement} anchor The anchor element.
+ * @param {string} url The candidate URL.
+ */
+function setArticleLink(anchor, url){
+    if(NewsSanitize.isAllowedLink(url)){
+        anchor.href = url
+    } else {
+        anchor.removeAttribute('href')
+    }
+}
+
+/**
  * Display a news article on the UI.
- * 
+ *
  * @param {Object} articleObject The article meta object.
  * @param {number} index The article index.
  */
 function displayArticle(articleObject, index){
-    newsArticleTitle.innerHTML = articleObject.title
-    newsArticleTitle.href = articleObject.link
-    newsArticleAuthor.innerHTML = 'by ' + articleObject.author
-    newsArticleDate.innerHTML = articleObject.date
-    newsArticleComments.innerHTML = articleObject.comments
-    newsArticleComments.href = articleObject.commentsLink
-    newsArticleContentScrollable.innerHTML = '<div id="newsArticleContentWrapper"><div class="newsArticleSpacerTop"></div>' + articleObject.content + '<div class="newsArticleSpacerBot"></div></div>'
+    newsArticleTitle.textContent = articleObject.title
+    setArticleLink(newsArticleTitle, articleObject.link)
+    newsArticleAuthor.textContent = 'by ' + articleObject.author
+    newsArticleDate.textContent = articleObject.date
+    newsArticleComments.textContent = articleObject.comments
+    setArticleLink(newsArticleComments, articleObject.commentsLink)
+
+    const wrapper = RenderUtil.el('div', { id: 'newsArticleContentWrapper' })
+    const body = RenderUtil.el('div')
+    NewsSanitize.setSanitizedHtml(body, articleObject.content)
+    wrapper.appendChild(RenderUtil.el('div', { class: 'newsArticleSpacerTop' }))
+    wrapper.appendChild(body)
+    wrapper.appendChild(RenderUtil.el('div', { class: 'newsArticleSpacerBot' }))
+    newsArticleContentScrollable.replaceChildren(wrapper)
+
     Array.from(newsArticleContentScrollable.getElementsByClassName('bbCodeSpoilerButton')).forEach(v => {
         v.onclick = () => {
             const text = v.parentElement.getElementsByClassName('bbCodeSpoilerText')[0]
             text.style.display = text.style.display === 'block' ? 'none' : 'block'
         }
     })
-    newsNavigationStatus.innerHTML = Lang.query('ejs.landing.newsNavigationStatus', {currentPage: index, totalPages: newsArr.length})
+    newsNavigationStatus.textContent = Lang.query('ejs.landing.newsNavigationStatus', {currentPage: index, totalPages: newsArr.length})
     newsContent.setAttribute('article', index-1)
 }
 

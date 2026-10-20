@@ -460,11 +460,11 @@ function bindAuthAccountSelect(){
             for(let i=0; i<selectBtns.length; i++){
                 if(selectBtns[i].hasAttribute('selected')){
                     selectBtns[i].removeAttribute('selected')
-                    selectBtns[i].innerHTML = Lang.queryJS('settings.authAccountSelect.selectButton')
+                    selectBtns[i].textContent = Lang.queryJS('settings.authAccountSelect.selectButton')
                 }
             }
             val.setAttribute('selected', '')
-            val.innerHTML = Lang.queryJS('settings.authAccountSelect.selectedButton')
+            val.textContent = Lang.queryJS('settings.authAccountSelect.selectedButton')
             setSelectedAccount(val.closest('.settingsAuthAccount').getAttribute('uuid'))
         }
     })
@@ -610,12 +610,12 @@ function refreshAuthAccountSelected(uuid){
         const selBtn = val.getElementsByClassName('settingsAuthAccountSelect')[0]
         if(uuid === val.getAttribute('uuid')){
             selBtn.setAttribute('selected', '')
-            selBtn.innerHTML = Lang.queryJS('settings.authAccountSelect.selectedButton')
+            selBtn.textContent = Lang.queryJS('settings.authAccountSelect.selectedButton')
         } else {
             if(selBtn.hasAttribute('selected')){
                 selBtn.removeAttribute('selected')
             }
-            selBtn.innerHTML = Lang.queryJS('settings.authAccountSelect.selectButton')
+            selBtn.textContent = Lang.queryJS('settings.authAccountSelect.selectButton')
         }
     })
 }
@@ -634,46 +634,55 @@ function populateAuthAccounts(){
     }
     const selectedUUID = ConfigManager.getSelectedAccount().uuid
 
-    let microsoftAuthAccountStr = ''
-    let mojangAuthAccountStr = ''
+    const microsoftAccounts = document.createDocumentFragment()
+    const mojangAccounts = document.createDocumentFragment()
 
     authKeys.forEach((val) => {
         const acc = authAccounts[val]
 
-        const accHtml = `<div class="settingsAuthAccount" uuid="${acc.uuid}">
-            <div class="settingsAuthAccountLeft">
-                <img class="settingsAuthAccountImage" alt="${acc.displayName}" src="https://mc-heads.net/body/${acc.uuid}/60">
-            </div>
-            <div class="settingsAuthAccountRight">
-                <div class="settingsAuthAccountDetails">
-                    <div class="settingsAuthAccountDetailPane">
-                        <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.username')}</div>
-                        <div class="settingsAuthAccountDetailValue">${acc.displayName}</div>
-                    </div>
-                    <div class="settingsAuthAccountDetailPane">
-                        <div class="settingsAuthAccountDetailTitle">${Lang.queryJS('settings.authAccountPopulate.uuid')}</div>
-                        <div class="settingsAuthAccountDetailValue">${acc.uuid}</div>
-                    </div>
-                </div>
-                <div class="settingsAuthAccountActions">
-                    <button class="settingsAuthAccountSelect" ${selectedUUID === acc.uuid ? 'selected>' + Lang.queryJS('settings.authAccountPopulate.selectedAccount') : '>' + Lang.queryJS('settings.authAccountPopulate.selectAccount')}</button>
-                    <div class="settingsAuthAccountWrapper">
-                        <button class="settingsAuthAccountLogOut">${Lang.queryJS('settings.authAccountPopulate.logout')}</button>
-                    </div>
-                </div>
-            </div>
-        </div>`
+        const selectBtn = RenderUtil.el('button', { class: 'settingsAuthAccountSelect' },
+            selectedUUID === acc.uuid
+                ? Lang.queryJS('settings.authAccountPopulate.selectedAccount')
+                : Lang.queryJS('settings.authAccountPopulate.selectAccount')
+        )
+        if(selectedUUID === acc.uuid){
+            selectBtn.setAttribute('selected', '')
+        }
+
+        const account = RenderUtil.el('div', { class: 'settingsAuthAccount', uuid: acc.uuid }, [
+            RenderUtil.el('div', { class: 'settingsAuthAccountLeft' }, [
+                RenderUtil.el('img', { class: 'settingsAuthAccountImage', alt: acc.displayName, src: `https://mc-heads.net/body/${acc.uuid}/60` })
+            ]),
+            RenderUtil.el('div', { class: 'settingsAuthAccountRight' }, [
+                RenderUtil.el('div', { class: 'settingsAuthAccountDetails' }, [
+                    RenderUtil.el('div', { class: 'settingsAuthAccountDetailPane' }, [
+                        RenderUtil.el('div', { class: 'settingsAuthAccountDetailTitle' }, Lang.queryJS('settings.authAccountPopulate.username')),
+                        RenderUtil.el('div', { class: 'settingsAuthAccountDetailValue' }, acc.displayName)
+                    ]),
+                    RenderUtil.el('div', { class: 'settingsAuthAccountDetailPane' }, [
+                        RenderUtil.el('div', { class: 'settingsAuthAccountDetailTitle' }, Lang.queryJS('settings.authAccountPopulate.uuid')),
+                        RenderUtil.el('div', { class: 'settingsAuthAccountDetailValue' }, acc.uuid)
+                    ])
+                ]),
+                RenderUtil.el('div', { class: 'settingsAuthAccountActions' }, [
+                    selectBtn,
+                    RenderUtil.el('div', { class: 'settingsAuthAccountWrapper' }, [
+                        RenderUtil.el('button', { class: 'settingsAuthAccountLogOut' }, Lang.queryJS('settings.authAccountPopulate.logout'))
+                    ])
+                ])
+            ])
+        ])
 
         if(acc.type === 'microsoft') {
-            microsoftAuthAccountStr += accHtml
+            microsoftAccounts.appendChild(account)
         } else {
-            mojangAuthAccountStr += accHtml
+            mojangAccounts.appendChild(account)
         }
 
     })
 
-    settingsCurrentMicrosoftAccounts.innerHTML = microsoftAuthAccountStr
-    settingsCurrentMojangAccounts.innerHTML = mojangAuthAccountStr
+    settingsCurrentMicrosoftAccounts.replaceChildren(microsoftAccounts)
+    settingsCurrentMojangAccounts.replaceChildren(mojangAccounts)
 }
 
 /**
@@ -720,8 +729,8 @@ async function resolveModsForUI(){
 
     const modStr = parseModulesForUI(distro.getServerById(serv).modules, false, servConf.mods)
 
-    document.getElementById('settingsReqModsContent').innerHTML = modStr.reqMods
-    document.getElementById('settingsOptModsContent').innerHTML = modStr.optMods
+    document.getElementById('settingsReqModsContent').replaceChildren(modStr.reqMods)
+    document.getElementById('settingsOptModsContent').replaceChildren(modStr.optMods)
 }
 
 /**
@@ -733,58 +742,72 @@ async function resolveModsForUI(){
  */
 function parseModulesForUI(mdls, submodules, servConf){
 
-    let reqMods = ''
-    let optMods = ''
+    const reqMods = document.createDocumentFragment()
+    const optMods = document.createDocumentFragment()
 
     for(const mdl of mdls){
 
         if(mdl.rawModule.type === Type.ForgeMod || mdl.rawModule.type === Type.LiteMod || mdl.rawModule.type === Type.LiteLoader || mdl.rawModule.type === Type.FabricMod){
 
-            if(mdl.getRequired().value){
+            const versionlessId = mdl.getVersionlessMavenIdentifier()
+            const modClass = `settingsBaseMod settings${submodules ? 'Sub' : ''}Mod`
 
-                reqMods += `<div id="${mdl.getVersionlessMavenIdentifier()}" class="settingsBaseMod settings${submodules ? 'Sub' : ''}Mod" enabled>
-                    <div class="settingsModContent">
-                        <div class="settingsModMainWrapper">
-                            <div class="settingsModStatus"></div>
-                            <div class="settingsModDetails">
-                                <span class="settingsModName">${mdl.rawModule.name}</span>
-                                <span class="settingsModVersion">v${mdl.mavenComponents.version}</span>
-                            </div>
-                        </div>
-                        <label class="toggleSwitch" reqmod>
-                            <input type="checkbox" checked>
-                            <span class="toggleSwitchSlider"></span>
-                        </label>
-                    </div>
-                    ${mdl.subModules.length > 0 ? `<div class="settingsSubModContainer">
-                        ${Object.values(parseModulesForUI(mdl.subModules, true, servConf[mdl.getVersionlessMavenIdentifier()])).join('')}
-                    </div>` : ''}
-                </div>`
+            const modDetails = RenderUtil.el('div', { class: 'settingsModDetails' }, [
+                RenderUtil.el('span', { class: 'settingsModName' }, mdl.rawModule.name),
+                RenderUtil.el('span', { class: 'settingsModVersion' }, 'v' + mdl.mavenComponents.version)
+            ])
+
+            const toggleInput = RenderUtil.el('input', { type: 'checkbox' })
+            const toggle = RenderUtil.el('label', { class: 'toggleSwitch' }, [
+                toggleInput,
+                RenderUtil.el('span', { class: 'toggleSwitchSlider' })
+            ])
+
+            const modContent = RenderUtil.el('div', { class: 'settingsModContent' }, [
+                RenderUtil.el('div', { class: 'settingsModMainWrapper' }, [
+                    RenderUtil.el('div', { class: 'settingsModStatus' }),
+                    modDetails
+                ]),
+                toggle
+            ])
+
+            let subConf
+            let mod
+            if(mdl.getRequired().value){
+                subConf = servConf[versionlessId]
+                mod = RenderUtil.el('div', { id: versionlessId, class: modClass, enabled: '' }, [modContent])
+                toggle.setAttribute('reqmod', '')
+                toggleInput.setAttribute('checked', '')
 
             } else {
 
-                const conf = servConf[mdl.getVersionlessMavenIdentifier()]
+                const conf = servConf[versionlessId]
                 const val = typeof conf === 'object' ? conf.value : conf
+                subConf = conf != null && typeof conf === 'object' ? conf.mods : undefined
 
-                optMods += `<div id="${mdl.getVersionlessMavenIdentifier()}" class="settingsBaseMod settings${submodules ? 'Sub' : ''}Mod" ${val ? 'enabled' : ''}>
-                    <div class="settingsModContent">
-                        <div class="settingsModMainWrapper">
-                            <div class="settingsModStatus"></div>
-                            <div class="settingsModDetails">
-                                <span class="settingsModName">${mdl.rawModule.name}</span>
-                                <span class="settingsModVersion">v${mdl.mavenComponents.version}</span>
-                            </div>
-                        </div>
-                        <label class="toggleSwitch">
-                            <input type="checkbox" formod="${mdl.getVersionlessMavenIdentifier()}" ${val ? 'checked' : ''}>
-                            <span class="toggleSwitchSlider"></span>
-                        </label>
-                    </div>
-                    ${mdl.subModules.length > 0 ? `<div class="settingsSubModContainer">
-                        ${Object.values(parseModulesForUI(mdl.subModules, true, conf.mods)).join('')}
-                    </div>` : ''}
-                </div>`
+                mod = RenderUtil.el('div', { id: versionlessId, class: modClass }, [modContent])
+                if(val){
+                    mod.setAttribute('enabled', '')
+                }
+                toggleInput.setAttribute('formod', versionlessId)
+                if(val){
+                    toggleInput.setAttribute('checked', '')
+                }
 
+            }
+
+            if(mdl.subModules.length > 0){
+                const sub = parseModulesForUI(mdl.subModules, true, subConf)
+                mod.appendChild(RenderUtil.el('div', { class: 'settingsSubModContainer' }, [
+                    sub.reqMods,
+                    sub.optMods
+                ]))
+            }
+
+            if(mdl.getRequired().value){
+                reqMods.appendChild(mod)
+            } else {
+                optMods.appendChild(mod)
             }
         }
     }
@@ -862,29 +885,37 @@ async function resolveDropinModsForUI(){
     CACHE_SETTINGS_MODS_DIR = path.join(ConfigManager.getInstanceDirectory(), serv.rawServer.id, 'mods')
     CACHE_DROPIN_MODS = DropinModUtil.scanForDropinMods(CACHE_SETTINGS_MODS_DIR, serv.rawServer.minecraftVersion)
 
-    let dropinMods = ''
+    const dropinMods = document.createDocumentFragment()
 
     for(dropin of CACHE_DROPIN_MODS){
-        dropinMods += `<div id="${dropin.fullName}" class="settingsBaseMod settingsDropinMod" ${!dropin.disabled ? 'enabled' : ''}>
-                    <div class="settingsModContent">
-                        <div class="settingsModMainWrapper">
-                            <div class="settingsModStatus"></div>
-                            <div class="settingsModDetails">
-                                <span class="settingsModName">${dropin.name}</span>
-                                <div class="settingsDropinRemoveWrapper">
-                                    <button class="settingsDropinRemoveButton" remmod="${dropin.fullName}">${Lang.queryJS('settings.dropinMods.removeButton')}</button>
-                                </div>
-                            </div>
-                        </div>
-                        <label class="toggleSwitch">
-                            <input type="checkbox" formod="${dropin.fullName}" dropin ${!dropin.disabled ? 'checked' : ''}>
-                            <span class="toggleSwitchSlider"></span>
-                        </label>
-                    </div>
-                </div>`
+        const toggleInput = RenderUtil.el('input', { type: 'checkbox', formod: dropin.fullName, dropin: '' })
+        if(!dropin.disabled){
+            toggleInput.setAttribute('checked', '')
+        }
+        const dropinMod = RenderUtil.el('div', { id: dropin.fullName, class: 'settingsBaseMod settingsDropinMod' }, [
+            RenderUtil.el('div', { class: 'settingsModContent' }, [
+                RenderUtil.el('div', { class: 'settingsModMainWrapper' }, [
+                    RenderUtil.el('div', { class: 'settingsModStatus' }),
+                    RenderUtil.el('div', { class: 'settingsModDetails' }, [
+                        RenderUtil.el('span', { class: 'settingsModName' }, dropin.name),
+                        RenderUtil.el('div', { class: 'settingsDropinRemoveWrapper' }, [
+                            RenderUtil.el('button', { class: 'settingsDropinRemoveButton', remmod: dropin.fullName }, Lang.queryJS('settings.dropinMods.removeButton'))
+                        ])
+                    ])
+                ]),
+                RenderUtil.el('label', { class: 'toggleSwitch' }, [
+                    toggleInput,
+                    RenderUtil.el('span', { class: 'toggleSwitchSlider' })
+                ])
+            ])
+        ])
+        if(!dropin.disabled){
+            dropinMod.setAttribute('enabled', '')
+        }
+        dropinMods.appendChild(dropinMod)
     }
 
-    document.getElementById('settingsDropinModsContent').innerHTML = dropinMods
+    document.getElementById('settingsDropinModsContent').replaceChildren(dropinMods)
 }
 
 /**
@@ -1007,17 +1038,17 @@ async function resolveShaderpacksForUI(){
 
 function setShadersOptions(arr, selected){
     const cont = document.getElementById('settingsShadersOptions')
-    cont.innerHTML = ''
+    cont.replaceChildren()
     for(let opt of arr) {
         const d = document.createElement('DIV')
-        d.innerHTML = opt.name
+        d.textContent = opt.name
         d.setAttribute('value', opt.fullName)
         if(opt.fullName === selected) {
             d.setAttribute('selected', '')
-            document.getElementById('settingsShadersSelected').innerHTML = opt.name
+            document.getElementById('settingsShadersSelected').textContent = opt.name
         }
         d.addEventListener('click', function(e) {
-            this.parentNode.previousElementSibling.innerHTML = this.innerHTML
+            this.parentNode.previousElementSibling.textContent = this.textContent
             for(let sib of this.parentNode.children){
                 sib.removeAttribute('selected')
             }
@@ -1075,28 +1106,8 @@ function bindShaderpackButton() {
 async function loadSelectedServerOnModsTab(){
     const serv = (await DistroAPI.getDistribution()).getServerById(ConfigManager.getSelectedServer())
 
-    for(const el of document.getElementsByClassName('settingsSelServContent')) {
-        el.innerHTML = `
-            <img class="serverListingImg" src="${serv.rawServer.icon}"/>
-            <div class="serverListingDetails">
-                <span class="serverListingName">${serv.rawServer.name}</span>
-                <span class="serverListingDescription">${serv.rawServer.description}</span>
-                <div class="serverListingInfo">
-                    <div class="serverListingVersion">${serv.rawServer.minecraftVersion}</div>
-                    <div class="serverListingRevision">${serv.rawServer.version}</div>
-                    ${serv.rawServer.mainServer ? `<div class="serverListingStarWrapper">
-                        <svg id="Layer_1" viewBox="0 0 107.45 104.74" width="20px" height="20px">
-                            <defs>
-                                <style>.cls-1{fill:#fff;}.cls-2{fill:none;stroke:#fff;stroke-miterlimit:10;}</style>
-                            </defs>
-                            <path class="cls-1" d="M100.93,65.54C89,62,68.18,55.65,63.54,52.13c2.7-5.23,18.8-19.2,28-27.55C81.36,31.74,63.74,43.87,58.09,45.3c-2.41-5.37-3.61-26.52-4.37-39-.77,12.46-2,33.64-4.36,39-5.7-1.46-23.3-13.57-33.49-20.72,9.26,8.37,25.39,22.36,28,27.55C39.21,55.68,18.47,62,6.52,65.55c12.32-2,33.63-6.06,39.34-4.9-.16,5.87-8.41,26.16-13.11,37.69,6.1-10.89,16.52-30.16,21-33.9,4.5,3.79,14.93,23.09,21,34C70,86.84,61.73,66.48,61.59,60.65,67.36,59.49,88.64,63.52,100.93,65.54Z"/>
-                            <circle class="cls-2" cx="53.73" cy="53.9" r="38"/>
-                        </svg>
-                        <span class="serverListingStarTooltip">${Lang.queryJS('settings.serverListing.mainServer')}</span>
-                    </div>` : ''}
-                </div>
-            </div>
-        `
+    for(const container of document.getElementsByClassName('settingsSelServContent')) {
+        container.replaceChildren(...buildServerListingChildren(serv.rawServer, Lang.queryJS('settings.serverListing.mainServer')))
     }
 }
 
@@ -1183,11 +1194,11 @@ settingsMinRAMRange.onchange = (e) => {
         const sliderMeta = calculateRangeSliderMeta(settingsMaxRAMRange)
         updateRangedSlider(settingsMaxRAMRange, sMinV,
             ((sMinV-sliderMeta.min)/sliderMeta.step)*sliderMeta.inc)
-        settingsMaxRAMLabel.innerHTML = sMinV.toFixed(1) + 'G'
+        settingsMaxRAMLabel.textContent = sMinV.toFixed(1) + 'G'
     }
 
     // Update label
-    settingsMinRAMLabel.innerHTML = sMinV.toFixed(1) + 'G'
+    settingsMinRAMLabel.textContent = sMinV.toFixed(1) + 'G'
 }
 
 // Bind on change event for max memory container.
@@ -1215,9 +1226,9 @@ settingsMaxRAMRange.onchange = (e) => {
         const sliderMeta = calculateRangeSliderMeta(settingsMaxRAMRange)
         updateRangedSlider(settingsMinRAMRange, sMaxV,
             ((sMaxV-sliderMeta.min)/sliderMeta.step)*sliderMeta.inc)
-        settingsMinRAMLabel.innerHTML = sMaxV.toFixed(1) + 'G'
+        settingsMinRAMLabel.textContent = sMaxV.toFixed(1) + 'G'
     }
-    settingsMaxRAMLabel.innerHTML = sMaxV.toFixed(1) + 'G'
+    settingsMaxRAMLabel.textContent = sMaxV.toFixed(1) + 'G'
 }
 
 /**
@@ -1327,8 +1338,8 @@ function updateRangedSlider(element, value, notch){
  * Display the total and available RAM.
  */
 function populateMemoryStatus(){
-    settingsMemoryTotal.innerHTML = Number((os.totalmem()-1073741824)/1073741824).toFixed(1) + 'G'
-    settingsMemoryAvail.innerHTML = Number(os.freemem()/1073741824).toFixed(1) + 'G'
+    settingsMemoryTotal.textContent = Number((os.totalmem()-1073741824)/1073741824).toFixed(1) + 'G'
+    settingsMemoryAvail.textContent = Number(os.freemem()/1073741824).toFixed(1) + 'G'
 }
 
 /**
@@ -1343,30 +1354,38 @@ async function populateJavaExecDetails(execPath){
     const details = await validateSelectedJvm(ensureJavaDirIsRoot(execPath), server.effectiveJavaOptions.supported)
 
     if(details != null) {
-        settingsJavaExecDetails.innerHTML = Lang.queryJS('settings.java.selectedJava', { version: details.semverStr, vendor: details.vendor })
+        settingsJavaExecDetails.textContent = Lang.queryJS('settings.java.selectedJava', { version: details.semverStr, vendor: details.vendor })
     } else {
-        settingsJavaExecDetails.innerHTML = Lang.queryJS('settings.java.invalidSelection')
+        settingsJavaExecDetails.textContent = Lang.queryJS('settings.java.invalidSelection')
     }
 }
 
 function populateJavaReqDesc(server) {
-    settingsJavaReqDesc.innerHTML = Lang.queryJS('settings.java.requiresJava', { major: server.effectiveJavaOptions.suggestedMajor })
+    settingsJavaReqDesc.textContent = Lang.queryJS('settings.java.requiresJava', { major: server.effectiveJavaOptions.suggestedMajor })
 }
 
 function populateJvmOptsLink(server) {
     const major = server.effectiveJavaOptions.suggestedMajor
-    settingsJvmOptsLink.innerHTML = Lang.queryJS('settings.java.availableOptions', { major: major })
+    settingsJvmOptsLink.textContent = Lang.queryJS('settings.java.availableOptions', { major: major })
+    let optsUrl
     if(major >= 12) {
-        settingsJvmOptsLink.href = `https://docs.oracle.com/en/java/javase/${major}/docs/specs/man/java.html#extra-options-for-java`
+        optsUrl = `https://docs.oracle.com/en/java/javase/${major}/docs/specs/man/java.html#extra-options-for-java`
     }
     else if(major >= 11) {
-        settingsJvmOptsLink.href = 'https://docs.oracle.com/en/java/javase/11/tools/java.html#GUID-3B1CE181-CD30-4178-9602-230B800D4FAE'
+        optsUrl = 'https://docs.oracle.com/en/java/javase/11/tools/java.html#GUID-3B1CE181-CD30-4178-9602-230B800D4FAE'
     }
     else if(major >= 9) {
-        settingsJvmOptsLink.href = `https://docs.oracle.com/javase/${major}/tools/java.htm`
+        optsUrl = `https://docs.oracle.com/javase/${major}/tools/java.htm`
     }
     else {
-        settingsJvmOptsLink.href = `https://docs.oracle.com/javase/${major}/docs/technotes/tools/${process.platform === 'win32' ? 'windows' : 'unix'}/java.html`
+        optsUrl = `https://docs.oracle.com/javase/${major}/docs/technotes/tools/${process.platform === 'win32' ? 'windows' : 'unix'}/java.html`
+    }
+    // The major version comes from the distribution index; only a URL
+    // that survives the link policy is exposed on the element.
+    if(NewsSanitize.isAllowedLink(optsUrl)){
+        settingsJvmOptsLink.href = optsUrl
+    } else {
+        settingsJvmOptsLink.removeAttribute('href')
     }
 }
 
@@ -1430,13 +1449,13 @@ function isPrerelease(version){
  * @param {Element} checkElement The check mark element.
  */
 function populateVersionInformation(version, valueElement, titleElement, checkElement){
-    valueElement.innerHTML = version
+    valueElement.textContent = version
     if(isPrerelease(version)){
-        titleElement.innerHTML = Lang.queryJS('settings.about.preReleaseTitle')
+        titleElement.textContent = Lang.queryJS('settings.about.preReleaseTitle')
         titleElement.style.color = '#ff886d'
         checkElement.style.background = '#ff886d'
     } else {
-        titleElement.innerHTML = Lang.queryJS('settings.about.stableReleaseTitle')
+        titleElement.textContent = Lang.queryJS('settings.about.stableReleaseTitle')
         titleElement.style.color = null
         checkElement.style.background = null
     }
@@ -1466,16 +1485,21 @@ function populateReleaseNotes(){
                 id = id.substring(id.lastIndexOf('/')+1)
 
                 if(id === version){
-                    settingsAboutChangelogTitle.innerHTML = entry.find('title').text()
-                    settingsAboutChangelogText.innerHTML = entry.find('content').text()
-                    settingsAboutChangelogButton.href = entry.find('link').attr('href')
+                    settingsAboutChangelogTitle.textContent = entry.find('title').text()
+                    NewsSanitize.setSanitizedHtml(settingsAboutChangelogText, entry.find('content').text())
+                    const releaseUrl = entry.find('link').attr('href')
+                    if(NewsSanitize.isAllowedLink(releaseUrl)){
+                        settingsAboutChangelogButton.href = releaseUrl
+                    } else {
+                        settingsAboutChangelogButton.removeAttribute('href')
+                    }
                 }
             }
 
         },
         timeout: 2500
     }).catch(err => {
-        settingsAboutChangelogText.innerHTML = Lang.queryJS('settings.about.releaseNotesFailed')
+        settingsAboutChangelogText.textContent = Lang.queryJS('settings.about.releaseNotesFailed')
     })
 }
 
@@ -1524,29 +1548,30 @@ function settingsUpdateButtonStatus(text, disabled = false, handler = null){
  */
 function populateSettingsUpdateInformation(data){
     if(data != null){
-        settingsUpdateTitle.innerHTML = isPrerelease(data.version) ? Lang.queryJS('settings.updates.newPreReleaseTitle') : Lang.queryJS('settings.updates.newReleaseTitle')
+        settingsUpdateTitle.textContent = isPrerelease(data.version) ? Lang.queryJS('settings.updates.newPreReleaseTitle') : Lang.queryJS('settings.updates.newReleaseTitle')
         settingsUpdateChangelogCont.style.display = null
-        settingsUpdateChangelogTitle.innerHTML = data.releaseName
-        settingsUpdateChangelogText.innerHTML = data.releaseNotes
+        settingsUpdateChangelogTitle.textContent = data.releaseName
+        NewsSanitize.setSanitizedHtml(settingsUpdateChangelogText, data.releaseNotes)
         populateVersionInformation(data.version, settingsUpdateVersionValue, settingsUpdateVersionTitle, settingsUpdateVersionCheck)
         // Version-check line: current launcher against the available release.
-        settingsUpdateCurrentText.innerHTML = Lang.queryJS('settings.updates.updateAvailableLine', {
+        settingsUpdateCurrentText.textContent = Lang.queryJS('settings.updates.updateAvailableLine', {
             current: remote.app.getVersion(),
             available: data.version
         })
 
         if(process.platform === 'darwin'){
             settingsUpdateButtonStatus(Lang.queryJS('settings.updates.downloadButton'), false, () => {
-                shell.openExternal(data.darwindownload)
+                ipcRenderer.invoke(SHELL_OPCODE.OPEN_EXTERNAL, data.darwindownload)
+                    .catch(err => msftLoginLogger.error('Unable to open download page.', err))
             })
         } else {
             settingsUpdateButtonStatus(Lang.queryJS('settings.updates.downloadingButton'), true)
         }
     } else {
-        settingsUpdateTitle.innerHTML = Lang.queryJS('settings.updates.latestVersionTitle')
+        settingsUpdateTitle.textContent = Lang.queryJS('settings.updates.latestVersionTitle')
         settingsUpdateChangelogCont.style.display = 'none'
         populateVersionInformation(remote.app.getVersion(), settingsUpdateVersionValue, settingsUpdateVersionTitle, settingsUpdateVersionCheck)
-        settingsUpdateCurrentText.innerHTML = Lang.queryJS('settings.updates.upToDateLine', {
+        settingsUpdateCurrentText.textContent = Lang.queryJS('settings.updates.upToDateLine', {
             current: remote.app.getVersion()
         })
         settingsUpdateButtonStatus(Lang.queryJS('settings.updates.checkForUpdatesButton'), false, () => {
