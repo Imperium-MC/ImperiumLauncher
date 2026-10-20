@@ -3842,6 +3842,95 @@ input:checked + .toggleSwitchSlider:before {
 }
 
 /* * *
+* Overlay View (Crash Report Content)
+* * */
+
+/* Crash report content container, mirrors #overlayContent. */
+#crashReportContent {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 420px;
+    box-sizing: border-box;
+    padding: 15px 0px;
+    text-align: center;
+}
+
+/* Add spacing between crash report content elements. */
+#crashReportContent > *:first-child {
+    margin-top: 0px !important;
+}
+#crashReportContent > *:last-child {
+    margin-bottom: 0px !important;
+}
+#crashReportContent > * {
+    margin: 8px 0px;
+}
+
+/* Crash report title styles, mirrors #overlayTitle. */
+#crashTitle {
+    font-family: 'Avenir Medium';
+    font-size: 20px;
+    font-weight: bold;
+    letter-spacing: 2px;
+    color: var(--marble);
+    -webkit-user-select: initial;
+}
+
+/* One-line crash cause parsed from the game log. */
+#crashCause {
+    font-size: 12px;
+    font-weight: bold;
+    -webkit-user-select: initial;
+    word-break: break-word;
+}
+
+/* Mod named by Fabric's "provided by" line, when present. */
+#crashMod {
+    font-size: 11px;
+    font-weight: bold;
+    color: var(--bronze-light);
+    -webkit-user-select: initial;
+}
+
+/* Div which contains the crash report action buttons. */
+#crashActionContainer {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+/* Crash report buttons, mirrors #overlayAcknowledge's bordered chip. */
+#crashActionContainer button {
+    background: none;
+    border: 1px solid var(--bronze);
+    color: var(--bronze-light);
+    font-family: 'Avenir Medium';
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border-radius: 2px;
+    padding: 4px 12px;
+    cursor: pointer;
+    transition: 0.25s ease;
+}
+#crashActionContainer button:hover,
+#crashActionContainer button:focus {
+    background: rgba(206, 164, 100, 0.15);
+    box-shadow: none;
+    outline: none;
+    color: var(--marble);
+}
+#crashActionContainer button:active {
+    border-color: var(--bronze-dark);
+    background: rgba(168, 130, 63, 0.30);
+    color: var(--bronze-light);
+}
+
+/* * *
 * Overlay View (Server + Account Selection Content)
 * * */
 

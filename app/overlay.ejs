@@ -37,5 +37,16 @@
             </div>
         </div>
     </div>
+    <!-- Crash report overlay, populated by crashscreen.js. -->
+    <div id="crashReportContent" style="display: none;">
+        <span id="crashTitle">The Game Crashed</span>
+        <span id="crashCause">Crash cause</span>
+        <span id="crashMod">Mod</span>
+        <div id="crashActionContainer">
+            <button id="crashCopyReport">Copy Report</button>
+            <button id="crashOpenLogs">Open Logs Folder</button>
+            <button id="crashClose" class="overlayKeybindEnter overlayKeybindEsc">Close</button>
+        </div>
+    </div>
     <script src="./assets/js/scripts/overlay.js"></script>
 </div>

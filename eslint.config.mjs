@@ -51,5 +51,13 @@ export default defineConfig(
       'no-unused-vars': 'off',
       'no-undef': 'off'
     }
+  },
+  {
+    // crashscreen.js is a CommonJS module required from processbuilder.js,
+    // but it runs in the renderer and uses the page's DOM and overlay globals.
+    files: ['app/assets/js/crashscreen.js'],
+    rules: {
+      'no-undef': 'off'
+    }
   }
 );

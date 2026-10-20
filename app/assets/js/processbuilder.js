@@ -107,6 +107,16 @@ class ProcessBuilder {
             })
         })
 
+        // Crash screen: surface early exits and crash reports as an overlay.
+        // Required lazily so this module stays loadable outside the renderer
+        // (tests), where @electron/remote is not available.
+        try {
+            const CrashScreen = require('./crashscreen')
+            CrashScreen.attach(child, this.gameDir)
+        } catch(err) {
+            logger.error('Failed to attach crash screen.', err)
+        }
+
         return child
     }
 
