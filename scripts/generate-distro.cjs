@@ -161,12 +161,21 @@ async function modrinthModule(slug) {
   };
 }
 
-async function imperiumClientModule(localJarPath) {
-  // No published release yet: the URL targets the intended GitHub release tag;
-  // --client hashes a locally built jar so the index is ready the moment the
-  // release is uploaded with that exact jar.
-  const VERSION = require('../package.json').version;
-  const releaseUrl = `https://github.com/Imperium-MC/ImperiumClient/releases/download/v${VERSION}/ImperiumClient-${VERSION}+${MC_VERSION}.jar`;
+async function latestClientVersion() {
+  const res = await fetch('https://api.github.com/repos/Imperium-MC/ImperiumClient/releases/latest', { headers: UA });
+  if (!res.ok) throw new Error('cannot resolve latest Imperium Client release');
+  const tag = (await res.json()).tag_name || '';
+  if (!tag.startsWith('v')) throw new Error(`unexpected latest tag ${tag}`);
+  return tag.slice(1);
+}
+
+async function imperiumClientModule(localJarPath, versionOverride) {
+  // The client release version is independent of the launcher's own version:
+  // --client-version pins it explicitly; otherwise the latest published
+  // release resolves. --client hashes a locally built jar so the index is
+  // ready the moment that exact jar is uploaded.
+  const VERSION = versionOverride || (await latestClientVersion());
+  const releaseUrl = `https://github.com/Imperium-MC/ImperiumClient/releases/download/v${VERSION}/ImperiumClient-${VERSION}%2B${MC_VERSION}.jar`;
   let hash, size, sha256;
   if (localJarPath) {
     const buf = fs.readFileSync(localJarPath);
@@ -197,13 +206,20 @@ async function main() {
   const args = process.argv.slice(2);
   const clientJarIdx = args.indexOf('--client');
   const clientJar = clientJarIdx >= 0 ? args[clientJarIdx + 1] : null;
+  const clientVersionIdx = args.indexOf('--client-version');
+  const clientVersion = clientVersionIdx >= 0 ? args[clientVersionIdx + 1] : null;
 
   console.log('Resolving Fabric for MC', MC_VERSION, '...');
   const { fabric, loaderVersion } = await fabricModules();
   console.log(`  loader ${loaderVersion}, ${fabric.subModules.length} submodules (manifest + libraries)`);
 
   console.log('Resolving Imperium Client ...');
-  const client = await imperiumClientModule(clientJar);
+  const client = await imperiumClientModule(clientJar, clientVersion);
+
+  console.log('Resolving Fabric Language Kotlin ...');
+  const flk = await modrinthModule('fabric-language-kotlin');
+  flk.required = { value: true, def: true }; // Imperium Client is written in Kotlin
+  flk.id = flk.id.replace('%2B', '+');
 
   console.log('Resolving Fabric API ...');
   const fabricApi = await modrinthModule('fabric-api');
@@ -245,7 +261,7 @@ async function main() {
           suggestedMajor: 25,
           ram: { recommended: 4096, minimum: 2048 },
         },
-        modules: [fabric, client, fabricApi, ...perf],
+        modules: [fabric, client, flk, fabricApi, ...perf],
       },
     ],
   };

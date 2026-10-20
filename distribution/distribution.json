@@ -12,7 +12,7 @@
       "name": "ImperiumMC",
       "description": "Story-driven Roman prison server.",
       "icon": "https://raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/app/assets/images/SealCircle.png",
-      "version": "0.2.0-beta.6",
+      "version": "0.2.0-beta.7",
       "address": "play.imperium-mc.net",
       "minecraftVersion": "26.3",
       "mainServer": true,
@@ -115,14 +115,29 @@
           ]
         },
         {
-          "id": "net.imperiummc:imperium-client:0.2.0-beta.6",
+          "id": "net.imperiummc:imperium-client:0.2.0-beta.7",
           "name": "Imperium Client",
           "type": "FabricMod",
           "artifact": {
-            "size": 9292138,
-            "MD5": "40c7cda0f0b934114e422ab1d5bc29e0",
-            "sha256": "620b1737889960a2b93ec92be582f296b2005b50d87673b574fd607abe18bb9b",
-            "url": "https://github.com/Imperium-MC/ImperiumClient/releases/download/v0.2.0-beta.6/ImperiumClient-0.2.0-beta.6%2B26.3.jar"
+            "size": 9400211,
+            "MD5": "7a77fc7e960dbb927224254512bec9c0",
+            "sha256": "1a9609cbabe0cc45266f1ef8e7fd4232cde4d7c557415a3a1bd5883e766c1b8d",
+            "url": "https://github.com/Imperium-MC/ImperiumClient/releases/download/v0.2.0-beta.7/ImperiumClient-0.2.0-beta.7%2B26.3.jar"
+          }
+        },
+        {
+          "id": "com.modrinth.fabric-language-kotlin:1.14.2+kotlin.2.4.21",
+          "name": "Fabric Language Kotlin 1.14.2+kotlin.2.4.21",
+          "type": "FabricMod",
+          "required": {
+            "value": true,
+            "def": true
+          },
+          "artifact": {
+            "size": 8142878,
+            "MD5": "08b201c7d0e80ba7a3d77cca0b2d3d3f",
+            "sha256": "fbdbf5286ab9d65fedb49e6e01c15e338ae303eb7b9d8c7423d0a9bcfe526ef9",
+            "url": "https://cdn.modrinth.com/data/Ha28R6CL/versions/SKW1BTL3/fabric-language-kotlin-1.14.2%2Bkotlin.2.4.21.jar"
           }
         },
         {
