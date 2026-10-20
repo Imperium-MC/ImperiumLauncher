@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "rss": "https://imperium-mc.net/news.rss",
+  "rss": "https://imperiummc.net/news.rss",
   "discord": {
     "clientId": "REPLACE_WITH_BOT_CLIENT_ID",
     "smallImageText": "ImperiumMC",
