@@ -214,6 +214,16 @@ checkConsoleForDetails = "Please check the console (CTRL + Shift + i) for more d
 [js.landing.news]
 checking = "Checking for News"
 
+[js.landing.crash]
+title = "The Game Crashed"
+exited = "The game exited unexpectedly (code {code})."
+unknownCause = "The game crashed. No cause could be read from the log; the full report is on the clipboard button below."
+providedBy = "Mod involved: {mod}"
+copyReport = "Copy Report"
+copied = "Copied"
+openLogs = "Open Logs Folder"
+close = "Close"
+
 [js.landing.discord]
 loading = "Loading game.."
 joining = "Sailing to Westeros!"

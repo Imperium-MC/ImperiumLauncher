@@ -107,6 +107,16 @@ class ProcessBuilder {
             })
         })
 
+        // Crash screen: surface early exits and crash reports as an overlay.
+        // Required lazily so this module stays loadable outside the renderer
+        // (tests), where @electron/remote is not available.
+        try {
+            const CrashScreen = require('./crashscreen')
+            CrashScreen.attach(child, this.gameDir)
+        } catch(err) {
+            logger.error('Failed to attach crash screen.', err)
+        }
+
         return child
     }
 
@@ -705,11 +715,87 @@ class ProcessBuilder {
     }
 
     /**
+     * Map the manifest's own natives arguments to the extraction folders they
+     * name, so every native lands where the JVM will actually look for it.
+     *
+     * 26.x manifests no longer use a flat natives folder. Instead they pass
+     * arguments like:
+     *
+     *   -Djava.library.path=${natives_directory}/java
+     *   -Djna.tmpdir=${natives_directory}/jna
+     *   -Dorg.lwjgl.system.SharedLibraryExtractPath=${natives_directory}/lwjgl
+     *   -Dio.netty.native.workdir=${natives_directory}/netty
+     *
+     * Each property names the folder its family of natives must be extracted
+     * into. Manifests without these arguments (everything before 26.x) keep
+     * the legacy flat behavior: every folder maps to tempNativePath itself.
+     *
+     * @param {string} tempNativePath The ${natives_directory} for this launch.
+     * @returns {{default: string, lwjgl: string, jna: string, netty: string}} The
+     * extraction folder for each native family, plus the legacy flat folder.
+     */
+    _nativeDirPlan(tempNativePath){
+        const marker = '${natives_directory}'
+
+        // Flatten rule-wrapped JVM arguments into their string values.
+        const jvmArgs = []
+        for(const arg of this.vanillaManifest.arguments?.jvm ?? []){
+            if(typeof arg === 'string'){
+                jvmArgs.push(arg)
+            } else if(arg != null && typeof arg.value === 'string'){
+                jvmArgs.push(arg.value)
+            }
+        }
+
+        // Resolve the folder a -D property points at, or null when the
+        // manifest does not place it inside the natives directory.
+        const dirForProp = (prop) => {
+            const prefix = `-D${prop}=`
+            for(const arg of jvmArgs){
+                if(arg.startsWith(prefix) && arg.substring(prefix.length).startsWith(marker)){
+                    return path.join(tempNativePath, arg.substring(prefix.length + marker.length))
+                }
+            }
+            return null
+        }
+
+        const javaLibraryPath = dirForProp('java.library.path')
+        return {
+            default: tempNativePath,
+            // LWJGL self-extracts into SharedLibraryExtractPath when set,
+            // otherwise its libraries are loaded from java.library.path.
+            lwjgl: dirForProp('org.lwjgl.system.SharedLibraryExtractPath') ?? javaLibraryPath ?? tempNativePath,
+            jna: dirForProp('jna.tmpdir') ?? tempNativePath,
+            netty: dirForProp('io.netty.native.workdir') ?? tempNativePath
+        }
+    }
+
+    /**
+     * Pick the extraction folder for a native library from its maven
+     * coordinates. Libraries without a dedicated folder rule (everything
+     * except lwjgl, jna and netty) go to the legacy flat folder.
+     *
+     * @param {Object} lib A library entry from the vanilla manifest.
+     * @param {{default: string, lwjgl: string, jna: string, netty: string}} plan From _nativeDirPlan.
+     * @returns {string} The folder to extract this library's natives into.
+     */
+    _nativeExtractDir(lib, plan){
+        if(lib.name.startsWith('org.lwjgl')) {
+            return plan.lwjgl
+        } else if(lib.name.startsWith('net.java.dev.jna')) {
+            return plan.jna
+        } else if(lib.name.startsWith('io.netty')) {
+            return plan.netty
+        }
+        return plan.default
+    }
+
+    /**
      * Resolve the libraries defined by Mojang's version data. This method will also extract
      * native libraries and point to the correct location for its classpath.
-     * 
+     *
      * TODO - clean up function
-     * 
+     *
      * @param {string} tempNativePath The path to store the native libraries.
      * @returns {{[id: string]: string}} An object containing the paths of each library mojang declares.
      */
@@ -719,6 +805,8 @@ class ProcessBuilder {
 
         const libArr = this.vanillaManifest.libraries
         fs.ensureDirSync(tempNativePath)
+        const nativeDirPlan = this._nativeDirPlan(tempNativePath)
+        logger.info('Natives extraction plan:', JSON.stringify(nativeDirPlan))
         for(let i=0; i<libArr.length; i++){
             const lib = libArr[i]
             if(isLibraryCompatible(lib.rules, lib.natives)){
@@ -731,6 +819,10 @@ class ProcessBuilder {
 
                     // Location of native zip.
                     const to = path.join(this.libPath, artifact.path)
+
+                    const extractDir = this._nativeExtractDir(lib, nativeDirPlan)
+                    fs.ensureDirSync(extractDir)
+                    logger.info(`Extracting ${lib.name} natives to ${extractDir}`)
 
                     let zip = new AdmZip(to)
                     let zipEntries = zip.getEntries()
@@ -748,13 +840,16 @@ class ProcessBuilder {
                             }
                         })
 
-                        // Extract the file.
+                        // Extract the file. Synchronous: the JVM is spawned in
+                        // this same tick, every native must already be on disk.
                         if(!shouldExclude){
-                            fs.writeFile(path.join(tempNativePath, fileName), zipEntries[i].getData(), (err) => {
-                                if(err){
-                                    logger.error('Error while extracting native library:', err)
-                                }
-                            })
+                            try {
+                                const dest = path.join(extractDir, fileName)
+                                fs.ensureDirSync(path.dirname(dest))
+                                fs.writeFileSync(dest, zipEntries[i].getData())
+                            } catch(err) {
+                                logger.error('Error while extracting native library:', err)
+                            }
                         }
 
                     }
@@ -776,6 +871,10 @@ class ProcessBuilder {
 
                     // Location of native zip.
                     const to = path.join(this.libPath, artifact.path)
+
+                    const extractDir = this._nativeExtractDir(lib, nativeDirPlan)
+                    fs.ensureDirSync(extractDir)
+                    logger.info(`Extracting ${lib.name} natives to ${extractDir}`)
 
                     let zip = new AdmZip(to)
                     let zipEntries = zip.getEntries()
@@ -799,13 +898,14 @@ class ProcessBuilder {
 
                         const extractName = fileName.includes('/') ? fileName.substring(fileName.lastIndexOf('/')) : fileName
 
-                        // Extract the file.
+                        // Extract the file. Synchronous: the JVM is spawned in
+                        // this same tick, every native must already be on disk.
                         if(!shouldExclude){
-                            fs.writeFile(path.join(tempNativePath, extractName), zipEntries[i].getData(), (err) => {
-                                if(err){
-                                    logger.error('Error while extracting native library:', err)
-                                }
-                            })
+                            try {
+                                fs.writeFileSync(path.join(extractDir, extractName), zipEntries[i].getData())
+                            } catch(err) {
+                                logger.error('Error while extracting native library:', err)
+                            }
                         }
 
                     }

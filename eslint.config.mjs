@@ -54,7 +54,9 @@ export default defineConfig(
   },
   {
     // Renderer-side modules that touch the DOM but live outside scripts/.
-    files: ['app/assets/js/renderutil.js', 'app/assets/js/newsSanitize.js'],
+    // crashscreen.js is a CommonJS module required from processbuilder.js,
+    // but it runs in the renderer and uses the page's DOM and overlay globals.
+    files: ['app/assets/js/renderutil.js', 'app/assets/js/newsSanitize.js', 'app/assets/js/crashscreen.js'],
     rules: {
       'no-undef': 'off'
     }
