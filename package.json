@@ -24,7 +24,6 @@
     "node": "22.x.x"
   },
   "dependencies": {
-    "@electron/remote": "^2.1.3",
     "adm-zip": "^0.5.16",
     "discord-rpc-patch": "^4.0.1",
     "dompurify": "^3.4.17",

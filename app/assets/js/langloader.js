@@ -28,6 +28,16 @@ exports.queryJS = function(id, placeHolders){
     return exports.query(`js.${id}`, placeHolders)
 }
 
+/**
+ * The raw merged language map. Used by the main process to hand the whole
+ * string table to the renderer, which resolves keys locally.
+ *
+ * @returns {Object} The merged language object.
+ */
+exports.getRaw = function(){
+    return lang
+}
+
 exports.queryEJS = function(id, placeHolders){
     return exports.query(`ejs.${id}`, placeHolders)
 }

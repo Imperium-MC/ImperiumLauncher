@@ -1,7 +1,6 @@
 const fs        = require('fs-extra')
 const path      = require('path')
-const { ipcRenderer, shell } = require('electron')
-const { SHELL_OPCODE } = require('./ipcconstants')
+const { shell } = require('electron')
 
 // Group #1: File Name (without .disabled, if any)
 // Group #2: File Extension (jar, zip, or litemod)
@@ -71,15 +70,20 @@ exports.scanForDropinMods = function(modsDir, version) {
 
 /**
  * Add dropin mods.
- * 
- * @param {FileList} files The files to add.
+ *
+ * Runs in the main process; the renderer hands over the absolute source
+ * paths it resolved for the dropped files (webUtils.getPathForFile).
+ *
+ * @param {string[]} srcPaths Absolute paths of the files to add.
+ * @param {string[]} names The file names matching each source path.
  * @param {string} modsDir The path to the mods directory.
  */
-exports.addDropinMods = function(files, modsdir) {
+exports.addDropinMods = function(srcPaths, names, modsdir) {
 
     exports.validateDir(modsdir)
 
-    for(let f of files) {
+    for(let i = 0; i < srcPaths.length; i++) {
+        const f = { path: srcPaths[i], name: names[i] }
         if(MOD_REGEX.exec(f.name) != null) {
             fs.moveSync(f.path, path.join(modsdir, f.name))
         }
@@ -89,23 +93,23 @@ exports.addDropinMods = function(files, modsdir) {
 
 /**
  * Delete a drop-in mod from the file system.
- * 
+ *
  * @param {string} modsDir The path to the mods directory.
  * @param {string} fullName The fullName of the discovered mod to delete.
- * 
+ *
  * @returns {Promise.<boolean>} True if the mod was deleted, otherwise false.
  */
 exports.deleteDropinMod = async function(modsDir, fullName){
 
-    const res = await ipcRenderer.invoke(SHELL_OPCODE.TRASH_ITEM, path.join(modsDir, fullName))
-
-    if(!res.result) {
+    try {
+        await shell.trashItem(path.join(modsDir, fullName))
+        return true
+    } catch (error) {
         shell.beep()
-        console.error('Error deleting drop-in mod.', res.error)
+        console.error('Error deleting drop-in mod.', error)
         return false
     }
 
-    return true
 }
 
 /**
@@ -219,17 +223,21 @@ exports.setEnabledShaderpack = function(instanceDir, pack){
 
 /**
  * Add shaderpacks.
- * 
- * @param {FileList} files The files to add.
+ *
+ * Runs in the main process; see addDropinMods for the source-path contract.
+ *
+ * @param {string[]} srcPaths Absolute paths of the files to add.
+ * @param {string[]} names The file names matching each source path.
  * @param {string} instanceDir The path to the server instance directory.
  */
-exports.addShaderpacks = function(files, instanceDir) {
+exports.addShaderpacks = function(srcPaths, names, instanceDir) {
 
     const p = path.join(instanceDir, SHADER_DIR)
 
     exports.validateDir(p)
 
-    for(let f of files) {
+    for(let i = 0; i < srcPaths.length; i++) {
+        const f = { path: srcPaths[i], name: names[i] }
         if(SHADER_REGEX.exec(f.name) != null) {
             fs.moveSync(f.path, path.join(p, f.name))
         }
