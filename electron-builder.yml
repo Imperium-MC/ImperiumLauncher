@@ -1,8 +1,8 @@
-appId: 'net.imperiummc.launcher'
-productName: 'Imperium Launcher'
-artifactName: 'Imperium-Launcher-setup-${version}.${ext}'
+appId: 'net.romanica.launcher'
+productName: 'Romanica Launcher'
+artifactName: 'Romanica-Launcher-setup-${version}.${ext}'
 
-copyright: 'Copyright © 2026 ImperiumMC. Based on Helios Launcher, Copyright © 2017-2026 Daniel Scalzi'
+copyright: 'Copyright © 2026 Romanica. Based on Helios Launcher, Copyright © 2017-2026 Daniel Scalzi'
 
 asar: true
 compression: 'maximum'
@@ -10,6 +10,7 @@ compression: 'maximum'
 # Update feed for electron-updater. Builds generate app-update.yml from
 # this block; releases are published manually, never from a local build
 # unless -p is passed explicitly.
+# ROMANICA CUTOVER: repo URLs flip when the GitHub org renames
 publish:
   provider: 'github'
   owner: 'Imperium-MC'
@@ -41,16 +42,17 @@ mac:
       arch:
         - 'x64'
         - 'arm64'
-  artifactName: 'Imperium-Launcher-setup-${version}-${arch}.${ext}'
+  artifactName: 'Romanica-Launcher-setup-${version}-${arch}.${ext}'
   category: 'public.app-category.games'
 
 # Linux Configuration
 linux: 
   target: 'AppImage'
-  maintainer: 'ImperiumMC'
-  vendor: 'ImperiumMC'
-  synopsis: 'ImperiumMC Launcher'
-  description: 'Official ImperiumMC launcher. Keeps the Imperium Client pack in sync and joins play.imperiummc.net.'
+  maintainer: 'Romanica'
+  vendor: 'Romanica'
+  synopsis: 'Romanica Launcher'
+  # ROMANICA CUTOVER: address -> romanica.net (or play.romanica.net) when DNS is live
+  description: 'Official Romanica launcher. Keeps the Imperium Client pack in sync and joins play.imperiummc.net.'
   category: 'Game'
 
 

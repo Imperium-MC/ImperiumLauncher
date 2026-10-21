@@ -5,7 +5,7 @@
  * itself does the real work: this script pre-seeds an offline account into
  * the launcher's config.json (exact ConfigManager shape), copies Mesa's
  * software opengl32.dll next to the Temurin javaw.exe the game will use,
- * starts dist/win-unpacked/Imperium Launcher.exe with
+ * starts dist/win-unpacked/Romanica Launcher.exe with
  * IMPERIUM_SMOKE_LAUNCH=1 (headless: no launcher UI, the main process runs
  * the full distribution -> asset sync -> ProcessBuilder pipeline), and
  * watches the game's logs/latest.log.
@@ -21,7 +21,7 @@
  *
  * Usage:
  *   node test/smoke/launch-smoke.cjs \
- *     --exe "dist/win-unpacked/Imperium Launcher.exe" \
+ *     --exe "dist/win-unpacked/Romanica Launcher.exe" \
  *     --data-dir "$RUNNER_TEMP/imperium-data" \
  *     --java-home "$RUNNER_TEMP/jdk-25-jre" \
  *     --mesa "$RUNNER_TEMP/mesa/x64/opengl32.dll" \

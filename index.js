@@ -11,6 +11,13 @@ const { AZURE_CLIENT_ID, AZURE_CLIENT_ID_CONFIGURED, MSFT_OPCODE, MSFT_REPLY_TYP
 const { isAllowedLink }             = require('./app/assets/js/newsSanitize')
 const LangLoader                        = require('./app/assets/js/langloader')
 
+// Romanica rebrand: the productName change moved userData from
+// %APPDATA%\Imperium Launcher to %APPDATA%\Romanica Launcher. Carry the
+// existing profile over before ANY module resolves config.json from it
+// (configmanager computes its path at require time, so this must run
+// ahead of the launcher core below).
+require('./app/main/userdatamigration').init()
+
 // Main-process launcher core (configuration, distribution index, launch
 // pipeline) plus the validated renderer bridge.
 const LauncherCore = require('./app/main/launchercore')

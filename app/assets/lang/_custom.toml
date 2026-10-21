@@ -1,7 +1,7 @@
 # Custom Language File for Launcher Customizer
 
 [ejs.app]
-title = "Imperium Launcher"
+title = "Romanica Launcher"
 
 [ejs.landing]
 mediaGitHubURL = "https://github.com/Imperium-MC/ImperiumLauncher"
@@ -16,5 +16,5 @@ supportLink = "https://github.com/Imperium-MC/ImperiumLauncher/issues"
 
 [ejs.welcome]
 welcomeHeader = "AVE, CIVIS"
-welcomeDescription = "Rome was not built in a day, and neither is an empire. ImperiumMC is a story-driven prison server set across two thousand years of Roman history: mine your way up from the quarries, earn your rank in the Forum and choose which faction Rome belongs to. This launcher keeps Imperium Client and the server's pack in sync, so every citizen plays the same build."
+welcomeDescription = "Rome was not built in a day, and neither is an empire. Romanica is a story-driven prison server set across two thousand years of Roman history: mine your way up from the quarries, earn your rank in the Forum and choose which faction Rome belongs to. This launcher keeps the Romanica client and the server's pack in sync, so every citizen plays the same build."
 welcomeDescCTA = "You are a few clicks away from Rome."

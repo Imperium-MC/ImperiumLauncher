@@ -1,8 +1,8 @@
-# Imperium distribution index
+# Romanica distribution index
 
 The launcher downloads one JSON file, the *distribution index*, on every start. It lists the Minecraft version, the mod loader and every file to sync, so each player runs the server's exact pack. The launcher validates each file by size and MD5 before launch and re-downloads anything that's missing or wrong.
 
-The format is Helios' own. [distro.md](distro.md) documents every field, and [helios-distribution-types](https://github.com/dscalzi/helios-distribution-types) is the source of truth. This page covers what Imperium's index must contain.
+The format is Helios' own. [distro.md](distro.md) documents every field, and [helios-distribution-types](https://github.com/dscalzi/helios-distribution-types) is the source of truth. This page covers what Romanica's index must contain.
 
 ## Where it lives
 
@@ -10,11 +10,11 @@ The format is Helios' own. [distro.md](distro.md) documents every field, and [he
 | - | - |
 | Launcher setting | `REMOTE_DISTRO_URL` in [`app/assets/js/distromanager.js`](../app/assets/js/distromanager.js) |
 | Now (placeholder) | `https://raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/distribution/distribution.json` |
-| Planned | An ImperiumMC-hosted URL such as `https://launcher.imperiummc.net/distribution.json` (Cloudflare R2 or Pages), set in milestone 2 |
+| Planned | A Romanica-hosted URL such as `https://launcher.romanica.net/distribution.json` (Cloudflare R2 or Pages), set in milestone 2. ROMANICA CUTOVER: depends on romanica.net DNS |
 
 The placeholder has the server entry but no modules, so the launcher loads and reaches the login screen. Pressing Play fails with `No mod loader found!`.
 
-If the index can't be downloaded, the launcher falls back to its last cached copy in `%APPDATA%\.imperiumlauncher\distribution.json`. With no cache either, it can't start. Keep the URL stable, and always serve valid JSON from it.
+If the index can't be downloaded, the launcher falls back to its last cached copy in `%APPDATA%\Romanica Launcher\distribution.json` (the userData directory). With no cache either, it can't start. Keep the URL stable, and always serve valid JSON from it.
 
 ## Required contents
 
@@ -24,7 +24,7 @@ If the index can't be downloaded, the launcher falls back to its last cached cop
 {
     "version": "1.0.0",
     "rss": "https://imperiummc.net/news.rss",
-    "discord": { "clientId": "...", "smallImageText": "ImperiumMC", "smallImageKey": "seal" },
+    "discord": { "clientId": "...", "smallImageText": "Romanica", "smallImageKey": "seal" },
     "servers": [ { "...": "the server object below" } ]
 }
 ```
@@ -35,10 +35,10 @@ If the index can't be downloaded, the launcher falls back to its last cached cop
 
 | Field | Value |
 | ----- | ----- |
-| `id` | `ImperiumMC`. **Never change it.** The launcher keys instance folders and settings by this ID, and changing it wipes players' data. |
+| `id` | `Romanica` (the generator's `SERVER_ID`; the deployed index still serves `ImperiumMC` until cutover). **Never change it after cutover.** The launcher keys instance folders and settings by this ID, and changing it orphans every player's installed instance (`instances/ImperiumMC` is left behind and the pack re-downloads to `instances/Romanica`). |
 | `name` / `description` / `icon` | Shown on the landing page. |
 | `version` | Bump on every pack change (semver). |
-| `address` | `play.imperiummc.net` |
+| `address` | `play.imperium-mc.net`. ROMANICA CUTOVER: address -> romanica.net (or play.romanica.net) when DNS is live |
 | `minecraftVersion` | `26.3` |
 | `mainServer` | `true` |
 | `autoconnect` | `true` (joins the server on launch via Quick Play) |
@@ -91,16 +91,16 @@ The Fabulously-Optimized-based pack is not one file. Each mod is its own `Fabric
 
 - Use `"required": { "value": false, "def": true }` for mods players may switch off in the launcher's Mods tab. Leave `required` out for mods Imperium Client depends on.
 - Point `url` at the Modrinth CDN (`cdn.modrinth.com/...`) rather than re-hosting jars, unless a mod's licence permits redistribution.
-- Ship FO's config defaults as `File` modules with an explicit `path`, for example `{ "type": "File", "id": "sodium-options", "artifact": { "path": "config/sodium-options.json", ... } }`. `File` paths are relative to the instance folder (`instances/ImperiumMC/`).
+- Ship FO's config defaults as `File` modules with an explicit `path`, for example `{ "type": "File", "id": "sodium-options", "artifact": { "path": "config/sodium-options.json", ... } }`. `File` paths are relative to the instance folder (`instances/<server id>/`).
 
 #### 4. Server resource pack (`type: "File"`)
 
 ```json
 {
-    "id": "imperium-resourcepack",
-    "name": "ImperiumMC Resource Pack",
+    "id": "romanica-resourcepack",
+    "name": "Romanica Resource Pack",
     "type": "File",
-    "artifact": { "size": 0, "MD5": "...", "path": "resourcepacks/ImperiumMC.zip", "url": "https://<pack host>/ImperiumMC.zip" }
+    "artifact": { "size": 0, "MD5": "...", "path": "resourcepacks/Romanica.zip", "url": "https://<pack host>/Romanica.zip" }
 }
 ```
 
@@ -108,8 +108,8 @@ Use the same zip the server advertises in `server.properties` (`resource-pack` /
 
 Optional `File` modules worth shipping alongside it:
 
-- `options.txt` with `resourcePacks:["vanilla","file/ImperiumMC.zip"]`, so the pack is enabled on first launch. It overwrites the player's options on every update, so ship it only if that's acceptable.
-- `servers.dat` with ImperiumMC pre-added to the multiplayer list.
+- `options.txt` with `resourcePacks:["vanilla","file/Romanica.zip"]`, so the pack is enabled on first launch. It overwrites the player's options on every update, so ship it only if that's acceptable.
+- `servers.dat` with the server pre-added to the multiplayer list.
 
 #### 5. Minecraft 26.3 itself
 
@@ -117,7 +117,7 @@ You don't list it. The launcher fetches the vanilla client, libraries and assets
 
 ## Generating it
 
-Writing MD5s and sizes by hand doesn't scale. Use [Nebula](https://github.com/dscalzi/Nebula), Helios' index generator. It builds the index from a folder layout (`servers/ImperiumMC-26.3/fabricmods/required/*.jar`, `files/...`), resolves the Fabric profile and its libraries, and computes every hash. Run it in CI whenever the pack changes, then upload the output next to the files it references.
+Writing MD5s and sizes by hand doesn't scale. This repo has its own generator, [`scripts/generate-distro.cjs`](../scripts/generate-distro.cjs); [Nebula](https://github.com/dscalzi/Nebula), Helios' index generator, is the upstream alternative. It builds the index from a folder layout (`servers/<server-id>-26.3/fabricmods/required/*.jar`, `files/...`), resolves the Fabric profile and its libraries, and computes every hash. Run it in CI whenever the pack changes, then upload the output next to the files it references.
 
 ## Checklist before switching `REMOTE_DISTRO_URL`
 
@@ -127,4 +127,4 @@ Writing MD5s and sizes by hand doesn't scale. Use [Nebula](https://github.com/ds
 - [ ] Performance pack mods, each one built for 26.3
 - [ ] Resource pack zip matches the server's `resource-pack-sha1`
 - [ ] Every artifact URL returns 200, and every `size` and `MD5` matches the file served
-- [ ] A clean install (delete `%APPDATA%\.imperiumlauncher`) launches and auto-joins `play.imperiummc.net`
+- [ ] A clean install (delete `%APPDATA%\Romanica Launcher` and `%APPDATA%\.imperiumlauncher`) launches and auto-joins `play.imperium-mc.net`

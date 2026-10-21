@@ -231,8 +231,8 @@ close = "Close"
 
 [js.landing.discord]
 loading = "Loading game.."
-joining = "Sailing to Westeros!"
-joined = "Exploring the Realm!"
+joining = "Marching on Rome!"
+joined = "All roads lead to Rome."
 
 [js.overlay]
 dismiss = "Dismiss"
@@ -304,7 +304,7 @@ upToDateLine = "Launcher {current} — up to date"
 errorTitle = "Microsoft Login Failed"
 errorMessage = "We were unable to authenticate your Microsoft account. Please try again."
 notConfiguredTitle = "Microsoft Login Unavailable"
-notConfiguredMessage = "Microsoft login isn't configured yet: this build has no Azure app ID.<br><br>Microsoft sign-in will work in a later build, once Imperium's Azure app has been approved for Minecraft."
+notConfiguredMessage = "Microsoft login isn't configured yet: this build has no Azure app ID.<br><br>Microsoft sign-in will work in a later build, once Romanica's Azure app has been approved for Minecraft."
 okButton = "OK"
 
 [js.uibinder.startup]
@@ -336,7 +336,7 @@ under18Desc = "Accounts for users under the age of 18 must be added to a Family 
 unknownTitle = "Unknown Error During Login"
 unknownDesc = "An unknown error has occurred. Please see the console for details."
 appNotApprovedTitle = "Awaiting Minecraft API Approval"
-appNotApprovedDesc = "Your Microsoft account signed in, but Minecraft hasn't approved Imperium Launcher's app ID yet, so it refused to issue a game token (HTTP 403).<br><br>Nothing is wrong with your account. Sign-in will work once Mojang approves the launcher; approvals can take up to 24 hours to take effect."
+appNotApprovedDesc = "Your Microsoft account signed in, but Minecraft hasn't approved Romanica Launcher's app ID yet, so it refused to issue a game token (HTTP 403).<br><br>Nothing is wrong with your account. Sign-in will work once Mojang approves the launcher; approvals can take up to 24 hours to take effect."
 
 [js.auth.mojang.error]
 methodNotAllowedTitle = "Internal Error:<br>Method Not Allowed"

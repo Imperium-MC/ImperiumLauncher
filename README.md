@@ -1,12 +1,13 @@
-<p align="center"><img src="./app/assets/images/SealCircle.png" width="150px" height="150px" alt="Imperium"></p>
+<p align="center"><img src="./app/assets/images/SealCircle.png" width="150px" height="150px" alt="Romanica"></p>
 
-<h1 align="center">Imperium Launcher</h1>
+<h1 align="center">Romanica Launcher</h1>
 
-<p align="center">The official launcher for <a href="https://imperiummc.net">ImperiumMC</a> (<code>play.imperiummc.net</code>).<br>It keeps Imperium Client and the server's pack in sync and starts Minecraft with your real Microsoft session.</p>
+<!-- ROMANICA CUTOVER: site link and server address flip to romanica.net when DNS is live -->
+<p align="center">The official launcher for <a href="https://imperiummc.net">Romanica</a> (<code>play.imperiummc.net</code>).<br>It keeps the client and the server's pack in sync and starts Minecraft with your real Microsoft session.</p>
 
 ![Login screen](docs/screenshots/login.jpg)
 
-Imperium Launcher is a fork of [Helios Launcher](https://github.com/dscalzi/HeliosLauncher) by Daniel Scalzi, released under the MIT licence. Almost everything here is Helios' work; this fork changes the branding, theme and distribution index. See [Credits and licence](#credits-and-licence).
+Romanica Launcher is a fork of [Helios Launcher](https://github.com/dscalzi/HeliosLauncher) by Daniel Scalzi, released under the MIT licence. Almost everything here is Helios' work; this fork changes the branding, theme and distribution index. See [Credits and licence](#credits-and-licence).
 
 ## Status
 
@@ -22,11 +23,11 @@ Fully functional end to end (2026-10-20):
 
 ## Microsoft login
 
-Helios' Microsoft login is used unchanged. Imperium needs its own Azure app registration, and Mojang must approve that app before it can call the Minecraft services API. Don't copy another launcher's client ID: reusing one breaks Microsoft's and Mojang's terms. Approval can take weeks, so start early.
+Helios' Microsoft login is used unchanged. Romanica needs its own Azure app registration, and Mojang must approve that app before it can call the Minecraft services API. Don't copy another launcher's client ID: reusing one breaks Microsoft's and Mojang's terms. Approval can take weeks, so start early.
 
 ### The config value
 
-The app ID is set in one place: `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js). It is set to Imperium's registered app, `8b0c9e33-b6ce-40ec-ac30-c85a35dd8163` (personal accounts only, `nativeclient` redirect).
+The app ID is set in one place: `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js). It is set to the launcher's registered app, `8b0c9e33-b6ce-40ec-ac30-c85a35dd8163` (personal accounts only, `nativeclient` redirect).
 
 If it's ever set back to the all-zero placeholder, the launcher doesn't open the Microsoft window. Clicking **Login with Microsoft** (or **Add Microsoft Account** in settings) instead shows *"Microsoft login isn't configured yet: this build has no Azure app ID."*
 
@@ -35,7 +36,7 @@ Any valid non-zero GUID turns sign-in on. The client ID is public (it ships in e
 ### 1. Register the Azure app
 
 1. Sign in at <https://portal.azure.com> and open **App registrations** → **New registration**.
-2. **Name:** `Imperium Launcher`.
+2. **Name:** `Romanica Launcher`.
 3. **Supported account types:** *Personal Microsoft accounts only*. The launcher signs in against the `consumers` endpoint, and Minecraft accounts are personal accounts.
 4. **Redirect URI:** choose *Public client/native (mobile & desktop)* and enter
    `https://login.microsoftonline.com/common/oauth2/nativeclient`
@@ -49,7 +50,7 @@ No client secret is needed. The launcher is a public client, and a secret in an 
 ### 2. Get Minecraft API access
 
 1. In the rebuilt launcher, **try to sign in at least once**. It fails, but Microsoft wants to see activity on the app before reviewing it.
-2. Submit the app ID at <https://aka.ms/mce-reviewappid>, describing it as the official launcher for ImperiumMC that signs players in to Minecraft: Java Edition.
+2. Submit the app ID at <https://aka.ms/mce-reviewappid>, describing it as the official launcher for Romanica that signs players in to Minecraft: Java Edition.
 3. Wait for the approval email. After approval it can take up to 24 hours before tokens are accepted.
 
 Until approval, the Microsoft and Xbox steps succeed but the Minecraft token step (`api.minecraftservices.com/authentication/login_with_xbox`) returns **403**. The launcher detects that 403 and shows *Awaiting Minecraft API Approval* instead of a generic error ([`authmanager.js`](app/assets/js/authmanager.js)).
@@ -77,9 +78,9 @@ npm run dist
 
 | Platform | Command | Output |
 | -------- | ------- | ------ |
-| Windows x64 | `npm run dist:win` | `dist/Imperium-Launcher-setup-VERSION.exe` |
-| macOS | `npm run dist:mac` | `dist/Imperium-Launcher-setup-VERSION-{x64,arm64}.dmg` |
-| Linux x64 | `npm run dist:linux` | `dist/Imperium-Launcher-setup-VERSION.AppImage` |
+| Windows x64 | `npm run dist:win` | `dist/Romanica-Launcher-setup-VERSION.exe` |
+| macOS | `npm run dist:mac` | `dist/Romanica-Launcher-setup-VERSION-{x64,arm64}.dmg` |
+| Linux x64 | `npm run dist:linux` | `dist/Romanica-Launcher-setup-VERSION.AppImage` |
 
 Installers aren't code-signed yet, so Windows SmartScreen warns on first run.
 
@@ -99,15 +100,15 @@ On Windows without Developer Mode, electron-builder fails while extracting `winC
 | Theme | [`app/assets/css/launcher.css`](app/assets/css/launcher.css) (gold `#d4a54f` / `#e8c563` / `#b8923d`, matching imperiummc.net) |
 | Logo (all icons, header, splash) | The website's `frontend/public/Logo.png`, only resized: `build/icon.png`, `build/icon.ico`, `app/assets/images/SealCircle.{png,ico}`, `LoadingSeal.png` |
 | Backgrounds | `app/assets/images/backgrounds/` |
-| Launcher data on the player's PC | `%APPDATA%\.imperiumlauncher` (Windows) |
+| Launcher data on the player's PC | Config + distro cache: `%APPDATA%\Romanica Launcher` (migrated from `%APPDATA%\Imperium Launcher` on first boot); game files: `%APPDATA%\.imperiumlauncher` (Windows) |
 | Auto-update source | GitHub Releases of this repo (`electron-builder` publish config + `dev-app-update.yml`) |
 
 ## Credits and licence
 
-Imperium Launcher is based on [Helios Launcher](https://github.com/dscalzi/HeliosLauncher), Copyright (c) 2017-2026 Daniel D. Scalzi, used under the MIT licence. The full licence text is in [LICENSE.txt](LICENSE.txt) and must stay with every copy. The Helios source is tracked as the `upstream` remote so fixes can be merged in.
+Romanica Launcher is based on [Helios Launcher](https://github.com/dscalzi/HeliosLauncher), Copyright (c) 2017-2026 Daniel D. Scalzi, used under the MIT licence. The full licence text is in [LICENSE.txt](LICENSE.txt) and must stay with every copy. The Helios source is tracked as the `upstream` remote so fixes can be merged in.
 
 Helios is supported by its own projects: [Nebula](https://github.com/dscalzi/Nebula) generates distribution indexes, and [helios-core](https://github.com/dscalzi/helios-core) handles downloads, Java management and auth.
 
-ImperiumMC names, logos and artwork are not covered by the MIT licence and belong to ImperiumMC.
+Romanica names, logos and artwork are not covered by the MIT licence and belong to the project owner.
 
-Imperium Launcher is not an official Minecraft product and is not approved by or associated with Mojang or Microsoft.
+Romanica Launcher is not an official Minecraft product and is not approved by or associated with Mojang or Microsoft.

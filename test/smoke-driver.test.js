@@ -123,10 +123,10 @@ test('scanLog stays neutral on ordinary boot noise', () => {
 /* ------------------------------------------------------------------ */
 
 test('userDataDir follows the productName the way Electron names userData', () => {
-    const pkg = { name: 'imperiumlauncher', productName: 'Imperium Launcher' }
+    const pkg = { name: 'romanicalauncher', productName: 'Romanica Launcher' }
     assert.strictEqual(
         smoke.userDataDir(pkg, path.join('C:', 'Users', 'runner', 'AppData', 'Roaming')),
-        path.join('C:', 'Users', 'runner', 'AppData', 'Roaming', 'Imperium Launcher')
+        path.join('C:', 'Users', 'runner', 'AppData', 'Roaming', 'Romanica Launcher')
     )
     assert.strictEqual(
         smoke.userDataDir({ name: 'fallback' }, path.join('X:', 'AppData')),
@@ -136,14 +136,14 @@ test('userDataDir follows the productName the way Electron names userData', () =
 
 test('parseArgs converts kebab-case flags to camelCase keys', () => {
     const parsed = smoke.parseArgs([
-        '--exe', 'dist/win-unpacked/Imperium Launcher.exe',
+        '--exe', 'dist/win-unpacked/Romanica Launcher.exe',
         '--data-dir', 'D:/smoke-data',
         '--java-home', 'D:/jre',
         '--artifacts-dir', 'D:/artifacts',
         '--mesa', 'D:/mesa/x64/opengl32.dll',
         '--server', 'ImperiumMC'
     ])
-    assert.strictEqual(parsed.exe, 'dist/win-unpacked/Imperium Launcher.exe')
+    assert.strictEqual(parsed.exe, 'dist/win-unpacked/Romanica Launcher.exe')
     assert.strictEqual(parsed.dataDir, 'D:/smoke-data')
     assert.strictEqual(parsed.javaHome, 'D:/jre')
     assert.strictEqual(parsed.artifactsDir, 'D:/artifacts')
@@ -197,7 +197,7 @@ async function makeFixture(t, { logLines }){
     return {
         workDir, dataDir, javaHome, mesaDll, artifactsDir, child, events,
         options: {
-            exe: path.join(workDir, 'Imperium Launcher.exe'),
+            exe: path.join(workDir, 'Romanica Launcher.exe'),
             dataDir,
             javaHome,
             mesaDll,
