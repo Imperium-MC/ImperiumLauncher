@@ -1,5 +1,5 @@
 /**
- * assetdl.js — Imperium asset download pipeline.
+ * assetdl.js — Romanica launcher asset download pipeline.
  *
  * Forked from helios-core 2.3.0's FullRepair
  * (dist/dl/receivers/FullRepairReceiver.js receiver, dist/dl/AssetGaurdTransmitter.js
