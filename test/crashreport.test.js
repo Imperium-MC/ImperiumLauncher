@@ -16,7 +16,7 @@ function sampleFields(overrides = {}){
     }, overrides)
 }
 
-const SAMPLE_META = { launcher: 'ImperiumLauncher', launcherVersion: '0.1.3', platform: 'win32' }
+const SAMPLE_META = { launcher: 'RomanicaLauncher', launcherVersion: '0.1.3', platform: 'win32' }
 
 /**
  * Start a one-request fixture server.
@@ -58,7 +58,7 @@ test('buildBody clamps logTail and crashReport to the endpoint limits', () => {
     assert.strictEqual(built.ok, true)
     assert.ok(Buffer.byteLength(built.body.logTail, 'utf8') <= CrashReport.LIMITS.logTail)
     assert.ok(Buffer.byteLength(built.body.crashReport, 'utf8') <= CrashReport.LIMITS.crashReport)
-    assert.strictEqual(built.body.launcher, 'ImperiumLauncher')
+    assert.strictEqual(built.body.launcher, 'RomanicaLauncher')
     assert.strictEqual(built.body.launcherVersion, '0.1.3')
     assert.strictEqual(built.body.platform, 'win32')
     assert.strictEqual(built.body.cause, sampleFields().cause)

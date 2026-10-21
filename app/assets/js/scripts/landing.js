@@ -908,6 +908,8 @@ async function loadNews(){
 
     const distroData = await DistroAPI.getDistribution()
 
+    // ROMANICA CUTOVER: fallback feed flips to romanica.net when DNS is live
+    // (mirrors the distribution index's rss key).
     const newsFeed = distroData.rawDistribution.rss || 'https://imperiummc.net/news.rss'
     if(!distroData.rawDistribution.rss) {
         loggerLanding.debug('No RSS feed declared in distribution index, using default feed.')
@@ -951,7 +953,7 @@ async function loadNews(){
 
                     let link   = el.find('link').text()
                     let title  = el.find('title').text()
-                    let author = el.find('dc\\:creator').text() || 'ImperiumMC'
+                    let author = el.find('dc\\:creator').text() || 'Romanica'
 
                     // Generate article.
                     articles.push(

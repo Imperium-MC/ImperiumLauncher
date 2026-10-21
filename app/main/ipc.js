@@ -601,7 +601,7 @@ exports.register = function(winProvider){
         }
         return crashreport.upload(fields, {
             meta: {
-                launcher: 'ImperiumLauncher',
+                launcher: 'RomanicaLauncher',
                 launcherVersion: app.getVersion(),
                 platform: process.platform
             }

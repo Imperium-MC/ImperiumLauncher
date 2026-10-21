@@ -158,7 +158,7 @@ function mapResponse(status, json){
  */
 async function upload(fields, options = {}){
     const meta = options.meta != null ? options.meta : {
-        launcher: 'ImperiumLauncher',
+        launcher: 'RomanicaLauncher',
         // Filled in by the IPC layer; a missing version means a caller
         // outside the bridge, which still gets a deterministic body.
         launcherVersion: '0',

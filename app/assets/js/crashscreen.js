@@ -216,7 +216,7 @@ const CrashScreen = {
         }
 
         const reportText = [
-            'ImperiumMC crash report',
+            'Romanica crash report',
             `Time: ${new Date().toISOString()}`,
             exitCode != null ? `Exit code: ${exitCode}` : 'Exit code: n/a (crash report detected)',
             cause != null ? `Cause: ${cause}` : 'Cause: not parsed from the log',
