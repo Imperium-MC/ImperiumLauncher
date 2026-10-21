@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Imperium distribution index validator (issue #5, part 1).
+ * Romanica distribution index validator (issue #5, part 1).
  *
  * Loads distribution/distribution.json and checks EVERY module and submodule:
  *
@@ -46,7 +46,7 @@ const fs = require('fs');
 const path = require('path');
 const zlib = require('zlib');
 
-const UA = 'ImperiumLauncher-distrocheck/1.0 (+https://github.com/Imperium-MC/ImperiumLauncher)';
+const UA = 'RomanicaLauncher-distrocheck/1.0 (+https://github.com/Imperium-MC/ImperiumLauncher)';
 const FULL_HASH_LIMIT = 25 * 1024 * 1024; // 25 MiB — see header
 const PROBE_TIMEOUT_MS = 30_000;
 const DOWNLOAD_TIMEOUT_MS = 300_000;

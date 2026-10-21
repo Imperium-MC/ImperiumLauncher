@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Imperium distribution index generator (milestone 2).
+ * Romanica distribution index generator (milestone 2).
  *
  * Builds distribution/distribution.json with REAL artifacts: sizes, MD5s
  * (validation baseline), SHA-256s (stronger post-download verification) and URLs
@@ -21,14 +21,19 @@
  *
  * Re-run and commit whenever the pack changes, then verify every artifact URL
  * serves what the checklist in docs/distribution-index.md requires.
+ *
+ * ROMANICA CUTOVER: regenerating with the Romanica server id RESETS every
+ * player's instance folder (the launcher keys instances and settings by
+ * server id). Commit the regenerated distribution.json only at cutover,
+ * together with the smoke.yml SERVER_ID flip.
  */
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
 
 const MC_VERSION = '26.3';
-const SERVER_ID = 'ImperiumMC';
-const UA = { 'User-Agent': 'ImperiumLauncher-distgen/1.0 (imperium-mc.net)' };
+const SERVER_ID = 'Romanica';
+const UA = { 'User-Agent': 'RomanicaLauncher-distgen/1.0 (romanica.net)' };
 
 // The performance pack (Fabulously-Optimized-based). Modrinth slugs.
 // `required: { value: false, def: true }` lets players disable it in the Mods tab.
@@ -170,6 +175,9 @@ async function latestClientVersion() {
 }
 
 async function imperiumClientModule(localJarPath, versionOverride) {
+  // ROMANICA CUTOVER: the client module id/name/release URL follow the
+  // ImperiumClient repository and stay Imperium-branded until that repo
+  // renames in the org-rename phase.
   // The client release version is independent of the launcher's own version:
   // --client-version pins it explicitly; otherwise the latest published
   // release resolves. --client hashes a locally built jar so the index is
@@ -239,19 +247,23 @@ async function main() {
 
   const index = {
     version: '1.0.0',
-    rss: 'https://imperium-mc.net/news.rss',
+    // ROMANICA CUTOVER: rss flips to romanica.net when DNS is live.
+    rss: 'https://imperiummc.net/news.rss',
     discord: {
       clientId: 'REPLACE_WITH_BOT_CLIENT_ID',
-      smallImageText: 'ImperiumMC',
+      smallImageText: 'Romanica',
       smallImageKey: 'seal',
     },
     servers: [
       {
         id: SERVER_ID,
-        name: 'ImperiumMC',
+        name: 'Romanica',
         description: 'Story-driven Roman prison server.',
+        // ROMANICA CUTOVER: icon flips with the GitHub org rename.
         icon: 'https://raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/app/assets/images/SealCircle.png',
         version: require('../package.json').version,
+        // ROMANICA CUTOVER: address -> romanica.net (or play.romanica.net)
+        // when DNS is live. Flipping it early breaks every player's connect.
         address: 'play.imperium-mc.net',
         minecraftVersion: MC_VERSION,
         mainServer: true,
