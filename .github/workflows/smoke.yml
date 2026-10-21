@@ -79,7 +79,7 @@ jobs:
       - name: Run the launch smoke test
         run: >
           node test/smoke/launch-smoke.cjs
-          --exe "dist/win-unpacked/Imperium Launcher.exe"
+          --exe "dist/win-unpacked/Romanica Launcher.exe"
           --data-dir "$env:RUNNER_TEMP\imperium-data"
           --java-home jre
           --mesa "mesa\opengl32.dll"
