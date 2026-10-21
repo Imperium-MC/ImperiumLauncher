@@ -183,7 +183,13 @@ async function imperiumClientModule(localJarPath, versionOverride) {
   // release resolves. --client hashes a locally built jar so the index is
   // ready the moment that exact jar is uploaded.
   const VERSION = versionOverride || (await latestClientVersion());
-  const releaseUrl = `https://github.com/Imperium-MC/ImperiumClient/releases/download/v${VERSION}/ImperiumClient-${VERSION}%2B${MC_VERSION}.jar`;
+  // v0.2.0-beta.10+ renamed the release asset to RomanicaClient; older tags shipped
+  // ImperiumClient. Resolve whichever exists (HEAD probe, HEAD may lie about size but
+  // 200-vs-404 is reliable).
+  const romanicaUrl = `https://github.com/Imperium-MC/ImperiumClient/releases/download/v${VERSION}/RomanicaClient-${VERSION}%2B${MC_VERSION}.jar`;
+  const legacyUrl = `https://github.com/Imperium-MC/ImperiumClient/releases/download/v${VERSION}/ImperiumClient-${VERSION}%2B${MC_VERSION}.jar`;
+  const headOk = await fetch(romanicaUrl, { method: 'HEAD', headers: UA }).then(r => r.ok).catch(() => false);
+  const releaseUrl = headOk ? romanicaUrl : legacyUrl;
   let hash, size, sha256;
   if (localJarPath) {
     const buf = fs.readFileSync(localJarPath);
@@ -264,7 +270,10 @@ async function main() {
         version: require('../package.json').version,
         // ROMANICA CUTOVER: address -> romanica.net (or play.romanica.net)
         // when DNS is live. Flipping it early breaks every player's connect.
-        address: 'play.imperium-mc.net',
+        // ROMANICA CUTOVER: address -> romanica.net when DNS is live. NOTE: the value
+        // below was play.imperium-mc.net (hyphenated) from the first generator commit —
+        // the WRONG domain, nothing answers MC there; corrected to the real address.
+        address: 'play.imperiummc.net',
         minecraftVersion: MC_VERSION,
         mainServer: true,
         autoconnect: true,
