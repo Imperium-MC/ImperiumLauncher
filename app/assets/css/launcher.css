@@ -29,25 +29,30 @@
 
 /*******************************************************************************
  *                                                                             *
- * Imperium Brand Tokens                                                       *
- * Antique bronze ramp, hue 36. Marble light, rust accent, muted bronze.       *
- * Hairline rules, square relief tiles, engraved headers. No glyph icons.      *
+ * Romanica Brand Tokens                                                       *
+ * Antique bronze ramp aligned with the in-game client palette:                *
+ * accent #c39a58, hot #ecd6a6, surface #0b0907, layer #17120c.                *
+ * Marble light, rust accent, muted bronze. Hairline rules, square relief      *
+ * tiles, engraved headers. No glyph icons.                                    *
  *                                                                             *
  ******************************************************************************/
 
 :root {
-    --bronze: #cea464;
-    --bronze-light: #e0d1b8;
-    --bronze-dark: #a8823f;
+    --bronze: #c39a58;
+    --bronze-light: #ecd6a6;
+    --bronze-dark: #a07e48;
     --marble: #ece7df;
     --rust: #9a2d0c;
     --rust-bright: #b93608;
     --muted: #a78b62;
-    --ink: #17110a;
-    --stone: rgba(12, 10, 7, 0.45);
-    --stone-deep: rgba(8, 7, 5, 0.65);
-    --hairline: rgba(206, 164, 100, 0.28);
-    --hairline-strong: rgba(206, 164, 100, 0.55);
+    --ink: #0b0907;
+    --stone: rgba(23, 18, 12, 0.42);
+    --stone-deep: rgba(11, 9, 7, 0.85);
+    --hairline: rgba(195, 154, 88, 0.28);
+    --hairline-strong: rgba(195, 154, 88, 0.55);
+    --hover-tint: rgba(195, 154, 88, 0.14);
+    --press-tint: rgba(195, 154, 88, 0.28);
+    --speed: 180ms;
     --label-tracking: 2px;
 }
 
@@ -188,13 +193,10 @@ body, button {
 }
 .frameButton:hover,
 .frameButton:focus {
-    background: rgba(206, 164, 100, 0.18);
+    background: var(--hover-tint);
 }
 .frameButton:active {
-    background: rgba(206, 164, 100, 0.30);
-}
-.frameButton:focus {
-    outline: 0px;
+    background: var(--press-tint);
 }
 
 /* Close button is rust. */
@@ -203,7 +205,7 @@ body, button {
     background: rgba(185, 54, 8, 0.85) !important;
 }
 #frameButton_close:active {
-    background: #9a2d0c !important;
+    background: var(--rust) !important;
 }
 
 /* Darwin Frame Button Styles. */
@@ -215,9 +217,6 @@ body, button {
     margin-left: 5px;
     -webkit-app-region: no-drag !important;
     cursor: pointer;
-}
-.frameButtonDarwin:focus {
-    outline: 0px;
 }
 
 #frameButtonDarwin_close {
@@ -341,7 +340,7 @@ body, button {
 #welcomeDescription {
     text-align: justify;
     font-size: 13px;
-    font-weight: 100;
+    font-weight: normal;
     color: var(--marble);
     text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.85)
 }
@@ -349,7 +348,7 @@ body, button {
 #welcomeDescCTA {
     text-align: center;
     font-size: 14px;
-    font-weight: 100;
+    font-weight: normal;
     color: var(--bronze-light);
     text-shadow: 0px 1px 2px rgba(0, 0, 0, 0.85)
 }
@@ -369,19 +368,18 @@ body, button {
     cursor: pointer;
     position: relative;
     right: -20px;
-    transition: background 0.25s ease, color 0.25s ease;
+    transition: background var(--speed) ease, color var(--speed) ease;
     margin-top: 5%;
     margin-bottom: -5%;
 }
 #welcomeButton:disabled {
     background: rgba(167, 139, 98, 0.30);
-    color: rgba(23, 17, 10, 0.55);
+    color: rgba(11, 9, 7, 0.55);
     pointer-events: none;
 }
 #welcomeButton:hover,
 #welcomeButton:focus {
     background: var(--bronze-light);
-    outline: none;
 }
 #welcomeButton:active {
     background: var(--bronze-dark);
@@ -392,7 +390,7 @@ body, button {
     overflow: visible;
     transform: rotate(90deg);
     margin-left: 20px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     width: 20px;
     height: 20px;
 }
@@ -407,7 +405,7 @@ body, button {
     -webkit-filter: none;
 }
 #welcomeButton:disabled #welcomeSVG .arrowLine {
-    stroke: rgba(23, 17, 10, 0.45);
+    stroke: rgba(11, 9, 7, 0.45);
 }
 
 #welcomeButtonContent {
@@ -436,7 +434,7 @@ body, button {
     align-items: center;
     height: 100%;
     width: 100%;
-    transition: filter 0.25s ease;
+    transition: filter var(--speed) ease;
     background: rgba(0, 0, 0, 0.50);
 }
 
@@ -451,9 +449,8 @@ body, button {
 #loginCancelButton {
     background: none;
     border: none;
-    outline: none;
     cursor: pointer;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #loginCancelButton:hover #loginCancelIcon,
 #loginCancelButton:hover #loginCancelText,
@@ -465,7 +462,7 @@ body, button {
 }
 #loginCancelButton:hover #loginCancelIcon,
 #loginCancelButton:focus #loginCancelIcon {
-    box-shadow: 0px 0px 20px rgba(206, 164, 100, 0.65);
+    box-shadow: 0px 0px 20px rgba(195, 154, 88, 0.65);
 }
 #loginCancelButton:active #loginCancelIcon,
 #loginCancelButton:active #loginCancelText {
@@ -497,12 +494,12 @@ body, button {
     align-items: center;
     margin: 0 auto;
     margin-bottom: 5px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 /* Text for the login cancel button. */
 #loginCancelText {
     font-size: 15px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 
 /* Login content wrapper. */
@@ -528,12 +525,11 @@ body, button {
     color: var(--muted);
     font-weight: bold;
     text-decoration: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #loginForm a:hover,
 #loginForm a:focus {
     color: var(--bronze-light);
-    outline: none;
 }
 #loginForm a:active {
     color: var(--bronze-dark);
@@ -587,7 +583,7 @@ body, button {
     position: absolute;
     top: 7px;
     opacity: 0;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 
 .shake {
@@ -620,7 +616,7 @@ body, button {
     border-style: solid;
     width: 250px;
     margin-bottom: 20px;
-    border-color: rgba(206, 164, 100, 0.65);
+    border-color: rgba(195, 154, 88, 0.65);
     color: var(--marble);
     font-weight: bold;
     text-align: center;
@@ -628,10 +624,9 @@ body, button {
     padding: 7.5px;
     font-size: 10px;
     letter-spacing: 1px;
-    transition: border-color 0.25s ease;
+    transition: border-color var(--speed) ease;
 }
 .loginField:focus {
-    outline: none;
     border-color: var(--bronze);
 }
 .loginField:disabled {
@@ -663,7 +658,7 @@ body, button {
 /* Remember option text. */
 #loginRememberText {
     padding-right: 10px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 
 /* Login button styles. Primary action: bronze fill. */
@@ -681,11 +676,11 @@ body, button {
     cursor: pointer;
     position: relative;
     right: -20px;
-    transition: background 0.25s ease, color 0.25s ease;
+    transition: background var(--speed) ease, color var(--speed) ease;
 }
 #loginButton:disabled {
     background: rgba(167, 139, 98, 0.30);
-    color: rgba(23, 17, 10, 0.55);
+    color: rgba(11, 9, 7, 0.55);
     pointer-events: none;
 }
 #loginButton[loading] {
@@ -695,7 +690,6 @@ body, button {
 #loginButton:hover,
 #loginButton:focus {
     background: var(--bronze-light);
-    outline: none;
 }
 #loginButton:active {
     background: var(--bronze-dark);
@@ -706,7 +700,7 @@ body, button {
     overflow: visible;
     transform: rotate(90deg);
     margin-left: 20px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     width: 20px;
     height: 20px;
 }
@@ -721,7 +715,7 @@ body, button {
     -webkit-filter: none;
 }
 #loginButton:disabled #loginSVG .arrowLine {
-    stroke: rgba(23, 17, 10, 0.45);
+    stroke: rgba(11, 9, 7, 0.45);
 }
 #loginButton[loading] #loginSVG .arrowLine {
     stroke: var(--marble);
@@ -744,7 +738,7 @@ body, button {
 
 .circle-loader {
     margin-left: 20px;
-    border: 2px solid rgba(224, 209, 184, 0.35);
+    border: 2px solid rgba(236, 214, 166, 0.35);
     border-left-color: var(--bronze-light);
     animation-name: loader-spin;
     animation-duration: 1s;
@@ -816,28 +810,6 @@ body, button {
 
 
 
-/*.spinningCircle {
-    margin-left: 20px;
-    height: 16px;
-    width: 16px;
-    border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0);
-    border-top-color: #ffffff;
-    border-right-color: #ffffff;
-    border-left-color: rgba(255, 255, 255, 0.50);
-    border-bottom-color: rgba(255, 255, 255, 0.50);
-    animation: single2 4s infinite linear;
-}
-
-@keyframes single2 {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(720deg);
-    }
-}*/
-
 /* Disclaimer container. */
 #loginDisclaimer {
     display: flex;
@@ -887,9 +859,9 @@ body, button {
     height: 10px;
     width: 10px;
     border: 1px solid var(--muted);
-    border-radius: 1px;
+    border-radius: 2px;
     background: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 /* On hover and focus, add a bronze border color. */
 #checkmarkContainer:hover input ~ *,
@@ -953,7 +925,7 @@ body, button {
     align-items: center;
     height: 100%;
     width: 100%;
-    transition: filter 0.25s ease;
+    transition: filter var(--speed) ease;
     background: rgba(0, 0, 0, 0.50);
 }
 
@@ -1041,7 +1013,7 @@ body, button {
     align-items: center;
     height: 100%;
     width: 100%;
-    transition: filter 0.25s ease;
+    transition: filter var(--speed) ease;
     background: rgba(0, 0, 0, 0.50);
 }
 
@@ -1085,20 +1057,19 @@ body, button {
     text-align: left;
     padding: 0px 25px;
     cursor: pointer;
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     display: flex;
     align-items: center;
     column-gap: 5px;
 }
 .loginOptionButton:hover,
 .loginOptionButton:focus {
-    background: rgba(206, 164, 100, 0.10);
+    background: var(--hover-tint);
     border-color: var(--bronze);
     text-shadow: none;
 }
 .loginOptionButton:active {
-    background: rgba(206, 164, 100, 0.20);
+    background: var(--press-tint);
     border-color: var(--bronze-dark);
 }
 
@@ -1115,8 +1086,7 @@ body, button {
     font-weight: bold;
     color: var(--muted);
     cursor: pointer;
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #loginOptionCancelButton:hover,
 #loginOptionCancelButton:focus {
@@ -1145,7 +1115,7 @@ body, button {
     height: 100%;
     display: flex;
     background-color: rgba(0, 0, 0, 0.50);
-    transition: background-color 0.25s cubic-bezier(.02, .01, .47, 1);
+    transition: background-color var(--speed) cubic-bezier(.02, .01, .47, 1);
 }
 
 /* Drop shadow displayed when content is scrolled out of view. */
@@ -1156,7 +1126,7 @@ body, button {
     height: 5px;
     position: absolute;
     opacity: 0;
-    transition: opacity 0.25s ease;
+    transition: opacity var(--speed) ease;
 }
 #settingsContainer[scrolled]:before {
     opacity: 1;
@@ -1222,8 +1192,7 @@ body, button {
     letter-spacing: 1.5px;
     font-size: 12px;
     cursor: pointer;
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 .settingsNavItem:hover,
 .settingsNavItem:focus {
@@ -1270,13 +1239,12 @@ body, button {
     letter-spacing: 1.5px;
     font-size: 12px;
     cursor: pointer;
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #settingsNavDone:hover,
 #settingsNavDone:focus {
     color: var(--marble);
-    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.65);
+    text-shadow: 0px 0px 20px rgba(195, 154, 88, 0.65);
 }
 #settingsNavDone:active {
     text-shadow: 0px 0px 20px rgba(167, 139, 98, 0.75);
@@ -1377,19 +1345,18 @@ body, button {
     font-size: 12px;
     border-radius: 2px;
     font-family: 'Avenir Medium';
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     cursor: pointer;
-    outline: none;
 }
 .settingsSwitchServerButton:hover,
 .settingsSwitchServerButton:focus {
     box-shadow: none;
-    background: rgba(206, 164, 100, 0.18);
+    background: var(--hover-tint);
     border-color: var(--bronze);
     color: var(--marble);
 }
 .settingsSwitchServerButton:active {
-    background: rgba(168, 130, 63, 0.30);
+    background: var(--press-tint);
     border: 1px solid var(--bronze-dark);
     color: var(--bronze-light);
 }
@@ -1411,11 +1378,10 @@ body, button {
     border: 1px solid var(--hairline);
     font-family: 'Avenir Book';
     font-variant-numeric: tabular-nums lining-nums;
-    transition: border-color 0.25s ease;
+    transition: border-color var(--speed) ease;
 }
 #settingsContainer input[type=number]:focus,
 #settingsContainer input[type=text]:focus {
-    outline: none;
     border-color: var(--bronze);
 }
 #settingsContainer input[type=number][error] {
@@ -1473,7 +1439,7 @@ body, button {
     right: 0;
     bottom: 0;
     background-color: rgba(236, 231, 223, 0.15);
-    transition: .4s;
+    transition: var(--speed) ease;
     border-radius: 50px;
     border: 1px solid var(--hairline);
 }
@@ -1487,7 +1453,7 @@ body, button {
     background-color: var(--marble);
     box-shadow: 0px 1px 2px 0px rgba(0, 0, 0, 0.75);
     border-radius: 50px;
-    transition: .4s;
+    transition: var(--speed) ease;
 }
 input:checked + .toggleSwitchSlider {
     background-color: var(--bronze-dark);
@@ -1513,7 +1479,7 @@ input:checked + .toggleSwitchSlider:before {
     width: 50%;
     height: 5px;
     border-radius: 3px 0px 0px 3px;
-    transition: background 0.25s ease;
+    transition: background var(--speed) ease;
 }
 .rangeSliderTrack {
     position: absolute;
@@ -1532,7 +1498,7 @@ input:checked + .toggleSwitchSlider:before {
 .settingsFileSelContainer {
     display: flex;
     flex-direction: column;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.50);
+    border-bottom: 1px solid var(--hairline);
     margin-bottom: 20px;
     margin-top: 20px;
     width: 75%;
@@ -1553,10 +1519,10 @@ input:checked + .toggleSwitchSlider:before {
 .settingsFileSelIcon {
     display: flex;
     align-items: center;
-    background: rgba(168, 130, 63, 0.25);
+    background: rgba(160, 126, 72, 0.25);
     border-radius: 2px 0px 0px 2px;
     padding: 5px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 .settingsFileSelSVG {
     width: 20px;
@@ -1580,18 +1546,17 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 12px;
     padding: 0px 5px;
     cursor: pointer;
-    background: rgba(206, 164, 100, 0.25);
+    background: rgba(195, 154, 88, 0.25);
     color: var(--marble);
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     white-space: nowrap;
-    outline: none;
 }
 .settingsFileSelButton:hover,
 .settingsFileSelButton:focus {
-    background: rgba(206, 164, 100, 0.40);
+    background: rgba(195, 154, 88, 0.40);
 }
 .settingsFileSelButton:active {
-    background: rgba(168, 130, 63, 0.45);
+    background: rgba(160, 126, 72, 0.45);
     color: var(--bronze-light);
 }
 
@@ -1640,13 +1605,12 @@ input:checked + .toggleSwitchSlider:before {
     color: var(--bronze-light);
     font-family: 'Avenir Medium';
     cursor: pointer;
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 .settingsAddAuthAccount:hover,
 .settingsAddAuthAccount:focus {
     color: var(--marble);
-    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.65);
+    text-shadow: 0px 0px 20px rgba(195, 154, 88, 0.65);
 }
 .settingsAddAuthAccount:active {
     text-shadow: 0px 0px 20px rgba(167, 139, 98, 0.75);
@@ -1739,13 +1703,12 @@ input:checked + .toggleSwitchSlider:before {
     background: none;
     font-family: 'Avenir Medium';
     color: var(--bronze-light);
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 .settingsAuthAccountSelect:hover:not([selected]),
 .settingsAuthAccountSelect:focus:not([selected]) {
     color: var(--marble);
-    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.65);
+    text-shadow: 0px 0px 20px rgba(195, 154, 88, 0.65);
     cursor: pointer;
 }
 .settingsAuthAccount:hover .settingsAuthAccountSelect:not([selected]),
@@ -1766,9 +1729,8 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 12px;
     border-radius: 2px;
     font-family: 'Avenir Medium';
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     cursor: pointer;
-    outline: none;
 }
 .settingsAuthAccountLogOut:hover,
 .settingsAuthAccountLogOut:focus {
@@ -1868,7 +1830,7 @@ input:checked + .toggleSwitchSlider:before {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    transition: opacity 0.25s ease;
+    transition: opacity var(--speed) ease;
 }
 
 /* Wrapper container for the left side of a mod element. */
@@ -1884,7 +1846,7 @@ input:checked + .toggleSwitchSlider:before {
     border-radius: 1px;
     background-color: rgba(236, 231, 223, 0.30);
     margin-right: 15px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 
 /* Mod details container. */
@@ -1943,14 +1905,13 @@ input:checked + .toggleSwitchSlider:before {
     text-align: left;
     padding: 0px 50px;
     cursor: pointer;
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     margin-bottom: 10px;
 }
 #settingsDropinFileSystemButton:hover,
 #settingsDropinFileSystemButton:focus,
 #settingsDropinFileSystemButton[drag] {
-    background: rgba(206, 164, 100, 0.10);
+    background: var(--hover-tint);
     border-color: var(--bronze);
     text-shadow: none;
 }
@@ -1971,8 +1932,7 @@ input:checked + .toggleSwitchSlider:before {
     color: var(--rust-bright);
     font-weight: bold;
     cursor: pointer;
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 .settingsDropinRemoveButton:hover,
 .settingsDropinRemoveButton:focus {
@@ -2003,8 +1963,7 @@ input:checked + .toggleSwitchSlider:before {
     border: 1px solid var(--hairline);
     border-radius: 2px;
     cursor: pointer;
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     font-size: 14px;
     padding: 6px 11px;
     margin-right: 5px;
@@ -2013,7 +1972,7 @@ input:checked + .toggleSwitchSlider:before {
 #settingsShaderpackButton:hover,
 #settingsShaderpackButton:focus,
 #settingsShaderpackButton[drag] {
-    background: rgba(206, 164, 100, 0.10);
+    background: var(--hover-tint);
     border-color: var(--bronze);
     text-shadow: none;
 }
@@ -2101,7 +2060,7 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Hover + selected styles. */
 .settingsSelectOptions div:hover, .settingsSelectOptions div[selected] {
-    background-color: rgba(206, 164, 100, 0.18) !important;
+    background-color: var(--hover-tint) !important;
 }
 
 /* * *
@@ -2112,8 +2071,7 @@ input:checked + .toggleSwitchSlider:before {
 #settingsTabJava a,
 .settingsChangelogText a {
     color: var(--muted);
-    transition: 0.25s ease;
-    outline: none;
+    transition: var(--speed) ease;
 }
 #settingsTabJava a:hover,
 #settingsTabJava a:focus,
@@ -2251,7 +2209,7 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 12px;
 }
 #settingsJVMOptsContent:focus-within > .settingsJavaIcon {
-    background: rgba(206, 164, 100, 0.35);
+    background: rgba(195, 154, 88, 0.35);
 }
 
 /* Description for the JVM options setting. */
@@ -2372,8 +2330,7 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 10px;
     color: var(--muted);
     padding: 0px 5px;
-    transition: 0.25s ease;
-    outline: none;
+    transition: var(--speed) ease;
     text-decoration: none;
 }
 .settingsAboutButton:hover,
@@ -2436,7 +2393,7 @@ input:checked + .toggleSwitchSlider:before {
 .settingsChangelogText code {
     padding: 0.1em 0.4em;
     font-size: 85%;
-    background-color: rgba(206, 164, 100, 0.16);
+    background-color: rgba(195, 154, 88, 0.16);
     color: var(--bronze-light);
     border-radius: 2px;
     font-family: 'Avenir Book';
@@ -2446,7 +2403,7 @@ input:checked + .toggleSwitchSlider:before {
 }
 .settingsChangelogText a.commit-link {
     font-weight: 400;
-    color: #ffffff;
+    color: var(--marble);
     text-decoration: none;
 }
 .settingsChangelogText a.commit-link:hover {
@@ -2456,9 +2413,9 @@ input:checked + .toggleSwitchSlider:before {
 .settingsChangelogText tt {
     padding: 0.1em 0.4em;
     font-size: 86%;
-    background-color: white;
-    border-radius: 3px;
-    color: black;
+    background-color: var(--marble);
+    border-radius: 2px;
+    color: var(--ink);
     font-weight: bold;
 }
 .settingsChangelogText a.commit-link:hover tt {
@@ -2595,13 +2552,12 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 14px;
     font-weight: bold;
     cursor: pointer;
-    outline: none;
     text-align: left;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #settingsUpdateActionButton:hover,
 #settingsUpdateActionButton:focus {
-    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.75), 0px 0px 20px rgba(206, 164, 100, 0.75);
+    text-shadow: 0px 0px 20px rgba(195, 154, 88, 0.75), 0px 0px 20px rgba(195, 154, 88, 0.75);
 }
 #settingsUpdateActionButton:active {
     text-shadow: 0px 0px 20px rgba(167, 139, 98, 0.75), 0px 0px 20px rgba(167, 139, 98, 0.75);
@@ -2731,7 +2687,7 @@ input:checked + .toggleSwitchSlider:before {
     height: 5px;
     position: absolute;
     opacity: 0;
-    transition: opacity 0.25s ease;
+    transition: opacity var(--speed) ease;
 }
 #newsContent[scrolled]:before {
     opacity: 1;
@@ -2768,13 +2724,12 @@ input:checked + .toggleSwitchSlider:before {
     font-family: 'Avenir Medium';
     color: var(--marble);
     text-decoration: none;
-    transition: 0.25s ease;
-    outline: none;
+    transition: var(--speed) ease;
     text-align: right;
 }
 #newsArticleTitle:hover,
 #newsArticleTitle:focus {
-    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.75);
+    text-shadow: 0px 0px 20px rgba(195, 154, 88, 0.75);
 }
 #newsArticleTitle:active {
     color: var(--muted);
@@ -2801,7 +2756,7 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 10px;
     padding: 0px 5px;
     font-weight: bold;
-    border-radius: 1px;
+    border-radius: 2px;
     font-variant-numeric: tabular-nums lining-nums;
 }
 
@@ -2825,8 +2780,7 @@ input:checked + .toggleSwitchSlider:before {
     font-size: 10px;
     color: var(--marble);
     text-decoration: none;
-    transition: 0.25s ease;
-    outline: none;
+    transition: var(--speed) ease;
     text-align: right;
 }
 #newsArticleComments:focus,
@@ -2859,8 +2813,7 @@ input:checked + .toggleSwitchSlider:before {
 }
 #newsArticleContentScrollable a {
     color: var(--muted);
-    transition: 0.25s ease;
-    outline: none;
+    transition: var(--speed) ease;
 }
 #newsArticleContentScrollable a:hover,
 #newsArticleContentScrollable a:focus {
@@ -2882,17 +2835,16 @@ input:checked + .toggleSwitchSlider:before {
 .bbCodeSpoilerButton {
     background: none;
     border: none;
-    outline: none;
     cursor: pointer;
     font-size: 16px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     width: 100%;
     border-bottom: 1px solid var(--hairline-strong);
     padding-bottom: 15px;
 }
 .bbCodeSpoilerButton:hover,
 .bbCodeSpoilerButton:focus {
-    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.75);
+    text-shadow: 0px 0px 20px rgba(195, 154, 88, 0.75);
 }
 .bbCodeSpoilerButton:active {
     color: var(--muted);
@@ -2942,7 +2894,6 @@ input:checked + .toggleSwitchSlider:before {
 #newsNavigateRight {
     background: none;
     border: none;
-    outline: none;
     height: 20px;
     cursor: pointer;
 }
@@ -3006,12 +2957,11 @@ input:checked + .toggleSwitchSlider:before {
     cursor: pointer;
     background: none;
     border: none;
-    outline: none;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #newsErrorRetry:focus,
 #newsErrorRetry:hover {
-    text-shadow: 0px 0px 20px rgba(206, 164, 100, 0.75);
+    text-shadow: 0px 0px 20px rgba(195, 154, 88, 0.75);
 }
 #newsErrorRetry:active {
     color: var(--muted);
@@ -3060,7 +3010,7 @@ input:checked + .toggleSwitchSlider:before {
     border-radius: 50%;
     box-shadow: 0 0 15px var(--bronze);
     animation: glow-grow 4s ease-out infinite;
-    background: rgba(12, 10, 7, 0.15);
+    background: rgba(23, 18, 12, 0.15);
 }
 #image_seal_container[update]:before {
     animation-delay: 2s;
@@ -3085,7 +3035,7 @@ input:checked + .toggleSwitchSlider:before {
     left: -17.5px;
     font-family: 'Avenir Medium';
     font-size: 12px;
-    transition: visibility 0s linear 0.25s, opacity 0.25s ease;
+    transition: visibility 0s linear var(--speed), opacity var(--speed) ease;
 }
 #updateAvailableTooltip::after {
     content: " ";
@@ -3095,7 +3045,7 @@ input:checked + .toggleSwitchSlider:before {
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: transparent transparent rgb(8, 7, 5) transparent;
+    border-color: transparent transparent rgb(11, 9, 7) transparent;
 }
 #image_seal_container[update]:hover #updateAvailableTooltip {
     visibility: visible;
@@ -3165,7 +3115,7 @@ input:checked + .toggleSwitchSlider:before {
     display: flex;
     justify-content: center;
     align-items: center;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     font-weight: bold;
     letter-spacing: 2px;
     background-color: rgba(0, 0, 0, 0.35);
@@ -3188,7 +3138,8 @@ input:checked + .toggleSwitchSlider:before {
 #user_text {
     font-size: 12px;
     min-width: 135px;
-    font-weight: 900;
+    font-family: 'Avenir Medium';
+    font-weight: bold;
     letter-spacing: 1px;
     text-shadow: 0px 0px 20px black;
     position: absolute;
@@ -3234,7 +3185,7 @@ input:checked + .toggleSwitchSlider:before {
 .mediaSVG {
     fill: var(--marble);
     height: 12px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     cursor: pointer;
     height: 12px;
     width: 25px;
@@ -3246,9 +3197,6 @@ input:checked + .toggleSwitchSlider:before {
 }
 
 /* Social media URL shared styles. */
-.mediaURL {
-    outline: none;
-}
 
 /* Internal media button shared styles. */
 .mediaButton {
@@ -3257,7 +3205,6 @@ input:checked + .toggleSwitchSlider:before {
     padding: 0px;
     display: flex;
     align-items: center;
-    outline: none;
 }
 
 #settingsMediaContainer {
@@ -3291,7 +3238,7 @@ input:checked + .toggleSwitchSlider:before {
     right: 130%;
     font-size: 12px;
     line-height: 20px;
-    transition: visibility 0s linear 0.25s, opacity 0.25s ease;
+    transition: visibility 0s linear var(--speed), opacity var(--speed) ease;
 }
 #settingsTooltip::after {
     content: " ";
@@ -3301,7 +3248,7 @@ input:checked + .toggleSwitchSlider:before {
     margin-top: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: transparent transparent transparent rgb(8, 7, 5);
+    border-color: transparent transparent transparent rgb(11, 9, 7);
 }
 .mediaButton:hover #settingsTooltip,
 .mediaButton:focus #settingsTooltip,
@@ -3362,7 +3309,6 @@ input:checked + .toggleSwitchSlider:before {
     font-family: 'Avenir Medium';
     color: var(--marble);
     font-weight: bold;
-    text-shadow: 0px 0px 0px #bebcbb;
 }
 
 /* Divider used on the bottom of the landing view. */
@@ -3388,7 +3334,8 @@ input:checked + .toggleSwitchSlider:before {
 #player_count {
     color: var(--muted);
     font-size: 8px;
-    font-weight: 900;
+    font-family: 'Avenir Medium';
+    font-weight: bold;
     letter-spacing: 1px;
     text-shadow: 0px 0px 20px rgba(0, 0, 0, 0.75);
     margin-left: 10px;
@@ -3428,7 +3375,7 @@ input:checked + .toggleSwitchSlider:before {
     z-index: 1;
     font-family: 'Avenir Medium';
     font-size: 12px;
-    transition: visibility 0s linear 0.25s, opacity 0.25s ease;
+    transition: visibility 0s linear var(--speed), opacity var(--speed) ease;
     bottom: calc(100% + 15px);
     transform: translateX(-50%);
     margin-left: 50%;
@@ -3443,7 +3390,7 @@ input:checked + .toggleSwitchSlider:before {
     margin-left: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: rgb(8, 7, 5) transparent transparent transparent;
+    border-color: rgb(11, 9, 7) transparent transparent transparent;
 }
 #mojangStatusWrapper:hover #mojangStatusTooltip {
     visibility: visible;
@@ -3518,7 +3465,6 @@ input:checked + .toggleSwitchSlider:before {
     background: none;
     border: none;
     cursor: pointer;
-    outline: none;
 }
 #newsButton:hover #newsButtonText,
 #newsButton:focus #newsButtonText {
@@ -3548,7 +3494,7 @@ input:checked + .toggleSwitchSlider:before {
     width: 5px;
     height: 5px;
     position: absolute;
-    border-radius: 1px;
+    border-radius: 2px;
     background: var(--rust-bright);
     right: -1px;
     top: 50%;
@@ -3558,19 +3504,19 @@ input:checked + .toggleSwitchSlider:before {
 #newsButtonSVG {
     height: 11px;
     margin-left: -2px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 
 /* Span which contains the news button text. */
 #newsButtonText {
     color: var(--marble);
-    font-weight: 900;
+    font-family: 'Avenir Medium';
+    font-weight: bold;
     letter-spacing: 2px;
-    text-shadow: 0px 0px 0px #bebcbb;
     font-size: 11px;
     line-height: 30px;
     display: flex;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 
 /* * *
@@ -3598,8 +3544,7 @@ input:checked + .toggleSwitchSlider:before {
     color: var(--ink);
     font-size: 18px;
     padding: 8px 24px;
-    transition: background 0.25s ease, color 0.25s ease;
-    outline: none;
+    transition: background var(--speed) ease, color var(--speed) ease;
 }
 #launch_button:hover,
 #launch_button:focus {
@@ -3632,10 +3577,10 @@ input:checked + .toggleSwitchSlider:before {
 
 /* Span which displays percentage complete. */
 #launch_progress_label {
-    font-weight: 900;
+    font-family: 'Avenir Medium';
+    font-weight: bold;
     letter-spacing: 1px;
     color: var(--bronze-light);
-    text-shadow: 0px 0px 0px #bebcbb;
     font-size: 20px;
     min-width: 53.21px;
     max-width: 53.21px;
@@ -3654,11 +3599,10 @@ input:checked + .toggleSwitchSlider:before {
 #server_selection_button {
     background: none;
     border: none;
-    outline: none;
     cursor: pointer;
     line-height: 24px;
     padding: 0px;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #server_selection_button:hover,
 #server_selection_button:focus {
@@ -3697,6 +3641,7 @@ input:checked + .toggleSwitchSlider:before {
     display: block;
     font-size: 10px;
     letter-spacing: 1px;
+    font-variant-numeric: tabular-nums lining-nums;
     color: var(--muted);
     min-height: 13px;
     margin-top: 1px;
@@ -3747,7 +3692,7 @@ input:checked + .toggleSwitchSlider:before {
 #overlayContent a,
 #overlayDismiss {
     color: var(--muted);
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #overlayContent a:hover,
 #overlayContent a:focus,
@@ -3806,18 +3751,17 @@ input:checked + .toggleSwitchSlider:before {
     border-radius: 2px;
     padding: 4px 12px;
     cursor: pointer;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #overlayAcknowledge:hover,
 #overlayAcknowledge:focus {
-    background: rgba(206, 164, 100, 0.15);
+    background: var(--hover-tint);
     box-shadow: none;
-    outline: none;
     color: var(--marble);
 }
 #overlayAcknowledge:active {
     border-color: var(--bronze-dark);
-    background: rgba(168, 130, 63, 0.30);
+    background: var(--press-tint);
     color: var(--bronze-light);
 }
 
@@ -3831,7 +3775,6 @@ input:checked + .toggleSwitchSlider:before {
     padding-top: 2.5px;
     background: none;
     border: none;
-    outline: none;
     cursor: pointer;
 }
 #overlayDismiss:hover {
@@ -3932,18 +3875,17 @@ input:checked + .toggleSwitchSlider:before {
     border-radius: 2px;
     padding: 4px 12px;
     cursor: pointer;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
 }
 #crashActionContainer button:hover,
 #crashActionContainer button:focus {
-    background: rgba(206, 164, 100, 0.15);
+    background: var(--hover-tint);
     box-shadow: none;
-    outline: none;
     color: var(--marble);
 }
 #crashActionContainer button:active {
     border-color: var(--bronze-dark);
-    background: rgba(168, 130, 63, 0.30);
+    background: var(--press-tint);
     color: var(--bronze-light);
 }
 
@@ -4016,7 +3958,7 @@ input:checked + .toggleSwitchSlider:before {
     justify-content: flex-start;
     align-items: center;
     opacity: 0.6;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     cursor: pointer;
     position: relative;
     background: var(--stone);
@@ -4028,7 +3970,6 @@ input:checked + .toggleSwitchSlider:before {
 }
 .serverListing:hover,
 .serverListing:focus {
-    outline: none;
     opacity: 1.0;
     border-color: var(--hairline-strong);
 }
@@ -4043,7 +3984,7 @@ input:checked + .toggleSwitchSlider:before {
     justify-content: flex-start;
     align-items: center;
     opacity: 0.6;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     cursor: pointer;
     position: relative;
     background: var(--stone);
@@ -4055,7 +3996,6 @@ input:checked + .toggleSwitchSlider:before {
 }
 .accountListing:hover,
 .accountListing:focus {
-    outline: none;
     opacity: 1.0;
     border-color: var(--hairline-strong);
 }
@@ -4129,7 +4069,7 @@ input:checked + .toggleSwitchSlider:before {
     line-height: 12px;
     height: 12px;
     border-radius: 1px;
-    background: rgba(206, 164, 100, 0.20);
+    background: rgba(195, 154, 88, 0.20);
     border: 1px solid var(--hairline-strong);
     color: var(--bronze-light);
     padding: 0px 2px;
@@ -4167,7 +4107,7 @@ input:checked + .toggleSwitchSlider:before {
     z-index: 1;
     left: 130%;
     font-size: 10px;
-    transition: visibility 0s linear 0.25s, opacity 0.25s ease;
+    transition: visibility 0s linear var(--speed), opacity var(--speed) ease;
 }
 .serverListingStarTooltip::after {
     content: " ";
@@ -4177,7 +4117,7 @@ input:checked + .toggleSwitchSlider:before {
     margin-top: -5px;
     border-width: 5px;
     border-style: solid;
-    border-color: transparent rgb(8, 7, 5) transparent transparent;
+    border-color: transparent rgb(11, 9, 7) transparent transparent;
 }
 
 /* Main-server star seal rendered in bronze. */
@@ -4216,22 +4156,21 @@ input:checked + .toggleSwitchSlider:before {
     border-radius: 2px;
     padding: 4px 12px;
     cursor: pointer;
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     min-height: 20.67px;
 }
 #serverSelectConfirm:hover,
 #serverSelectConfirm:focus,
 #accountSelectConfirm:hover,
 #accountSelectConfirm:focus {
-    background: rgba(206, 164, 100, 0.15);
+    background: var(--hover-tint);
     box-shadow: none;
     color: var(--marble);
-    outline: none;
 }
 #serverSelectConfirm:active,
 #accountSelectConfirm:active {
     border-color: var(--bronze-dark);
-    background: rgba(168, 130, 63, 0.30);
+    background: var(--press-tint);
     color: var(--bronze-light);
 }
 
@@ -4245,10 +4184,9 @@ input:checked + .toggleSwitchSlider:before {
     text-decoration: none;
     padding-top: 2.5px;
     color: var(--muted);
-    transition: 0.25s ease;
+    transition: var(--speed) ease;
     background: none;
     border: none;
-    outline: none;
     cursor: pointer;
 }
 #serverSelectCancel:hover,
@@ -4272,6 +4210,8 @@ input:checked + .toggleSwitchSlider:before {
 #loadingContainer {
     position: absolute;
     z-index: 400;
+    top: 22px;
+    left: 0px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4323,11 +4263,13 @@ input:checked + .toggleSwitchSlider:before {
 /* Class which is applied when the spinner image is spinning. */
 .rotating {
     animation: rotating 10s linear infinite;
+    transform-origin: 50% 50%;
+    will-change: transform;
 }
 
 /*******************************************************************************
  *                                                                             *
- * Imperium Global Layer                                                       *
+ * Romanica Global Layer                                                       *
  *                                                                             *
  ******************************************************************************/
 
@@ -4336,18 +4278,19 @@ svg .arrowLine {
     stroke: var(--marble);
 }
 
-/* Keyboard focus ring: visible, on-brand, never removes contrast. */
+/* Keyboard focus ring: one system for every interactive element.
+ * 2px accent ring, 2px offset, visible on every focusable control. */
 button:focus-visible,
 a:focus-visible,
 input:focus-visible,
 label:focus-visible,
 div[tabindex]:focus-visible {
-    outline: 1px solid var(--bronze-light);
+    outline: 2px solid var(--bronze);
     outline-offset: 2px;
 }
 
 /* Text selection tinted bronze. */
 ::selection {
-    background: rgba(206, 164, 100, 0.35);
+    background: rgba(195, 154, 88, 0.35);
     color: var(--marble);
 }
