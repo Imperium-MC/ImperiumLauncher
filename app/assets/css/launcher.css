@@ -31,7 +31,7 @@
  *                                                                             *
  * Romanica Brand Tokens                                                       *
  * Logo-matched ramp (2026-10-22): emblem navy field + champagne-gold ring.   *
- * surface #0d1426, layer #1a2440, gold #ccaf83, cream #fceebf, silver.        *
+ * surface #101b36, layer #1e2b4e, gold #ccaf83, cream #fceebf, silver.        *
  * Marble light, rust accent, muted bronze. Hairline rules, square relief      *
  * tiles, engraved headers. No glyph icons.                                    *
  *                                                                             *
@@ -45,9 +45,9 @@
     --rust: #9a2d0c;
     --rust-bright: #b93608;
     --muted: #9aa0a6;
-    --ink: #0d1426;
-    --stone: rgba(26, 36, 64, 0.42);
-    --stone-deep: rgba(13, 20, 38, 0.88);
+    --ink: #101b36;
+    --stone: rgba(30, 43, 78, 0.45);
+    --stone-deep: rgba(14, 22, 44, 0.9);
     --hairline: rgba(204, 175, 131, 0.28);
     --hairline-strong: rgba(204, 175, 131, 0.55);
     --hover-tint: rgba(204, 175, 131, 0.14);
@@ -374,7 +374,7 @@ body, button {
 }
 #welcomeButton:disabled {
     background: rgba(167, 139, 98, 0.30);
-    color: rgba(13, 20, 38, 0.55);
+    color: rgba(14, 22, 44, 0.55);
     pointer-events: none;
 }
 #welcomeButton:hover,
@@ -405,7 +405,7 @@ body, button {
     -webkit-filter: none;
 }
 #welcomeButton:disabled #welcomeSVG .arrowLine {
-    stroke: rgba(13, 20, 38, 0.45);
+    stroke: rgba(14, 22, 44, 0.45);
 }
 
 #welcomeButtonContent {
@@ -680,7 +680,7 @@ body, button {
 }
 #loginButton:disabled {
     background: rgba(167, 139, 98, 0.30);
-    color: rgba(13, 20, 38, 0.55);
+    color: rgba(14, 22, 44, 0.55);
     pointer-events: none;
 }
 #loginButton[loading] {
@@ -715,7 +715,7 @@ body, button {
     -webkit-filter: none;
 }
 #loginButton:disabled #loginSVG .arrowLine {
-    stroke: rgba(13, 20, 38, 0.45);
+    stroke: rgba(14, 22, 44, 0.45);
 }
 #loginButton[loading] #loginSVG .arrowLine {
     stroke: var(--marble);
@@ -3010,7 +3010,7 @@ input:checked + .toggleSwitchSlider:before {
     border-radius: 50%;
     box-shadow: 0 0 15px var(--bronze);
     animation: glow-grow 4s ease-out infinite;
-    background: rgba(26, 36, 64, 0.15);
+    background: rgba(30, 43, 78, 0.15);
 }
 #image_seal_container[update]:before {
     animation-delay: 2s;
