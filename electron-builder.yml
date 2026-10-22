@@ -52,7 +52,7 @@ linux:
   vendor: 'Romanica'
   synopsis: 'Romanica Launcher'
   # ROMANICA CUTOVER: address -> romanica.net (or play.romanica.net) when DNS is live
-  description: 'Official Romanica launcher. Keeps the Imperium Client pack in sync and joins play.imperiummc.net.'
+  description: 'Official Romanica launcher. Keeps the Imperium Client pack in sync and joins play.romanica.net.'
   category: 'Game'
 
 

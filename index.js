@@ -289,7 +289,9 @@ function createWindow() {
     })
 
     const data = {
-        bkid: Math.floor((Math.random() * fs.readdirSync(path.join(__dirname, 'app', 'assets', 'images', 'backgrounds')).length)),
+        // 2026-10-22: fixed to the owner-selected Romanica key art (backgrounds/3.jpg).
+// To restore rotation, list the dir again and randomize.
+bkid: 3,
         lang: (str, placeHolders) => LangLoader.queryEJS(str, placeHolders)
     }
     Object.entries(data).forEach(([key, val]) => ejse.data(key, val))

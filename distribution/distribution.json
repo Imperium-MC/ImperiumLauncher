@@ -1,6 +1,6 @@
 {
     "version": "1.0.0",
-    "rss": "https://imperiummc.net/news.rss",
+    "rss": "https://romanica.net/news.rss",
     "discord": {
         "clientId": "REPLACE_WITH_BOT_CLIENT_ID",
         "smallImageText": "Romanica",
@@ -12,8 +12,8 @@
             "name": "Romanica",
             "description": "Story-driven Roman prison server.",
             "icon": "https://raw.githubusercontent.com/Romanica-MC/ImperiumLauncher/master/app/assets/images/SealCircle.png",
-            "version": "0.2.2",
-            "address": "play.imperiummc.net",
+            "version": "0.2.3",
+            "address": "play.romanica.net",
             "minecraftVersion": "26.3",
             "mainServer": true,
             "autoconnect": true,

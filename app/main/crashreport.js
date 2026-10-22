@@ -8,12 +8,12 @@
  * maps a response to a UI-facing result is a pure function so the whole
  * pipeline is testable under plain node (see test/crashreport.test.js).
  *
- * Endpoint: POST https://api.imperiummc.net/api/v2/client/crash-report
+ * Endpoint: POST https://api.romanica.net/api/v2/client/crash-report
  *   {launcher, launcherVersion, clientVersion?, mcVersion?, platform,
  *    cause, mod?, logTail <=32KB, crashReport? <=64KB}
  *   -> {id, url, truncated}; anonymous, 5 requests/hour/IP.
  */
-const ENDPOINT = 'https://api.imperiummc.net/api/v2/client/crash-report'
+const ENDPOINT = 'https://api.romanica.net/api/v2/client/crash-report'
 
 const LIMITS = {
     cause: 1024,

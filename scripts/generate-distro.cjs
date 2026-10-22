@@ -253,8 +253,7 @@ async function main() {
 
   const index = {
     version: '1.0.0',
-    // ROMANICA CUTOVER: rss flips to romanica.net when DNS is live.
-    rss: 'https://imperiummc.net/news.rss',
+    rss: 'https://romanica.net/news.rss',
     discord: {
       clientId: 'REPLACE_WITH_BOT_CLIENT_ID',
       smallImageText: 'Romanica',
@@ -268,12 +267,9 @@ async function main() {
         // ROMANICA CUTOVER: icon flips with the GitHub org rename.
         icon: 'https://raw.githubusercontent.com/Romanica-MC/ImperiumLauncher/master/app/assets/images/SealCircle.png',
         version: require('../package.json').version,
-        // ROMANICA CUTOVER: address -> romanica.net (or play.romanica.net)
-        // when DNS is live. Flipping it early breaks every player's connect.
-        // ROMANICA CUTOVER: address -> romanica.net when DNS is live. NOTE: the value
-        // below was play.imperium-mc.net (hyphenated) from the first generator commit —
-        // the WRONG domain, nothing answers MC there; corrected to the real address.
-        address: 'play.imperiummc.net',
+        // CUTOVER 2026-10-22: play.romanica.net answers MC status (verified live);
+        // play.imperiummc.net keeps answering - both addresses connect.
+        address: 'play.romanica.net',
         minecraftVersion: MC_VERSION,
         mainServer: true,
         autoconnect: true,
