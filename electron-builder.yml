@@ -14,7 +14,7 @@ compression: 'maximum'
 publish:
   provider: 'github'
   owner: 'Romanica-MC'
-  repo: 'ImperiumLauncher'
+  repo: 'RomanicaLauncher'
 
 files:
   - '!{dist,.gitignore,.vscode,docs,dev-app-update.yml,.nvmrc,eslint.config.mjs}'

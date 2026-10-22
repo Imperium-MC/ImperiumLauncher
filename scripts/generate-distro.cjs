@@ -265,7 +265,7 @@ async function main() {
         name: 'Romanica',
         description: 'Story-driven Roman prison server.',
         // ROMANICA CUTOVER: icon flips with the GitHub org rename.
-        icon: 'https://raw.githubusercontent.com/Romanica-MC/ImperiumLauncher/master/app/assets/images/SealCircle.png',
+        icon: 'https://raw.githubusercontent.com/Romanica-MC/RomanicaLauncher/master/app/assets/images/SealCircle.png',
         version: require('../package.json').version,
         // CUTOVER 2026-10-22: play.romanica.net answers MC status (verified live);
         // play.imperiummc.net keeps answering - both addresses connect.
