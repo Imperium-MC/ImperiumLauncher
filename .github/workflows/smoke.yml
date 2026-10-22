@@ -19,11 +19,10 @@ env:
   # lets the game create a real GL context. Pinned and checksummed.
   MESA_URL: https://github.com/pal1000/mesa-dist-win/releases/download/26.2.4/mesa3d-26.2.4-release-msvc.7z
   MESA_SHA256: 351fc8c8b695878ffb3eaa044b3ead08672a48b1a045e3c3e3975811df0f6695
-  # ROMANICA CUTOVER: the committed distribution index still serves the
-  # ImperiumMC server id, so the smoke run must seed ImperiumMC until the
-  # regenerated (Romanica) distro ships; flip SERVER_ID and the
-  # instances/ImperiumMC artifact paths below together with it.
-  SERVER_ID: ImperiumMC
+  # The distro has served the Romanica server id since launcher 0.2.0; smoke seeds
+  # and artifact paths follow it. (Runs v0.2.0-v0.2.4 failed on the stale ImperiumMC
+  # seed - the launcher exited 1 before spawning the game.)
+  SERVER_ID: Romanica
 
 jobs:
   windows-launch-smoke:
@@ -100,6 +99,6 @@ jobs:
           path: |
             smoke-artifacts/
             # ROMANICA CUTOVER: instance paths follow SERVER_ID above.
-            ${{ runner.temp }}/imperium-data/instances/ImperiumMC/logs/
-            ${{ runner.temp }}/imperium-data/instances/ImperiumMC/crash-reports/
-            ${{ runner.temp }}/imperium-data/instances/ImperiumMC/screenshots/
+            ${{ runner.temp }}/imperium-data/instances/Romanica/logs/
+            ${{ runner.temp }}/imperium-data/instances/Romanica/crash-reports/
+            ${{ runner.temp }}/imperium-data/instances/Romanica/screenshots/
