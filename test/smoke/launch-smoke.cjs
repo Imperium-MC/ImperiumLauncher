@@ -207,6 +207,13 @@ async function runSmoke(options, deps = {}){
     const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
     const appData = process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
     const uDir = userDataDir(pkg, appData)
+    // Wiping userData deletes the player's accounts and settings. Only do it on
+    // CI, in a temp folder, or when explicitly asked: a dev running the unit
+    // tests once lost their real config this way.
+    const inTemp = path.resolve(uDir).startsWith(path.resolve(os.tmpdir()))
+    if(fs.existsSync(uDir) && !inTemp && process.env.CI !== 'true' && !options.wipeUserData){
+        return { ok: false, reason: `refusing to wipe ${uDir} outside CI; pass wipeUserData to allow it` }
+    }
     fs.rmSync(uDir, { recursive: true, force: true })
     fs.mkdirSync(uDir, { recursive: true })
     const config = buildSmokeConfig({ serverId, uuid, name, dataDir: options.dataDir, javaExec })

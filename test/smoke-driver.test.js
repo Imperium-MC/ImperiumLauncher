@@ -7,6 +7,10 @@ const { EventEmitter } = require('events')
 
 const smoke = require('./smoke/launch-smoke.cjs')
 
+// runSmoke wipes and reseeds %APPDATA%/<productName>; never let the tests do
+// that to the real launcher config of whoever runs them.
+process.env.APPDATA = fs.mkdtempSync(path.join(os.tmpdir(), 'imperium-smoke-appdata-'))
+
 /* ------------------------------------------------------------------ */
 /* 1. The pre-seeded config parses through the real ConfigManager      */
 /* ------------------------------------------------------------------ */
