@@ -22,7 +22,8 @@ require.cache[configManagerPath] = {
 
 const ProcessBuilder = require('../app/assets/js/processbuilder')
 
-// A 26.3-style manifest: each native family gets its own folder via -D args.
+// A 26.3-style manifest: java.library.path is the search folder; the other
+// three are scratch folders libraries self-extract into, never searched.
 const MODERN_JVM_ARGS = [
     '-Djava.library.path=${natives_directory}/java',
     '-Djna.tmpdir=${natives_directory}/jna',
@@ -31,55 +32,32 @@ const MODERN_JVM_ARGS = [
     { rules: [{ action: 'allow', os: { name: 'osx' } }], value: '-XstartOnFirstThread' }
 ]
 
-function planFor(manifest, root){
-    return ProcessBuilder.prototype._nativeDirPlan.call({ vanillaManifest: manifest }, root)
+function libraryDirFor(manifest, root){
+    return ProcessBuilder.prototype._nativeLibraryDir.call({ vanillaManifest: manifest }, root)
 }
 
-test('26.x manifest maps each native family to the folder its -D arg names', () => {
+test('26.x manifest: natives go to the folder -Djava.library.path names', () => {
     const root = path.join('tmp', 'WCNatives', 'deadbeef')
-    const plan = planFor({ arguments: { jvm: MODERN_JVM_ARGS } }, root)
-
-    assert.strictEqual(plan.lwjgl, path.join(root, 'lwjgl'))
-    assert.strictEqual(plan.jna, path.join(root, 'jna'))
-    assert.strictEqual(plan.netty, path.join(root, 'netty'))
-    // Libraries without a matching rule keep the legacy flat folder.
-    assert.strictEqual(plan.default, root)
+    assert.strictEqual(libraryDirFor({ arguments: { jvm: MODERN_JVM_ARGS } }, root), path.join(root, 'java'))
 })
 
-test('lwjgl falls back to java.library.path when no SharedLibraryExtractPath is declared', () => {
+test('a rule-wrapped java.library.path argument is honored', () => {
     const root = path.join('tmp', 'WCNatives', 'deadbeef')
-    const plan = planFor({ arguments: { jvm: [
-        '-Djava.library.path=${natives_directory}/java',
-        '-Djna.tmpdir=${natives_directory}/jna',
-        '-Dio.netty.native.workdir=${natives_directory}/netty'
-    ] } }, root)
-
-    assert.strictEqual(plan.lwjgl, path.join(root, 'java'))
-    assert.strictEqual(plan.jna, path.join(root, 'jna'))
-    assert.strictEqual(plan.netty, path.join(root, 'netty'))
+    const manifest = { arguments: { jvm: [{ rules: [], value: '-Djava.library.path=${natives_directory}/java' }] } }
+    assert.strictEqual(libraryDirFor(manifest, root), path.join(root, 'java'))
 })
 
 test('pre-26 manifest with a bare natives_directory stays flat', () => {
     const root = path.join('tmp', 'WCNatives', 'deadbeef')
-    const plan = planFor({ arguments: { jvm: ['-Djava.library.path=${natives_directory}'] } }, root)
-
-    assert.strictEqual(plan.lwjgl, root)
-    assert.strictEqual(plan.jna, root)
-    assert.strictEqual(plan.netty, root)
-    assert.strictEqual(plan.default, root)
+    assert.strictEqual(libraryDirFor({ arguments: { jvm: ['-Djava.library.path=${natives_directory}'] } }, root), root)
 })
 
 test('manifest without jvm arguments stays flat', () => {
     const root = path.join('tmp', 'WCNatives', 'deadbeef')
-    const plan = planFor({}, root)
-
-    assert.strictEqual(plan.lwjgl, root)
-    assert.strictEqual(plan.jna, root)
-    assert.strictEqual(plan.netty, root)
-    assert.strictEqual(plan.default, root)
+    assert.strictEqual(libraryDirFor({}, root), root)
 })
 
-test('natives are extracted synchronously into the planned folders', { timeout: 20000 }, async (t) => {
+test('natives are extracted synchronously into the java.library.path folder', { timeout: 20000 }, async (t) => {
     const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'imperium-natives-'))
     t.after(() => fs.remove(workDir))
     const root = path.join(workDir, 'natives')
@@ -122,15 +100,14 @@ test('natives are extracted synchronously into the planned folders', { timeout: 
     const libs = ProcessBuilder.prototype._resolveMojangLibraries.call(
         Object.assign(Object.create(ProcessBuilder.prototype), { vanillaManifest: manifest, libPath }), root)
 
-    // lwjgl.dll must sit in the SharedLibraryExtractPath folder...
-    assert.strictEqual(fs.existsSync(path.join(root, 'lwjgl', 'lwjgl.dll')), true, 'lwjgl.dll not extracted to the lwjgl folder')
-    // ...netty's dll (flattened out of its package path) in the netty workdir...
-    assert.strictEqual(fs.existsSync(path.join(root, 'netty', 'netty_native.dll')), true, 'netty dll not extracted to the netty folder')
-    // ...and neither may land in the flat temp root the JVM no longer searches.
+    // Every native, lwjgl and netty alike, must sit in the folder the JVM
+    // searches (issue #4: 0.1.4-0.2.4 put lwjgl.dll in lwjgl/ and crashed).
+    assert.strictEqual(fs.existsSync(path.join(root, 'java', 'lwjgl.dll')), true, 'lwjgl.dll not in java.library.path')
+    assert.strictEqual(fs.existsSync(path.join(root, 'java', 'netty_native.dll')), true, 'netty dll not in java.library.path')
+    assert.strictEqual(fs.existsSync(path.join(root, 'lwjgl', 'lwjgl.dll')), false, 'lwjgl.dll went to the SharedLibraryExtractPath scratch folder')
     assert.strictEqual(fs.existsSync(path.join(root, 'lwjgl.dll')), false, 'lwjgl.dll was flattened into the natives root')
-    assert.strictEqual(fs.existsSync(path.join(root, 'netty_native.dll')), false, 'netty dll was flattened into the natives root')
     // META-INF exclusion is honored.
-    assert.strictEqual(fs.existsSync(path.join(root, 'lwjgl', 'META-INF')), false)
+    assert.strictEqual(fs.existsSync(path.join(root, 'java', 'META-INF')), false)
     // Plain libraries still resolve onto the classpath map.
     assert.strictEqual(libs['com.google.guava:guava'], path.join(libPath, 'com/google/guava/guava/31.1-jre/guava-31.1-jre.jar'))
 })

@@ -80,7 +80,7 @@ class ProcessBuilder {
         // Smoke-mode guard (issue #5): the folder the JVM resolves LWJGL
         // natives from must contain lwjgl.dll before the game is spawned.
         // Inert outside CI smoke runs.
-        this._verifySmokeNatives(args, tempNativePath)
+        this._verifySmokeNatives(args)
 
         const child = child_process.spawn(ConfigManager.getJavaExecutable(this.server.rawServer.id), args, {
             cwd: this.gameDir,
@@ -130,25 +130,26 @@ class ProcessBuilder {
 
     /**
      * The smoke-launch guard (issue #5). Only active when the smoke driver
-     * set IMPERIUM_SMOKE=1: asserts that the folder LWJGL actually loads
-     * its natives from (SharedLibraryExtractPath, else java.library.path)
-     * contains lwjgl.dll, and prints the folder java.library.path resolved
-     * to. Throwing here fails the launch before a broken pack can start
+     * set IMPERIUM_SMOKE=1: asserts that the folder the JVM's
+     * -Djava.library.path points at contains lwjgl.dll. Throwing here fails the launch before a broken pack can start
      * spawning java.
      *
      * @param {Array.<string>} args The fully resolved JVM arguments.
-     * @param {string} tempNativePath The ${natives_directory} for this launch.
      */
-    _verifySmokeNatives(args, tempNativePath){
+    _verifySmokeNatives(args){
         if(process.env.IMPERIUM_SMOKE !== '1'){
             return
         }
-        const plan = this._nativeDirPlan(tempNativePath)
+        // Check the folder the JVM is actually told to search, not the one the
+        // extraction code chose: checking the latter let issue #4 pass CI.
         const libraryPathArg = args.find(arg => typeof arg === 'string' && arg.startsWith('-Djava.library.path='))
-        console.log(`[SMOKE] java.library.path=${libraryPathArg != null ? libraryPathArg.substring('-Djava.library.path='.length) : '(unresolved)'}`)
-        console.log(`[SMOKE] lwjgl natives folder=${plan.lwjgl}`)
-        if(!fs.existsSync(path.join(plan.lwjgl, 'lwjgl.dll'))){
-            throw new Error(`[SMOKE] lwjgl.dll missing from ${plan.lwjgl} (issue #4 regression)`)
+        if(libraryPathArg == null){
+            throw new Error('[SMOKE] no -Djava.library.path in the JVM arguments')
+        }
+        const libraryPath = libraryPathArg.substring('-Djava.library.path='.length)
+        console.log(`[SMOKE] java.library.path=${libraryPath}`)
+        if(!fs.existsSync(path.join(libraryPath, 'lwjgl.dll'))){
+            throw new Error(`[SMOKE] lwjgl.dll missing from java.library.path ${libraryPath} (issue #4 regression)`)
         }
         console.log('[SMOKE] lwjgl.dll present in the resolved natives folder')
     }
@@ -748,79 +749,29 @@ class ProcessBuilder {
     }
 
     /**
-     * Map the manifest's own natives arguments to the extraction folders they
-     * name, so every native lands where the JVM will actually look for it.
+     * The folder every native library must be extracted into: the one the
+     * manifest's -Djava.library.path names (26.x uses ${natives_directory}/java),
+     * or the bare natives directory for older manifests.
      *
-     * 26.x manifests no longer use a flat natives folder. Instead they pass
-     * arguments like:
-     *
-     *   -Djava.library.path=${natives_directory}/java
-     *   -Djna.tmpdir=${natives_directory}/jna
-     *   -Dorg.lwjgl.system.SharedLibraryExtractPath=${natives_directory}/lwjgl
-     *   -Dio.netty.native.workdir=${natives_directory}/netty
-     *
-     * Each property names the folder its family of natives must be extracted
-     * into. Manifests without these arguments (everything before 26.x) keep
-     * the legacy flat behavior: every folder maps to tempNativePath itself.
+     * The manifest's other natives properties (SharedLibraryExtractPath,
+     * jna.tmpdir, io.netty.native.workdir) are scratch folders those libraries
+     * write into when they unpack natives from the classpath themselves. Nothing
+     * is ever loaded from them, so extracting there leaves lwjgl.dll unfindable
+     * (issue #4).
      *
      * @param {string} tempNativePath The ${natives_directory} for this launch.
-     * @returns {{default: string, lwjgl: string, jna: string, netty: string}} The
-     * extraction folder for each native family, plus the legacy flat folder.
+     * @returns {string} The folder java.library.path resolves to.
      */
-    _nativeDirPlan(tempNativePath){
+    _nativeLibraryDir(tempNativePath){
         const marker = '${natives_directory}'
-
-        // Flatten rule-wrapped JVM arguments into their string values.
-        const jvmArgs = []
+        const prefix = '-Djava.library.path='
         for(const arg of this.vanillaManifest.arguments?.jvm ?? []){
-            if(typeof arg === 'string'){
-                jvmArgs.push(arg)
-            } else if(arg != null && typeof arg.value === 'string'){
-                jvmArgs.push(arg.value)
+            const value = typeof arg === 'string' ? arg : arg?.value
+            if(typeof value === 'string' && value.startsWith(prefix + marker)){
+                return path.join(tempNativePath, value.substring(prefix.length + marker.length))
             }
         }
-
-        // Resolve the folder a -D property points at, or null when the
-        // manifest does not place it inside the natives directory.
-        const dirForProp = (prop) => {
-            const prefix = `-D${prop}=`
-            for(const arg of jvmArgs){
-                if(arg.startsWith(prefix) && arg.substring(prefix.length).startsWith(marker)){
-                    return path.join(tempNativePath, arg.substring(prefix.length + marker.length))
-                }
-            }
-            return null
-        }
-
-        const javaLibraryPath = dirForProp('java.library.path')
-        return {
-            default: tempNativePath,
-            // LWJGL self-extracts into SharedLibraryExtractPath when set,
-            // otherwise its libraries are loaded from java.library.path.
-            lwjgl: dirForProp('org.lwjgl.system.SharedLibraryExtractPath') ?? javaLibraryPath ?? tempNativePath,
-            jna: dirForProp('jna.tmpdir') ?? tempNativePath,
-            netty: dirForProp('io.netty.native.workdir') ?? tempNativePath
-        }
-    }
-
-    /**
-     * Pick the extraction folder for a native library from its maven
-     * coordinates. Libraries without a dedicated folder rule (everything
-     * except lwjgl, jna and netty) go to the legacy flat folder.
-     *
-     * @param {Object} lib A library entry from the vanilla manifest.
-     * @param {{default: string, lwjgl: string, jna: string, netty: string}} plan From _nativeDirPlan.
-     * @returns {string} The folder to extract this library's natives into.
-     */
-    _nativeExtractDir(lib, plan){
-        if(lib.name.startsWith('org.lwjgl')) {
-            return plan.lwjgl
-        } else if(lib.name.startsWith('net.java.dev.jna')) {
-            return plan.jna
-        } else if(lib.name.startsWith('io.netty')) {
-            return plan.netty
-        }
-        return plan.default
+        return tempNativePath
     }
 
     /**
@@ -838,8 +789,9 @@ class ProcessBuilder {
 
         const libArr = this.vanillaManifest.libraries
         fs.ensureDirSync(tempNativePath)
-        const nativeDirPlan = this._nativeDirPlan(tempNativePath)
-        logger.info('Natives extraction plan:', JSON.stringify(nativeDirPlan))
+        const extractDir = this._nativeLibraryDir(tempNativePath)
+        fs.ensureDirSync(extractDir)
+        logger.info('Extracting natives to', extractDir)
         for(let i=0; i<libArr.length; i++){
             const lib = libArr[i]
             if(isLibraryCompatible(lib.rules, lib.natives)){
@@ -853,9 +805,6 @@ class ProcessBuilder {
                     // Location of native zip.
                     const to = path.join(this.libPath, artifact.path)
 
-                    const extractDir = this._nativeExtractDir(lib, nativeDirPlan)
-                    fs.ensureDirSync(extractDir)
-                    logger.info(`Extracting ${lib.name} natives to ${extractDir}`)
 
                     let zip = new AdmZip(to)
                     let zipEntries = zip.getEntries()
@@ -905,9 +854,6 @@ class ProcessBuilder {
                     // Location of native zip.
                     const to = path.join(this.libPath, artifact.path)
 
-                    const extractDir = this._nativeExtractDir(lib, nativeDirPlan)
-                    fs.ensureDirSync(extractDir)
-                    logger.info(`Extracting ${lib.name} natives to ${extractDir}`)
 
                     let zip = new AdmZip(to)
                     let zipEntries = zip.getEntries()
