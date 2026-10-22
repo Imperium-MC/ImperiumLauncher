@@ -47,8 +47,8 @@
                             "type": "VersionManifest",
                             "artifact": {
                                 "size": 2778,
-                                "MD5": "6adb8cadec3a3c526876eb0c597c41bf",
-                                "sha256": "6457857faf8ccc694b83c95e6dca38fba54ccb2c1f15a042430000c356459d76",
+                                "MD5": "b04baa5dc1f3d98c91a7f09d9e06af74",
+                                "sha256": "a914dae48795e350318ba8a47072dbcc4ba2163b9ce415fa451e6928a02e2479",
                                 "url": "https://meta.fabricmc.net/v2/versions/loader/26.3/0.19.5/profile/json"
                             }
                         },
@@ -115,14 +115,14 @@
                     ]
                 },
                 {
-                    "id": "net.imperiummc:imperium-client:0.2.0-beta.17",
+                    "id": "net.imperiummc:imperium-client:0.2.0-beta.18",
                     "name": "Imperium Client",
                     "type": "FabricMod",
                     "artifact": {
-                        "size": 9860179,
-                        "MD5": "c815ec6cd5f476ab2fbf94b7c45e245d",
-                        "sha256": "3676d371dec9496bcc2a60c1722277f62ff4c53d552d57d648320404490fb922",
-                        "url": "https://github.com/Romanica-MC/ImperiumClient/releases/download/v0.2.0-beta.17/RomanicaClient-0.2.0-beta.17%2B26.3.jar"
+                        "size": 9934032,
+                        "MD5": "3f54c7c9de9efded6fe5db0a73784095",
+                        "sha256": "8e0374104cf1c9a54258b9fb6970cc7915660695e5764c3fe76556fd9db02f7b",
+                        "url": "https://github.com/Romanica-MC/ImperiumClient/releases/download/v0.2.0-beta.18/RomanicaClient-0.2.0-beta.18%2B26.3.jar"
                     }
                 },
                 {
