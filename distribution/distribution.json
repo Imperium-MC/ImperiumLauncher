@@ -115,14 +115,14 @@
                     ]
                 },
                 {
-                    "id": "net.imperiummc:imperium-client:0.2.0-beta.20",
+                    "id": "net.imperiummc:imperium-client:0.2.0-beta.21",
                     "name": "Imperium Client",
                     "type": "FabricMod",
                     "artifact": {
-                        "size": 10327503,
-                        "MD5": "b6dea239e7c8b2102c04bca90b21648f",
-                        "sha256": "6c123c0e55b3b77f717ee1e677b37f38f42f429946a560bd1c1f8427b97bfdac",
-                        "url": "https://github.com/Romanica-MC/ImperiumClient/releases/download/v0.2.0-beta.20/RomanicaClient-0.2.0-beta.20%2B26.3.jar"
+                        "size": 10326180,
+                        "MD5": "18ba0ca0b50697059f755df821189a02",
+                        "sha256": "b72f818ff3cfaa278228d3ff3aa32f80dd728b9652cd7762707e20ea8d65a071",
+                        "url": "https://github.com/Romanica-MC/ImperiumClient/releases/download/v0.2.0-beta.21/RomanicaClient-0.2.0-beta.21%2B26.3.jar"
                     }
                 },
                 {
