@@ -13,7 +13,7 @@ compression: 'maximum'
 # ROMANICA CUTOVER: repo URLs flip when the GitHub org renames
 publish:
   provider: 'github'
-  owner: 'Imperium-MC'
+  owner: 'Romanica-MC'
   repo: 'ImperiumLauncher'
 
 files:

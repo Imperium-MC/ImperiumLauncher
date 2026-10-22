@@ -167,7 +167,7 @@ async function modrinthModule(slug) {
 }
 
 async function latestClientVersion() {
-  const res = await fetch('https://api.github.com/repos/Imperium-MC/ImperiumClient/releases/latest', { headers: UA });
+  const res = await fetch('https://api.github.com/repos/Romanica-MC/ImperiumClient/releases/latest', { headers: UA });
   if (!res.ok) throw new Error('cannot resolve latest Imperium Client release');
   const tag = (await res.json()).tag_name || '';
   if (!tag.startsWith('v')) throw new Error(`unexpected latest tag ${tag}`);
@@ -186,8 +186,8 @@ async function imperiumClientModule(localJarPath, versionOverride) {
   // v0.2.0-beta.10+ renamed the release asset to RomanicaClient; older tags shipped
   // ImperiumClient. Resolve whichever exists (HEAD probe, HEAD may lie about size but
   // 200-vs-404 is reliable).
-  const romanicaUrl = `https://github.com/Imperium-MC/ImperiumClient/releases/download/v${VERSION}/RomanicaClient-${VERSION}%2B${MC_VERSION}.jar`;
-  const legacyUrl = `https://github.com/Imperium-MC/ImperiumClient/releases/download/v${VERSION}/ImperiumClient-${VERSION}%2B${MC_VERSION}.jar`;
+  const romanicaUrl = `https://github.com/Romanica-MC/ImperiumClient/releases/download/v${VERSION}/RomanicaClient-${VERSION}%2B${MC_VERSION}.jar`;
+  const legacyUrl = `https://github.com/Romanica-MC/ImperiumClient/releases/download/v${VERSION}/ImperiumClient-${VERSION}%2B${MC_VERSION}.jar`;
   const headOk = await fetch(romanicaUrl, { method: 'HEAD', headers: UA }).then(r => r.ok).catch(() => false);
   const releaseUrl = headOk ? romanicaUrl : legacyUrl;
   let hash, size, sha256;
@@ -266,7 +266,7 @@ async function main() {
         name: 'Romanica',
         description: 'Story-driven Roman prison server.',
         // ROMANICA CUTOVER: icon flips with the GitHub org rename.
-        icon: 'https://raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/app/assets/images/SealCircle.png',
+        icon: 'https://raw.githubusercontent.com/Romanica-MC/ImperiumLauncher/master/app/assets/images/SealCircle.png',
         version: require('../package.json').version,
         // ROMANICA CUTOVER: address -> romanica.net (or play.romanica.net)
         // when DNS is live. Flipping it early breaks every player's connect.
