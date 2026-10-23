@@ -147,6 +147,19 @@ function mavenUrl(repoBase, coord) {
   return `${base}${group.replace(/\./g, '/')}/${art}/${version}/${art}-${version}.${ext}`;
 }
 
+/**
+ * Slugify an arbitrary string into a maven-component-safe token (issue #14).
+ * Defensive fallback whenever Modrinth metadata is missing, so a module can
+ * never end up with an empty/absent id component — helios-core renders a
+ * missing maven version as a literal "...-undefined.jar" file name.
+ */
+function slugify(input) {
+  return String(input || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 async function modrinthModule(slug) {
   const versions = await fetchJson(
     `https://api.modrinth.com/v2/project/${slug}/version?game_versions=${encodeURIComponent(
@@ -157,8 +170,13 @@ async function modrinthModule(slug) {
   const version = versions[0];
   const file = version.files.find((f) => f.primary) || version.files[0];
   const hashed = await hashArtifact(file.url);
+  // THREE maven components (group:artifact:version). The id used to carry
+  // only two (`com.modrinth.<slug>:<version>`), so helios-core's parser put
+  // the version slot in as undefined and every such jar downloaded as
+  // "<version>-undefined.jar" (issue #14).
+  const versionNumber = slugify(version.version_number) || slugify(version.id);
   return {
-    id: `com.modrinth.${slug}:${version.version_number}`,
+    id: `com.modrinth:${slugify(slug) || slugify(version.id)}:${versionNumber}`,
     name: version.name || slug,
     type: 'FabricMod',
     required: { value: false, def: true },
@@ -214,6 +232,41 @@ async function imperiumClientModule(localJarPath, versionOverride) {
     type: 'FabricMod',
     artifact: artifact(releaseUrl, hash, size, sha256),
   };
+}
+
+/**
+ * Issue #14 build gate: every maven-id module must resolve to a file name
+ * with NO "undefined" in it. helios-core derives the local path from the id
+ * as group/artifact/version/artifact-version[-classifier].jar, so a missing
+ * component (a two-part id) surfaces as "<x>-undefined.jar". Rebuilding the
+ * maven parse here (dependency-free) and refusing to write the index keeps
+ * a malformed distro from ever shipping again.
+ */
+function assertDistroIdsSafe(index) {
+  const MAVEN_ID = /^([^@:]+):([^@:]+):([^@:]+)(?::([^@:]+))?(?:@([a-z0-9]+))?$/i;
+  const walk = (modules, trail) => {
+    for (const module of modules || []) {
+      const at = [...trail, module.id].join(' > ');
+      if (module.type !== 'File' && module.type !== 'VersionManifest') {
+        const parsed = MAVEN_ID.exec(module.id || '');
+        if (!parsed) {
+          throw new Error(`module id ${JSON.stringify(module.id)} (${at}) is not a full group:artifact:version maven id`);
+        }
+        const [, group, artifact, version, classifier, ext] = parsed;
+        for (const [label, component] of [['group', group], ['artifact', artifact], ['version', version]]) {
+          if (!component || /undefined/i.test(component)) {
+            throw new Error(`module id ${JSON.stringify(module.id)} (${at}) has an empty/undefined ${label} component`);
+          }
+        }
+        const fileName = `${artifact}-${version}${classifier ? `-${classifier}` : ''}.${ext || 'jar'}`;
+        if (/undefined/i.test(`${group}/${fileName}`)) {
+          throw new Error(`module id ${JSON.stringify(module.id)} (${at}) would download as ${fileName}`);
+        }
+      }
+      walk(module.subModules, [...trail, module.id]);
+    }
+  };
+  for (const server of index.servers || []) walk(server.modules, [server.id]);
 }
 
 async function main() {
@@ -280,6 +333,8 @@ async function main() {
       },
     ],
   };
+
+  assertDistroIdsSafe(index);
 
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify(index, null, 4) + '\n');

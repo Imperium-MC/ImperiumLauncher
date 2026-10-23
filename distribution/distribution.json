@@ -126,7 +126,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth.fabric-language-kotlin:1.14.2+kotlin.2.4.21",
+                    "id": "com.modrinth:fabric-language-kotlin:1.14.2+kotlin.2.4.21",
                     "name": "Fabric Language Kotlin 1.14.2+kotlin.2.4.21",
                     "type": "FabricMod",
                     "required": {
@@ -141,7 +141,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth.fabric-api:0.164.0+26.3",
+                    "id": "com.modrinth:fabric-api:0.164.0+26.3",
                     "name": "[26.3] Fabric API 0.164.0+26.3",
                     "type": "FabricMod",
                     "required": {
@@ -156,7 +156,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth.sodium:mc26.3-0.9.3-beta.1-fabric",
+                    "id": "com.modrinth:sodium:mc26.3-0.9.3-beta.1-fabric",
                     "name": "Sodium 0.9.3-beta.1 for Fabric 26.3",
                     "type": "FabricMod",
                     "required": {
@@ -171,7 +171,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth.lithium:mc26.3-0.26.2-fabric",
+                    "id": "com.modrinth:lithium:mc26.3-0.26.2-fabric",
                     "name": "Lithium 0.26.2 for Fabric",
                     "type": "FabricMod",
                     "required": {
@@ -186,7 +186,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth.ferrite-core:9.0.0-fabric",
+                    "id": "com.modrinth:ferrite-core:9.0.0-fabric",
                     "name": "ferritecore-9.0.0-fabric",
                     "type": "FabricMod",
                     "required": {
@@ -201,7 +201,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth.immediatelyfast:1.17.1+26.3-fabric",
+                    "id": "com.modrinth:immediatelyfast:1.17.1+26.3-fabric",
                     "name": "ImmediatelyFast 1.17.1",
                     "type": "FabricMod",
                     "required": {
@@ -216,7 +216,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth.entityculling:1.11.3",
+                    "id": "com.modrinth:entityculling:1.11.3",
                     "name": "1.11.3-26.3 - Fabric",
                     "type": "FabricMod",
                     "required": {
@@ -231,7 +231,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth.dynamic-fps:3.11.10",
+                    "id": "com.modrinth:dynamic-fps:3.11.10",
                     "name": "v3.11.10",
                     "type": "FabricMod",
                     "required": {
