@@ -237,6 +237,18 @@ async function runSmoke(options, deps = {}){
         log(`copied mesa opengl32.dll to ${dest}`)
     }
 
+    // The previous run's latest.log already holds the title-screen marker; matching it
+    // passed instantly and the kill took the just-spawned game down with the launcher.
+    // The new run's log is a different file (inode) or a smaller one. Not birthtime:
+    // Windows file tunnelling hands a recreated file the old creation time.
+    let logBaseline = null
+    try {
+        const stat = fs.statSync(latestLog)
+        logBaseline = { ino: stat.ino, size: stat.size }
+    } catch{
+        logBaseline = null
+    }
+
     // 3. Start the launcher headless.
     const launcherOut = fs.openSync(path.join(artifactsDir, 'launcher-stdout.log'), 'w')
     const launcherErr = fs.openSync(path.join(artifactsDir, 'launcher-stderr.log'), 'w')
@@ -260,6 +272,7 @@ async function runSmoke(options, deps = {}){
     })
     child.on('exit', (code) => {
         launcherExited = code
+        log(`launcher exited with code ${code}`)
         try {
             fs.closeSync(launcherOut)
             fs.closeSync(launcherErr)
@@ -307,6 +320,12 @@ async function runSmoke(options, deps = {}){
         }
         try {
             const stat = fs.statSync(latestLog)
+            if(logBaseline != null){
+                if(stat.ino === logBaseline.ino && stat.size >= logBaseline.size){
+                    throw new Error('previous run\'s log')
+                }
+                logBaseline = null
+            }
             if(stat.size > logOffset){
                 const handle = fs.openSync(latestLog, 'r')
                 try {
