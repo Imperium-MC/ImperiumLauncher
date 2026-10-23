@@ -244,6 +244,17 @@ test('runSmoke passes when the game log reaches the title screen', { timeout: 20
     assert.strictEqual(fs.existsSync(path.join(fixture.artifactsDir, 'latest.log')), true)
 })
 
+test('runSmoke does not pass on the previous run\'s title-screen log', { timeout: 20000 }, async (t) => {
+    const fixture = await makeFixture(t, { logLines: null })
+    const logs = path.join(fixture.dataDir, 'instances', 'ImperiumMC', 'logs')
+    await fs.ensureDir(logs)
+    await fs.writeFile(path.join(logs, 'latest.log'), '[Render thread/INFO]: Sound engine started\n')
+    fixture.options.gameTimeoutMs = 500
+    const result = await smoke.runSmoke(fixture.options, fixture.deps)
+
+    assert.strictEqual(result.ok, false, result.reason)
+})
+
 test('runSmoke fails when the game log shows a startup failure', { timeout: 20000 }, async (t) => {
     const fixture = await makeFixture(t, {
         logLines: [
