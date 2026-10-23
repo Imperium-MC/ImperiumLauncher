@@ -26,7 +26,7 @@
     // Hosts the launcher is allowed to hand to the OS browser. First-party
     // site plus the hosts referenced by shipped strings and update metadata.
     const ALLOWED_LINK_HOSTS = [
-        'imperiummc.net',
+        'romanica.net',
         'github.com',
         'docs.oracle.com',
         'minecraft.net'

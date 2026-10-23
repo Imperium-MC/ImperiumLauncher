@@ -910,7 +910,7 @@ async function loadNews(){
 
     // ROMANICA CUTOVER: fallback feed flips to romanica.net when DNS is live
     // (mirrors the distribution index's rss key).
-    const newsFeed = distroData.rawDistribution.rss || 'https://imperiummc.net/news.rss'
+    const newsFeed = distroData.rawDistribution.rss || 'https://romanica.net/news.rss'
     if(!distroData.rawDistribution.rss) {
         loggerLanding.debug('No RSS feed declared in distribution index, using default feed.')
     }

@@ -34,9 +34,9 @@ function check(name, condition, detail){
 /* ------------------------------------------------------------------ */
 
 const ALLOWED_URLS = [
-    'https://imperiummc.net/news.rss',
-    'https://imperiummc.net/',
-    'https://www.imperiummc.net/news.rss',
+    'https://romanica.net/news.rss',
+    'https://romanica.net/',
+    'https://www.romanica.net/news.rss',
     'https://github.com/Imperium-MC/ImperiumLauncher/releases',
     'https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html',
     'https://minecraft.net/'
@@ -46,18 +46,18 @@ for(const url of ALLOWED_URLS){
 }
 
 const REJECTED_URLS = [
-    'http://imperiummc.net/news.rss',                       // not https
+    'http://romanica.net/news.rss',                       // not https
     'https://evil.com/',                                    // foreign host
-    'https://imperiummc.net.evil.com/',                     // suffix spoof
+    'https://romanica.net.evil.com/',                     // suffix spoof
     'https://evilimperiummc.net/',                          // suffix spoof
     'javascript:alert(1)',                                  // scheme
     'data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==',
     'file:///C:/Windows/System32/calc.exe',
-    'imperiummc.net/news.rss',                              // relative/no scheme
-    '//imperiummc.net/news.rss',                            // protocol relative
-    'https://user:pass@imperiummc.net/',                    // userinfo
+    'romanica.net/news.rss',                              // relative/no scheme
+    '//romanica.net/news.rss',                            // protocol relative
+    'https://user:pass@romanica.net/',                    // userinfo
     '',                                                     // empty
-    'https://imperiummc.net/\u0000'
+    'https://romanica.net/\u0000'
 ]
 for(const url of REJECTED_URLS){
     check(`isAllowedLink rejects ${JSON.stringify(url)}`, isAllowedLink(url) === false, 'expected rejected')
