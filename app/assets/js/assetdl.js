@@ -72,6 +72,63 @@ function sleep(ms) {
 }
 
 /**
+ * Build a safe file name from a module id when the distribution-provided
+ * name is absent (issue #14): every maven component is squashed into a
+ * slug, so a missing component can never leak the literal string
+ * "undefined" into a file name.
+ *
+ * @param {string} id The module id (e.g. "com.modrinth.sodium:0.9.3").
+ * @returns {string} Slugified file name ending in ".jar".
+ */
+function fallbackFilenameFromId(id) {
+    let slug = id == null ? '' : String(id)
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+    if(slug === 'undefined' || slug === 'null' || slug === 'nan') {
+        slug = ''
+    }
+    return `${slug || 'module'}.jar`
+}
+
+/**
+ * A local path is unnameable when any of its segments was produced from an
+ * `undefined` maven component (helios-core renders a missing version as the
+ * literal string "undefined", e.g. ".../sodium/0.9.3/undefined/0.9.3-undefined.jar").
+ *
+ * @param {string} targetPath The asset's destination path.
+ * @returns {boolean} True when the path contains an "undefined" segment.
+ */
+function hasUndefinedSegment(targetPath) {
+    return path.normalize(targetPath)
+        .split(path.sep)
+        .some(segment => segment === 'undefined' || segment === 'undefined.jar')
+}
+
+/**
+ * Refuse to download any artifact whose destination contains an
+ * "undefined" path segment. Such a path means the distribution module's
+ * maven id is malformed (a missing component); writing the file would
+ * recreate the "...-undefined.jar" litter of issue #14. The sync fails
+ * with an actionable error instead, naming the slugified file name the
+ * generator fallback would have produced.
+ *
+ * @param {Array.<{id: string, path: string}>} assets Assets about to be downloaded.
+ * @throws {Error} displayable error naming the first offending module.
+ */
+function assertNoUndefinedPaths(assets) {
+    for(const asset of assets) {
+        if(hasUndefinedSegment(asset.path)) {
+            const displayable = `File ${path.basename(asset.path)} has an invalid name.`
+            const cause = `distribution module ${asset.id} resolved to "${asset.path}" — its id is missing a maven component (expected "${fallbackFilenameFromId(asset.id)}"). The pack index must be fixed; refusing to download as "undefined".`
+            const wrapped = new Error(`${displayable} (${cause})`)
+            wrapped.displayable = `${displayable}<br><span style="font-size: 10px;">${cause}</span>`
+            throw wrapped
+        }
+    }
+}
+
+/**
  * Convert a caught error into a user displayable message,
  * mirroring helios-core FullRepairReceiver.parseError.
  */
@@ -202,6 +259,9 @@ async function receiverDownload(message = {}) {
         receiver.assets = message.assets
     }
     const assets = receiver.assets
+    // Issue #14: never write a file whose name was built from an undefined
+    // maven component. Fail the sync before a single byte is fetched.
+    assertNoUndefinedPaths(assets)
     const count = assets.length
     const expectedTotalSize = getExpectedDownloadSize(assets)
     log.debug(`Downloading ${count} artifacts, expected size ${expectedTotalSize} bytes.`)
@@ -514,6 +574,10 @@ exports.MAX_RETRIES = MAX_RETRIES
 exports.RETRY_BASE_DELAY_MS = RETRY_BASE_DELAY_MS
 // Exposed for tests: hash selection for the post-download verification.
 exports.pickVerification = pickVerification
+// Exposed for tests / diagnostics: issue #14 undefined-name defenses.
+exports.fallbackFilenameFromId = fallbackFilenameFromId
+exports.hasUndefinedSegment = hasUndefinedSegment
+exports.assertNoUndefinedPaths = assertNoUndefinedPaths
 
 // Fork guard: only run the receiver loop when executed as a child process.
 if(process.send != null && process.argv[1] && path.resolve(process.argv[1]) === path.resolve(__filename)) {
