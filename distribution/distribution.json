@@ -12,7 +12,7 @@
             "name": "Romanica",
             "description": "Story-driven Roman prison server.",
             "icon": "https://raw.githubusercontent.com/Romanica-MC/RomanicaLauncher/master/app/assets/images/SealCircle.png",
-            "version": "0.2.4",
+            "version": "0.2.5",
             "address": "play.romanica.net",
             "minecraftVersion": "26.3",
             "mainServer": true,
@@ -115,14 +115,14 @@
                     ]
                 },
                 {
-                    "id": "net.imperiummc:imperium-client:0.2.0-beta.23",
+                    "id": "net.imperiummc:imperium-client:0.2.0-beta.24",
                     "name": "Imperium Client",
                     "type": "FabricMod",
                     "artifact": {
-                        "size": 10481675,
-                        "MD5": "0c2e585aa0ad53a52e8d4b0d692cdfb9",
-                        "sha256": "2ee34623be5ba47f35a739ab48e8fad4fd45951e43826900710dee59a4d199cf",
-                        "url": "https://github.com/Romanica-MC/RomanicaClient/releases/download/v0.2.0-beta.23/RomanicaClient-0.2.0-beta.23%2B26.3.jar"
+                        "size": 10671297,
+                        "MD5": "94292d5c95c0031fc867a599e0af23da",
+                        "sha256": "e85bef10ac9b3208943c8f65d71158a41b1fe329d51ff04149ba358f123d27fb",
+                        "url": "https://github.com/Romanica-MC/ImperiumClient/releases/download/v0.2.0-beta.24/RomanicaClient-0.2.0-beta.24%2B26.3.jar"
                     }
                 },
                 {
