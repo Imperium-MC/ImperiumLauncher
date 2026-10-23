@@ -6,9 +6,11 @@
 
 Every PR that fixes a bug or adds behaviour includes **evidence from a real run** in its description. "Tests pass" alone doesn't count. Evidence means one of:
 
-- a log excerpt showing the fixed path running, for example the game reaching the title screen or joining a world, or a launch smoke verdict from a *fresh* log
-- a screenshot of the changed UI, at the scales the issue names
+- a link to a **CI run** that exercised the change, with the relevant log lines or artifacts: the launcher smoke workflow, the client gametest workflow, or a test job
+- a screenshot of the changed UI from a CI artifact (gametest screenshots) or a website preview
 - a `curl` against the deployed or preview endpoint with its status and body
+
+**Never launch Minecraft, or the launcher's game, on the agent machine.** In-game evidence comes from the GitHub Actions workflows (start them with `workflow_dispatch` when they don't run on push). If something can only be checked on a real PC, such as performance numbers, Microsoft sign-in or a GPU-specific bug, list it under "Not verified" with exact steps for the owner.
 
 If you couldn't verify something, write **"Not verified: <what and why>"** in the PR. Never write "fixed" for something you haven't seen fixed. A wrong "fixed" costs the owner more than an honest "not verified".
 
@@ -37,10 +39,10 @@ If you couldn't verify something, write **"Not verified: <what and why>"** in th
 ## How to verify in this repo (RomanicaLauncher)
 
 - `npm test` and `npx eslint app test scripts`. Files are CRLF, which lint enforces.
-- **Real launch:** build with `npx electron-builder --dir -w --publish never`, then run `node test/smoke/launch-smoke.cjs --exe "dist/win-unpacked/Romanica Launcher.exe" --data-dir <data> --java-home <jdk> --server Romanica` with `APPDATA` pointed at a temp directory. Paste the verdict and the first line of the copied `latest.log`; its timestamp must be from this run.
-- Anything touching natives, Java arguments or the classpath also needs a check of the game log for zero `UnsatisfiedLinkError`.
-- Anything touching auth or Microsoft login needs a sign-in done by hand in the packaged build. Say who tested it.
-- Release only after the packaged installer has been run once. Upload the exe, the blockmap and `latest.yml` together.
+- **Real launch:** start the **`smoke.yml`** workflow on your branch (`gh workflow run smoke.yml --ref <branch>`). It builds the launcher and boots the full client on a Windows runner with Mesa. Link the run, and quote the verdict plus the first line of the uploaded `latest.log` from the `smoke-artifacts` artifact. Don't run the smoke driver or the game on the agent machine.
+- Anything touching natives, Java arguments or the classpath: also confirm zero `UnsatisfiedLinkError` in that artifact's game log.
+- Auth or Microsoft login and installer or auto-update behaviour can't be fully exercised in CI. List them under "Not verified" with steps for the owner.
+- Release only after `smoke.yml` passes on the release commit. Upload the exe, the blockmap and `latest.yml` together.
 
 ## Lessons from past misses (don't repeat)
 
