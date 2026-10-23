@@ -26,6 +26,7 @@ const {
 }                            = require('helios-core/java')
 
 const { ImperiumRepair } = require('../assets/js/assetdl')
+const { reapStaleManagedModules } = require('../assets/js/managedmodcleanup')
 const ProcessBuilder     = require('../assets/js/processbuilder')
 const DiscordWrapper     = require('../assets/js/discordwrapper')
 const CrashScreen        = require('../assets/js/crashscreen')
@@ -374,6 +375,21 @@ exports.launch = async function(login = true){
     emit({ kind: 'javaClear' })
 
     repairModule.destroyReceiver()
+
+    // Issue #14: the sync just verified every referenced mod in place, so
+    // launcher-managed versions that fell out of the distribution can be
+    // reaped safely. Cleanup must never take the launch down with it.
+    try {
+        const { removed } = await reapStaleManagedModules(
+            distro,
+            core.ConfigManager.getCommonDirectory()
+        )
+        if(removed.length > 0){
+            loggerLaunchSuite.info(`Removed ${removed.length} stale launcher-managed mod file(s) no longer in the distribution.`)
+        }
+    } catch(err) {
+        loggerLaunchSuite.warn('Stale managed-mod cleanup failed; the launch continues.', err)
+    }
 
     emit({ kind: 'details', text: L('landing.dlAsync.preparingToLaunch') })
 
