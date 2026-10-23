@@ -113,12 +113,12 @@ test('buildBody rejects malformed fields without touching the network', async ()
 
 test('mapResponse produces the UI-facing result for each endpoint shape', () => {
     assert.deepStrictEqual(
-        CrashReport.mapResponse(200, { id: 'abc123', url: 'https://api.imperiummc.net/crash/abc123', truncated: false }),
-        { ok: true, url: 'https://api.imperiummc.net/crash/abc123', id: 'abc123', truncated: false }
+        CrashReport.mapResponse(200, { id: 'abc123', url: 'https://api.romanica.net/crash/abc123', truncated: false }),
+        { ok: true, url: 'https://api.romanica.net/crash/abc123', id: 'abc123', truncated: false }
     )
     assert.deepStrictEqual(
-        CrashReport.mapResponse(200, { url: 'https://api.imperiummc.net/crash/x', truncated: true }),
-        { ok: true, url: 'https://api.imperiummc.net/crash/x', id: null, truncated: true }
+        CrashReport.mapResponse(200, { url: 'https://api.romanica.net/crash/x', truncated: true }),
+        { ok: true, url: 'https://api.romanica.net/crash/x', id: null, truncated: true }
     )
     assert.deepStrictEqual(CrashReport.mapResponse(200, { id: 'no-url' }), { ok: false, error: 'bad_response' })
     assert.deepStrictEqual(CrashReport.mapResponse(200, null), { ok: false, error: 'bad_response' })
@@ -132,14 +132,14 @@ test('upload round-trips against a live success fixture', { timeout: 10000 }, as
     let seen = null
     const { server, url } = await fixtureServer((body, req, finish) => {
         seen = { body, method: req.method, contentType: req.headers['content-type'] }
-        finish({ status: 200, body: { id: 'smoke-1', url: 'https://api.imperiummc.net/crash/smoke-1', truncated: false } })
+        finish({ status: 200, body: { id: 'smoke-1', url: 'https://api.romanica.net/crash/smoke-1', truncated: false } })
     })
     t.after(() => new Promise((resolve) => server.close(resolve)))
 
     const result = await CrashReport.upload(sampleFields(), { endpoint: url, meta: SAMPLE_META })
 
     assert.deepStrictEqual(result, {
-        ok: true, url: 'https://api.imperiummc.net/crash/smoke-1', id: 'smoke-1', truncated: false
+        ok: true, url: 'https://api.romanica.net/crash/smoke-1', id: 'smoke-1', truncated: false
     })
     assert.strictEqual(seen.method, 'POST')
     assert.ok(seen.contentType.startsWith('application/json'))

@@ -152,14 +152,14 @@ test('CSP meta tag present with the expected policy', () => {
     assert.ok(policy.includes('script-src \'self\''), 'script-src must be self')
     assert.ok(policy.includes('style-src \'self\' \'unsafe-inline\''), 'style-src must allow the shipped inline styles')
     assert.ok(policy.includes('img-src \'self\' https: data:'), 'img-src must cover https avatars and data uris')
-    assert.ok(policy.includes('connect-src \'self\' https://imperiummc.net https://github.com'),
+    assert.ok(policy.includes('connect-src \'self\' https://romanica.net https://github.com'),
         'connect-src must be scoped to the feeds the renderer fetches')
     assert.ok(!policy.includes('unsafe-eval'), 'CSP must not allow unsafe-eval')
 })
 
 test('renderer network fetches stay within the CSP connect-src', () => {
     const scripts = listFiles(path.join(ROOT, 'app', 'assets', 'js'), '.js')
-    const allowed = new Set(['imperiummc.net', 'github.com'])
+    const allowed = new Set(['romanica.net', 'github.com'])
     const urlRegex = /https:\/\/([a-z0-9.-]+)\//g
     for(const file of scripts){
         const rel = path.relative(ROOT, file).split(path.sep).join('/')

@@ -3,7 +3,7 @@
 <h1 align="center">Romanica Launcher</h1>
 
 <!-- ROMANICA CUTOVER: site link and server address flip to romanica.net when DNS is live -->
-<p align="center">The official launcher for <a href="https://imperiummc.net">Romanica</a> (<code>play.imperiummc.net</code>).<br>It keeps the client and the server's pack in sync and starts Minecraft with your real Microsoft session.</p>
+<p align="center">The official launcher for <a href="https://romanica.net">Romanica</a> (<code>play.romanica.net</code>).<br>It keeps the client and the server's pack in sync and starts Minecraft with your real Microsoft session.</p>
 
 ![Login screen](docs/screenshots/login.jpg)
 
@@ -97,7 +97,7 @@ On Windows without Developer Mode, electron-builder fails while extracting `winC
 | Distribution index URL | `REMOTE_DISTRO_URL` in [`app/assets/js/distromanager.js`](app/assets/js/distromanager.js) |
 | Azure client ID | `AZURE_CLIENT_ID` in [`app/assets/js/ipcconstants.js`](app/assets/js/ipcconstants.js) |
 | UI strings, links, welcome text | [`app/assets/lang/_custom.toml`](app/assets/lang/_custom.toml) and `en_US.toml` |
-| Theme | [`app/assets/css/launcher.css`](app/assets/css/launcher.css) (gold `#d4a54f` / `#e8c563` / `#b8923d`, matching imperiummc.net) |
+| Theme | [`app/assets/css/launcher.css`](app/assets/css/launcher.css) (gold `#d4a54f` / `#e8c563` / `#b8923d`, matching romanica.net) |
 | Logo (all icons, header, splash) | The website's `frontend/public/Logo.png`, only resized: `build/icon.png`, `build/icon.ico`, `app/assets/images/SealCircle.{png,ico}`, `LoadingSeal.png` |
 | Backgrounds | `app/assets/images/backgrounds/` |
 | Launcher data on the player's PC | Config + distro cache: `%APPDATA%\Romanica Launcher` (migrated from `%APPDATA%\Imperium Launcher` on first boot); game files: `%APPDATA%\.imperiumlauncher` (Windows) |
