@@ -89,3 +89,46 @@ test('the crash payload carries the already-parsed upload fields', { timeout: 20
     assert.ok(upload.crashReport.includes('Minecraft Crash Report'))
     assert.ok(Buffer.byteLength(upload.crashReport, 'utf8') <= 64 * 1024)
 })
+
+test('the upload payload is scrubbed at the source; local report text stays verbatim', { timeout: 20000 }, async (t) => {
+    const workDir = await fs.mkdtemp(path.join(os.tmpdir(), 'imperium-crashscreen-redact-'))
+    t.after(() => fs.remove(workDir))
+    const crashDir = path.join(workDir, 'crash-reports')
+    await fs.ensureDir(crashDir)
+
+    const captured = []
+    CrashScreen.setDispatch((payload) => captured.push(payload))
+    t.after(() => CrashScreen.setDispatch(() => {}))
+
+    CrashScreen._show({
+        startedAt: Date.now() - 1000,
+        shown: false,
+        logLines: [
+            '[main/INFO]: natives at C:\\Users\\MylesThePro\\AppData\\Roaming\\Romanica\\natives',
+            '[main/ERROR]: Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+            'Caused by: java.io.FileNotFoundException: C:\\Users\\MylesThePro\\Romanica\\config.json (no such file)',
+            '\tat org.lwjgl.system.Library.loadSystem(Library.java:177)'
+        ],
+        knownCrashFiles: new Set(),
+        pollTimer: null,
+        mcVersion: '26.3',
+        clientVersion: '0.2.0-beta.8'
+    }, crashDir, 1)
+
+    assert.strictEqual(captured.length, 1)
+    const upload = captured[0].upload
+    // Scrubbed at the source: no username, no token anywhere in the payload
+    // that is handed toward the upload path.
+    const flattened = JSON.stringify(upload)
+    assert.ok(!flattened.includes('MylesThePro'), 'upload payload must not carry the username')
+    assert.ok(!flattened.includes('eyJhbGciOiJIUzI1NiJ9'), 'upload payload must not carry the bearer JWT')
+    assert.ok(upload.cause.includes('C:\\Users\\REDACTED\\Romanica\\config.json'))
+    assert.ok(upload.logTail.includes('C:\\Users\\REDACTED\\AppData\\Roaming\\Romanica\\natives'))
+    assert.ok(upload.logTail.includes('Authorization: Bearer [REDACTED]'))
+    // Diagnostics survive.
+    assert.ok(upload.logTail.includes('\tat org.lwjgl.system.Library.loadSystem(Library.java:177)'))
+    // The local-only fields (clipboard copy, overlay) keep the verbatim
+    // text: nothing leaves the machine with those.
+    assert.ok(captured[0].reportText.includes('C:\\Users\\MylesThePro'))
+    assert.ok(captured[0].reportText.includes('Caused by: java.io.FileNotFoundException: C:\\Users\\MylesThePro\\Romanica\\config.json'))
+})

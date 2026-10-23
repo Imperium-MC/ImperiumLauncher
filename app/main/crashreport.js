@@ -12,8 +12,17 @@
  *   {launcher, launcherVersion, clientVersion?, mcVersion?, platform,
  *    cause, mod?, logTail <=32KB, crashReport? <=64KB}
  *   -> {id, url, truncated}; anonymous, 5 requests/hour/IP.
+ *
+ * REDACTION: the free-text fields (cause, logTail, crashReport) are scrubbed
+ * here with the shared rule set (see app/main/redact.js for the rule block
+ * mirrored in the backend) BEFORE clamping and before any network send —
+ * this is the last gate in front of the POST, so a caller that bypasses the
+ * crash screen's own scrub still cannot leak. The scrub is idempotent, so
+ * text already redacted by crashscreen.js passes through unchanged.
  */
 const ENDPOINT = 'https://api.romanica.net/api/v2/client/crash-report'
+
+const { redactText } = require('./redact')
 
 const LIMITS = {
     cause: 1024,
@@ -99,8 +108,11 @@ function buildBody(fields, meta){
         launcher: meta.launcher,
         launcherVersion: meta.launcherVersion,
         platform: meta.platform,
-        cause: fields.cause,
-        logTail: truncateToBytes(fields.logTail, LIMITS.logTail)
+        // Scrub first, then clamp: a truncated token is a partial leak, so
+        // redaction must see the whole field and the byte budget applies to
+        // the scrubbed form that actually goes on the wire.
+        cause: truncateToBytes(redactText(fields.cause), LIMITS.cause),
+        logTail: truncateToBytes(redactText(fields.logTail), LIMITS.logTail)
     }
     if(fields.clientVersion != null){
         body.clientVersion = fields.clientVersion
@@ -112,7 +124,7 @@ function buildBody(fields, meta){
         body.mod = fields.mod
     }
     if(fields.crashReport != null && fields.crashReport.length > 0){
-        body.crashReport = truncateToBytes(fields.crashReport, LIMITS.crashReport)
+        body.crashReport = truncateToBytes(redactText(fields.crashReport), LIMITS.crashReport)
     }
     return { ok: true, body }
 }

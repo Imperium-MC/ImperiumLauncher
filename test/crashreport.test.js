@@ -178,3 +178,62 @@ test('upload times out when the endpoint never answers', { timeout: 10000 }, asy
     assert.deepStrictEqual(result, { ok: false, error: 'timeout' })
     assert.ok(Date.now() - started >= 200, 'the timeout must actually elapse')
 })
+
+/* Fields with all three sensitive classes mixed into otherwise realistic
+ * crash content (see test/redact.test.js for the full fixture and rule
+ * set). buildBody is the last gate before the POST, so even fields that
+ * never went through the crash screen's source scrub come out clean. */
+function dirtyFields(){
+    return sampleFields({
+        cause: 'java.io.FileNotFoundException: C:\\Users\\MylesThePro\\Romanica\\config.json (The system cannot find the file)',
+        logTail: [
+            '[main/INFO]: Loading Minecraft 26.3 with Fabric Loader 0.16.9',
+            '[main/INFO]: natives at C:\\Users\\MylesThePro\\AppData\\Roaming\\Romanica\\natives',
+            '[main/ERROR]: Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c',
+            '[main/ERROR]: renewal failed, refresh_token=8f14e45fceea167a5a36dedd4bea2543ca9a',
+            '\tat org.lwjgl.system.Library.loadSystem(Library.java:177)'
+        ].join('\n'),
+        crashReport: '---- Minecraft Crash Report ----\nGame Dir: C:\\Users\\MylesThePro\\AppData\\Roaming\\Romanica\nat net.minecraft.client.main.Main.main(Main.java:1291)'
+    })
+}
+
+test('buildBody scrubs usernames, profile paths and tokens before clamping', () => {
+    const built = CrashReport.buildBody(dirtyFields(), SAMPLE_META)
+
+    assert.strictEqual(built.ok, true)
+    // None of the sensitive material survives.
+    for(const field of ['cause', 'logTail', 'crashReport']){
+        assert.ok(!built.body[field].includes('MylesThePro'), `${field} must not carry the username`)
+        assert.ok(!built.body[field].includes('eyJhbGciOiJIUzI1NiJ9'), `${field} must not carry the bearer JWT`)
+        assert.ok(!built.body[field].includes('8f14e45fceea167a5a36dedd4bea2543ca9a'), `${field} must not carry the labelled token`)
+    }
+    // The redacted forms, and the diagnostics, are all there.
+    assert.ok(built.body.cause.includes('C:\\Users\\REDACTED\\Romanica\\config.json'))
+    assert.ok(built.body.logTail.includes('C:\\Users\\REDACTED\\AppData\\Roaming\\Romanica\\natives'))
+    assert.ok(built.body.logTail.includes('Authorization: Bearer [REDACTED]'))
+    assert.ok(built.body.logTail.includes('refresh_token=[REDACTED]'))
+    assert.ok(built.body.logTail.includes('\tat org.lwjgl.system.Library.loadSystem(Library.java:177)'))
+    assert.ok(built.body.logTail.includes('Loading Minecraft 26.3 with Fabric Loader 0.16.9'))
+    assert.ok(built.body.crashReport.includes('C:\\Users\\REDACTED\\AppData\\Roaming\\Romanica'))
+    assert.ok(built.body.crashReport.includes('at net.minecraft.client.main.Main.main(Main.java:1291)'))
+})
+
+test('upload puts only the scrubbed body on the wire', { timeout: 10000 }, async (t) => {
+    let seen = null
+    const { server, url } = await fixtureServer((body, _req, finish) => {
+        seen = body
+        finish({ status: 200, body: { id: 'redact-1', url: 'https://api.romanica.net/crash/redact-1', truncated: false } })
+    })
+    t.after(() => new Promise((resolve) => server.close(resolve)))
+
+    const result = await CrashReport.upload(dirtyFields(), { endpoint: url, meta: SAMPLE_META })
+
+    assert.deepStrictEqual(result, { ok: true, url: 'https://api.romanica.net/crash/redact-1', id: 'redact-1', truncated: false })
+    const wire = JSON.stringify(seen)
+    assert.ok(!wire.includes('MylesThePro'), 'the POSTed body must not contain the username')
+    assert.ok(!wire.includes('eyJhbGciOiJIUzI1NiJ9'), 'the POSTed body must not contain the bearer JWT')
+    assert.ok(!wire.includes('8f14e45fceea167a5a36dedd4bea2543ca9a'), 'the POSTed body must not contain the labelled token')
+    assert.ok(seen.logTail.includes('C:\\Users\\REDACTED\\AppData\\Roaming\\Romanica\\natives'))
+    assert.ok(seen.logTail.includes('Authorization: Bearer [REDACTED]'))
+    assert.ok(seen.logTail.includes('\tat org.lwjgl.system.Library.loadSystem(Library.java:177)'))
+})

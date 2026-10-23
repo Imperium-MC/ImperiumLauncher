@@ -2,7 +2,6 @@
 const { app, BrowserWindow, ipcMain, Menu, shell } = require('electron')
 const autoUpdater                       = require('electron-updater').autoUpdater
 const ejse                              = require('ejs-electron')
-const fs                                = require('fs')
 const isDev                             = require('./app/assets/js/isdev')
 const path                              = require('path')
 const semver                            = require('semver')
@@ -290,8 +289,8 @@ function createWindow() {
 
     const data = {
         // 2026-10-22: fixed to the owner-selected Romanica key art (backgrounds/3.jpg).
-// To restore rotation, list the dir again and randomize.
-bkid: 3,
+        // To restore rotation, list the dir again and randomize.
+        bkid: 3,
         lang: (str, placeHolders) => LangLoader.queryEJS(str, placeHolders)
     }
     Object.entries(data).forEach(([key, val]) => ejse.data(key, val))

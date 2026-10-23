@@ -20,6 +20,7 @@ const fs     = require('fs-extra')
 const path   = require('path')
 const { LoggerUtil } = require('helios-core')
 const Lang   = require('./langloader')
+const { redactText } = require('../../main/redact')
 
 const logger = LoggerUtil.getLogger('CrashScreen')
 
@@ -239,14 +240,22 @@ const CrashScreen = {
             logsDir,
             // Already-parsed fields for the crash-report endpoint. The
             // renderer passes this verbatim through the bridge; the main
-            // process clamps sizes and performs the POST.
+            // process clamps sizes and performs the POST. The free-text
+            // fields are scrubbed HERE, at the source, with the shared rule
+            // set (app/main/redact.js — rules mirrored in the backend's
+            // src/utils/crashTextRedaction.ts): usernames in paths, profile
+            // env refs and any echoed credentials never even reach the
+            // renderer's upload payload. crashreport.js re-scrubs on upload
+            // (idempotent) as the last gate. Only the fields that leave the
+            // machine are redacted — reportText/gameDir stay verbatim for
+            // the local clipboard copy and the overlay.
             upload: {
-                cause: cause != null ? cause : summary,
+                cause: redactText(cause != null ? cause : summary),
                 mod,
                 mcVersion: state.mcVersion,
                 clientVersion: state.clientVersion,
-                logTail: tail.join('\n'),
-                crashReport: crashReportUploadTail
+                logTail: redactText(tail.join('\n')),
+                crashReport: crashReportUploadTail != null ? redactText(crashReportUploadTail) : null
             }
         }
 
