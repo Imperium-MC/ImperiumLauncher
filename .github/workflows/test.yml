@@ -1,0 +1,50 @@
+name: Test and lint
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test-and-lint:
+    name: npm test + eslint
+    # Windows: the sources are CRLF in the working tree (core.autocrlf) and
+    # eslint enforces it; the tests also exercise win32 path handling.
+    runs-on: windows-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Check out Git repository
+        uses: actions/checkout@v6
+
+      - name: Set up Node
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+        shell: bash
+
+      # A run that executes zero tests must fail, not go green.
+      - name: Run tests
+        run: |
+          npm test -- --test-reporter=spec --test-reporter-destination=stdout --test-reporter=tap --test-reporter-destination=test-results.tap
+          total=$(sed -n 's/^# tests \([0-9][0-9]*\)$/\1/p' test-results.tap)
+          failed=$(sed -n 's/^# fail \([0-9][0-9]*\)$/\1/p' test-results.tap)
+          echo "tests=${total:-0} fail=${failed:-unknown}"
+          if [ -z "$total" ] || [ "$total" -eq 0 ]; then
+            echo "::error::No tests ran"
+            exit 1
+          fi
+          if [ "$failed" != "0" ]; then
+            echo "::error::$failed test(s) failed"
+            exit 1
+          fi
+        shell: bash
+
+      - name: Lint
+        run: npx eslint app test scripts
+        shell: bash
