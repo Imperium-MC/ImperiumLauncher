@@ -27,6 +27,7 @@
     // site plus the hosts referenced by shipped strings and update metadata.
     const ALLOWED_LINK_HOSTS = [
         'romanica.net',
+        'discord.gg',
         'github.com',
         'docs.oracle.com',
         'minecraft.net'
