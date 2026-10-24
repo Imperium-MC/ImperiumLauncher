@@ -154,3 +154,38 @@ Ran the repo's own `scripts/validate-distro.cjs` against the URL shipped launche
 3. Decide Discord RPC one way (real clientId or delete the key + null `proc`).
 4. Fix the account-switch selection and logout fade-ordering (<10 lines each).
 5. Publish mac DMGs or hide the mac update UI; narrow `img-src`.
+
+---
+
+## Pass 4 Addendum — RomanicaLauncher (2026-10-24): supply-chain audit
+
+Method: Modrinth/Fabric-meta/Adoptium/endoflife.date/OSV APIs queried directly; upstream repos checked; helios-core 2.3.0 in node_modules read. Distros/mods verified against the served distro.
+
+### Mod + platform currency — all CURRENT, zero vulnerable
+
+| Component | Pinned | Latest for 26.3 | Verdict |
+|---|---|---|---|
+| Sodium | mc26.3-0.9.3-beta.1 | 0.9.3-beta.1 (beta; newest stable for 26.3 is 0.9.2) | CURRENT — deliberate beta choice, bug-fix release; decide knowingly |
+| Lithium / FerriteCore / ImmediatelyFast / EntityCulling / Dynamic FPS | 0.26.2 / 9.0.0 / 1.17.1 / 1.11.3 / 3.11.10 | same | CURRENT |
+| Fabric API | 0.165.0 | 0.165.0 (bumped within a day of release; each bump re-hashed + nightly-validated) | CURRENT |
+| FLK | 1.14.2 | 1.14.2 | CURRENT |
+| fabric-loader | 0.20.1 | latest stable | No CVE has ever been assigned to fabric-loader |
+
+**Electron 39 is the real debt:** EOL ~May 2026 (terminal 39.8.10), **12 unpatched OSV advisories, 5 HIGH** (webview node-integration bypass, popup sandbox inheritance, OpenURLFromTab sandbox drop, protocol cross-origin reads, eMudhra cert). First-party mitigations (no webview, no custom protocols, deny-all popups, sandboxed renderer, strict CSP) structurally neutralize most of today's HIGHs — but this is a decaying position; plan the Electron 43+ bump before the next Chromium fix accumulation (Launcher issue #10 tracks it).
+
+**helios-core 2.3.0:** at npm head, 0 OSV advisories; upstream HeliosLauncher's one academic security report (will-navigate + IPC sender verification) is fully inherited-away by the fork's own hardening. Low-cadence upstream — track, not urgent.
+
+### New findings
+
+1. **[P2] The JDK download verification is size-conditional — the exact flaw class the fork fixed for game assets.** `launchservice.javaDownload` (~181-196) runs `validateLocalFile` only inside `if(received != asset.size)`; a same-size tampered JDK zip passes silently. Combined with the floating "latest Temurin 25 GA at launch time" selection (no pin, no sha256 in the distro — CI pins 25.0.4.1+1 by URL+sha256, strictly stronger than what players get), the JVM that executes the game is the least-verified artifact in the chain. Two lines to fix the check; pin the version like CI does.
+2. **[P2] The 6 Fabric loader library sub-modules (asm ×5, sponge-mixin — the code-execution path) are MD5-verified only.** MD5 is collision-broken; everything else in the distro is sha256. `generate-distro.cjs` should emit sha256 for subModules (`pickVerification` already prefers sha256 when present).
+3. **[P3] macOS players get Corretto "latest" verified by MD5** (helios-core default when `javaOptions.distribution` is unset) — declaring `distribution: TEMURIN` narrows the vendor and gains sha256.
+4. **Correction to pass 3:** the Fabric version manifest is **not** hash-exempt at launch time — it's exempt only from the nightly validator's ranged read; launch-time verification applies. Host-outage behavior verified in code: the distro index falls back to the disk cache (existing installs unaffected), artifacts run a 1+3 retry ladder with per-artifact hash verification, delete-before-retry on mismatch, and a compromised host cannot place a same-size tampered jar.
+
+### Recommendations
+
+1. Verify the JDK unconditionally (delete the size gate) and pin the player JDK like CI does — it's the least-verified artifact in an otherwise sha256-everything chain.
+2. Emit sha256 for the loader library sub-modules.
+3. Plan the Electron 43+ bump (issue #10).
+4. Declare `distribution: TEMURIN` in the distro `javaOptions`.
+5. (Carried) Cut the pending release + move the distro index off raw@master — the last supply-chain surface not defended by the fork's hash discipline.
