@@ -208,18 +208,6 @@ const CONFIG_OPS = {
         fn: (a) => ConfigManager.setNewsCacheDismissed(a[0]),
         validate: (a) => a.length === 1 && typeof a[0] === 'boolean'
     },
-    addMojangAuthAccount: {
-        fn: (a) => ConfigManager.addMojangAuthAccount(a[0], a[1], a[2], a[3]),
-        validate: (a) => a.length === 4 && a.slice(0, 4).every(v => boundedString(v, 512))
-    },
-    addMicrosoftAuthAccount: {
-        // (uuid, accessToken, name, mcExpires, msAccessToken, msRefreshToken, msExpires)
-        fn: (a) => ConfigManager.addMicrosoftAuthAccount(a[0], a[1], a[2], a[3], a[4], a[5], a[6]),
-        validate: (a) => a.length === 7
-            && ['0', '1', '2', '4', '5'].every(i => boundedString(a[i], 4096))
-            && typeof a[3] === 'number' && Number.isFinite(a[3])
-            && typeof a[6] === 'number' && Number.isFinite(a[6])
-    },
     removeAuthAccount: {
         fn: (a) => ConfigManager.removeAuthAccount(a[0]),
         validate: (a) => a.length === 1 && boundedString(a[0], 128)
@@ -407,7 +395,7 @@ exports.register = function(winProvider){
     const authEnvelope = async (fn, args) => {
         try {
             const account = await fn(...args)
-            return { ok: true, account, snapshot: launchercore.configSnapshot() }
+            return { ok: true, account: launchercore.pickAccount(account), snapshot: launchercore.configSnapshot() }
         } catch(displayableError){
             return { ok: false, error: displayableError, snapshot: launchercore.configSnapshot() }
         }
@@ -445,7 +433,7 @@ exports.register = function(winProvider){
     // account. An account that cannot be refreshed is removed (the
     // renderer walks the user through re-adding it).
     ipcMain.handle(BRIDGE.AUTH_VALIDATE_SELECTED, async () => {
-        const selected = ConfigManager.getSelectedAccount()
+        const selected = launchercore.pickAccount(ConfigManager.getSelectedAccount())
         let valid = false
         try {
             valid = await AuthManager.validateSelected()

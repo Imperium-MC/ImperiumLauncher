@@ -190,7 +190,7 @@ document.getElementById('serverSelectConfirm').addEventListener('click', async (
     }
     // None are selected? Not possible right? Meh, handle it.
     if(listings.length > 0){
-        const serv = (await DistroAPI.getDistribution()).getServerById(listings[i].getAttribute('servid'))
+        const serv = (await DistroAPI.getDistribution()).getServerById(listings[0].getAttribute('servid'))
         updateSelectedServer(serv)
         toggleOverlay(false)
     }
@@ -295,10 +295,12 @@ async function populateServerListings(){
 function populateAccountListings(){
     const accountsObj = ConfigManager.getAuthAccounts()
     const accounts = Array.from(Object.keys(accountsObj), v=>accountsObj[v])
+    const selectedUuid = ConfigManager.getSelectedAccount()?.uuid
+    const preselect = accounts.some(a => a.uuid === selectedUuid) ? selectedUuid : accounts[0]?.uuid
     const listings = document.createDocumentFragment()
     for(let i=0; i<accounts.length; i++){
         const button = RenderUtil.el('button', { class: 'accountListing', uuid: accounts[i].uuid })
-        if(i === 0){
+        if(accounts[i].uuid === preselect){
             button.setAttribute('selected', '')
         }
         button.appendChild(RenderUtil.el('img', { src: `https://mc-heads.net/head/${accounts[i].uuid}/40` }))

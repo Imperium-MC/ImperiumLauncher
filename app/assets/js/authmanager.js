@@ -128,6 +128,41 @@ function mojangErrorDisplayable(errorCode) {
     }
 }
 
+// Microsoft error codes that mean the account itself can't play, as
+// opposed to the request failing.
+const DEFINITIVE_MICROSOFT_CODES = new Set([
+    MicrosoftErrorCode.NO_PROFILE,
+    MicrosoftErrorCode.NO_XBOX_ACCOUNT,
+    MicrosoftErrorCode.XBL_BANNED,
+    MicrosoftErrorCode.UNDER_18
+])
+
+/**
+ * A rejection is definitive only when the auth service answered and
+ * refused the credential. No response, timeouts, 408/429 and 5xx are
+ * transient and must never cost the player their stored account.
+ *
+ * @param {Object} response A failed helios-core RestResponse.
+ * @returns {boolean}
+ */
+function isDefinitiveMicrosoftRejection(response){
+    if(DEFINITIVE_MICROSOFT_CODES.has(response.microsoftErrorCode)){
+        return true
+    }
+    const status = response.error?.response?.statusCode
+    return status != null && status >= 400 && status < 500 && status !== 408 && status !== 429
+}
+
+/**
+ * Turn a failed Microsoft step into its displayable, tagged with whether
+ * the failure was definitive. The tag is non-enumerable so it never
+ * crosses IPC with the displayable.
+ */
+function microsoftRejection(response, displayable = microsoftErrorDisplayable(response.microsoftErrorCode)){
+    Object.defineProperty(displayable, 'definitive', { value: isDefinitiveMicrosoftRejection(response) })
+    return displayable
+}
+
 // Functions
 
 /**
@@ -142,7 +177,6 @@ function mojangErrorDisplayable(errorCode) {
 exports.addMojangAccount = async function(username, password) {
     try {
         const response = await MojangRestAPI.authenticate(username, password, ConfigManager.getClientToken())
-        console.log(response)
         if(response.responseStatus === RestResponseStatus.SUCCESS) {
 
             const session = response.data
@@ -188,7 +222,7 @@ async function fullMicrosoftAuthFlow(entryCode, authMode) {
         if(authMode !== AUTH_MODE.MC_REFRESH) {
             const accessTokenResponse = await MicrosoftAuth.getAccessToken(entryCode, authMode === AUTH_MODE.MS_REFRESH, AZURE_CLIENT_ID)
             if(accessTokenResponse.responseStatus === RestResponseStatus.ERROR) {
-                return Promise.reject(microsoftErrorDisplayable(accessTokenResponse.microsoftErrorCode))
+                return Promise.reject(microsoftRejection(accessTokenResponse))
             }
             accessToken = accessTokenResponse.data
             accessTokenRaw = accessToken.access_token
@@ -198,26 +232,26 @@ async function fullMicrosoftAuthFlow(entryCode, authMode) {
         
         const xblResponse = await MicrosoftAuth.getXBLToken(accessTokenRaw)
         if(xblResponse.responseStatus === RestResponseStatus.ERROR) {
-            return Promise.reject(microsoftErrorDisplayable(xblResponse.microsoftErrorCode))
+            return Promise.reject(microsoftRejection(xblResponse))
         }
         const xstsResonse = await MicrosoftAuth.getXSTSToken(xblResponse.data)
         if(xstsResonse.responseStatus === RestResponseStatus.ERROR) {
-            return Promise.reject(microsoftErrorDisplayable(xstsResonse.microsoftErrorCode))
+            return Promise.reject(microsoftRejection(xstsResonse))
         }
         const mcTokenResponse = await MicrosoftAuth.getMCAccessToken(xstsResonse.data)
         if(mcTokenResponse.responseStatus === RestResponseStatus.ERROR) {
             // Minecraft services reject Azure apps that Mojang hasn't approved with a 403.
             if(mcTokenResponse.error?.response?.statusCode === 403) {
-                return Promise.reject({
+                return Promise.reject(microsoftRejection(mcTokenResponse, {
                     title: Lang.queryJS('auth.microsoft.error.appNotApprovedTitle'),
                     desc: Lang.queryJS('auth.microsoft.error.appNotApprovedDesc')
-                })
+                }))
             }
-            return Promise.reject(microsoftErrorDisplayable(mcTokenResponse.microsoftErrorCode))
+            return Promise.reject(microsoftRejection(mcTokenResponse))
         }
         const mcProfileResponse = await MicrosoftAuth.getMCProfile(mcTokenResponse.data.access_token)
         if(mcProfileResponse.responseStatus === RestResponseStatus.ERROR) {
-            return Promise.reject(microsoftErrorDisplayable(mcProfileResponse.microsoftErrorCode))
+            return Promise.reject(microsoftRejection(mcProfileResponse))
         }
         return {
             accessToken,
@@ -328,27 +362,47 @@ async function validateSelectedMojangAccount(){
     const current = ConfigManager.getSelectedAccount()
     const response = await MojangRestAPI.validate(current.accessToken, ConfigManager.getClientToken())
 
-    if(response.responseStatus === RestResponseStatus.SUCCESS) {
-        const isValid = response.data
-        if(!isValid){
-            const refreshResponse = await MojangRestAPI.refresh(current.accessToken, ConfigManager.getClientToken())
-            if(refreshResponse.responseStatus === RestResponseStatus.SUCCESS) {
-                const session = refreshResponse.data
-                ConfigManager.updateMojangAuthAccount(current.uuid, session.accessToken)
-                ConfigManager.save()
-            } else {
-                log.error('Error while validating selected profile:', refreshResponse.error)
-                log.info('Account access token is invalid.')
-                return false
-            }
-            log.info('Account access token validated.')
-            return true
-        } else {
-            log.info('Account access token validated.')
-            return true
-        }
+    if(response.responseStatus !== RestResponseStatus.SUCCESS) {
+        log.warn('Could not reach the Mojang auth server, keeping the account.', response.error)
+        return true
     }
-    
+    if(response.data) {
+        log.info('Account access token validated.')
+        return true
+    }
+
+    const refreshResponse = await MojangRestAPI.refresh(current.accessToken, ConfigManager.getClientToken())
+    if(refreshResponse.responseStatus === RestResponseStatus.SUCCESS) {
+        ConfigManager.updateMojangAuthAccount(current.uuid, refreshResponse.data.accessToken)
+        ConfigManager.save()
+        log.info('Account access token refreshed.')
+        return true
+    }
+    if(MOJANG_DEFINITIVE_CODES.has(refreshResponse.mojangErrorCode)) {
+        log.info('Account access token is invalid.')
+        return false
+    }
+    log.warn('Mojang token refresh failed transiently, keeping the account.', refreshResponse.error)
+    return true
+}
+
+const MOJANG_DEFINITIVE_CODES = new Set([
+    MojangErrorCode.ERROR_INVALID_TOKEN,
+    MojangErrorCode.ERROR_INVALID_CREDENTIALS,
+    MojangErrorCode.ERROR_GONE
+])
+
+/**
+ * The verdict for a Microsoft refresh that threw: only a definitive
+ * rejection invalidates the account.
+ */
+function microsoftRefreshFailed(err){
+    if(err?.definitive === true) {
+        log.info('Microsoft account was rejected by the auth service.')
+        return false
+    }
+    log.warn('Microsoft token refresh failed transiently, keeping the account.')
+    return true
 }
 
 /**
@@ -389,8 +443,8 @@ async function validateSelectedMicrosoftAccount(){
             )
             ConfigManager.save()
             return true
-        } catch(_err) {
-            return false
+        } catch(err) {
+            return microsoftRefreshFailed(err)
         }
     } else {
         // Only MC expired, use existing MS token.
@@ -408,8 +462,8 @@ async function validateSelectedMicrosoftAccount(){
             ConfigManager.save()
             return true
         }
-        catch(_err) {
-            return false
+        catch(err) {
+            return microsoftRefreshFailed(err)
         }
     }
 }
