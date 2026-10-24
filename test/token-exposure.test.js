@@ -85,6 +85,24 @@ test('the add-account envelope carries no tokens', async () => {
     assertNoSecrets(res, 'AUTH_ADD_MOJANG')
 })
 
+test('adding a Mojang account prints no session tokens', async (t) => {
+    mojang.authenticate = async () => ({
+        responseStatus: RestResponseStatus.SUCCESS,
+        data: {
+            accessToken: 'SECRET-MOJANG-ACCESS',
+            clientToken: 'SECRET-CLIENT-TOKEN',
+            selectedProfile: { id: '55555555555555555555555555555555', name: 'Gaius' }
+        }
+    })
+    const printed = []
+    for(const method of ['log', 'info', 'warn', 'error', 'debug']){
+        t.mock.method(console, method, (...args) => printed.push(args))
+    }
+    await handlers.IMPERIUM_AUTH_ADD_MOJANG(null, 'gaius@example.com', 'hunter2')
+    t.mock.restoreAll()
+    assertNoSecrets(printed.map(args => args.map(String).join(' ').concat(JSON.stringify(args))), 'console output')
+})
+
 test('the renderer can no longer write raw tokens through CONFIG_APPLY', () => {
     const attempts = {
         addMojangAuthAccount: ['44444444444444444444444444444444', 'planted-token', 'x@example.com', 'Planted'],
