@@ -291,9 +291,11 @@ exports.register = function(winProvider){
     })
 
     /* shell-adjacent operations */
-    ipcMain.handle(BRIDGE.CLIPBOARD_WRITE_TEXT, (_e, text) => {
+    // Electron 44: clipboard.writeText returns a Promise (W3C clipboard
+    // rearchitecture). Await it so { ok: true } means the write completed.
+    ipcMain.handle(BRIDGE.CLIPBOARD_WRITE_TEXT, async (_e, text) => {
         if(typeof text === 'string' && text.length <= 1024*1024){
-            clipboard.writeText(text)
+            await clipboard.writeText(text)
             return { ok: true }
         }
         return invalid('Invalid clipboard payload.')
