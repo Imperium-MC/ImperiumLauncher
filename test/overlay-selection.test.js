@@ -96,3 +96,15 @@ test('the account picker falls back to the first account when none is selected',
     assert.strictEqual(preselected.length, 1)
     assert.strictEqual(preselected[0].getAttribute('uuid'), 'aaaa')
 })
+
+test('server confirm with nothing selected falls back to the first listing', async () => {
+    const servers = [{ rawServer: { id: 'Romanica' } }, { rawServer: { id: 'Other' } }]
+    const { ctx, byId, calls } = loadOverlay({ accounts: ACCOUNTS, selectedAccount: 'aaaa', servers, selectedServer: null })
+    ctx.toggleOverlay = () => {}
+    await ctx.prepareServerSelectionList()
+    assert.strictEqual(byId.serverSelectListScrollable.children.filter(l => l.hasAttribute('selected')).length, 0)
+
+    await byId.serverSelectConfirm.listeners.click()
+    assert.strictEqual(calls.updateSelectedServer.length, 1)
+    assert.strictEqual(calls.updateSelectedServer[0].rawServer.id, 'Romanica')
+})
