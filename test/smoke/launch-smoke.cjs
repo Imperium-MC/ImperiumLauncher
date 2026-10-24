@@ -173,7 +173,7 @@ const DEFAULTS = {
     syncTimeoutMs: 18 * 60 * 1000,   // distribution + full client download
     gameTimeoutMs: 20 * 60 * 1000,   // spawn -> title screen (software GL boots slowly)
     pollMs: 2000,
-    serverId: 'ImperiumMC',
+    serverId: 'Romanica',
     uuid: '00000000-0000-0000-0000-000000000000',
     name: 'SmokeTest'
 }
@@ -202,17 +202,25 @@ async function runSmoke(options, deps = {}){
 
     fs.mkdirSync(artifactsDir, { recursive: true })
 
-    // 1. Pre-seed the launcher config. userData is wiped first so the run
-    //    is always a first launch with exactly this state.
-    const pkg = JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8'))
+    // 1. Pre-seed the launcher config — into the ISOLATED smoke userData, never the
+    //    real one. index.js re-points Electron's userData to this same directory when
+    //    IMPERIUM_SMOKE_LAUNCH=1 (env IMPERIUM_SMOKE_USERDATA, or the temp default), so
+    //    the launcher itself reads config.json from here. The 10-20/21 runs resolved
+    //    %APPDATA%\<productName> here instead and their seeded placeholder account +
+    //    deleted-temp dataDirectory broke real launches afterwards (2026-10-24).
     const appData = process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming')
-    const uDir = userDataDir(pkg, appData)
-    // Wiping userData deletes the player's accounts and settings. Only do it on
-    // CI, in a temp folder, or when explicitly asked: a dev running the unit
-    // tests once lost their real config this way.
-    const inTemp = path.resolve(uDir).startsWith(path.resolve(os.tmpdir()))
-    if(fs.existsSync(uDir) && !inTemp && process.env.CI !== 'true' && !options.wipeUserData){
-        return { ok: false, reason: `refusing to wipe ${uDir} outside CI; pass wipeUserData to allow it` }
+    const realUserData = userDataDir(JSON.parse(fs.readFileSync(path.join(ROOT, 'package.json'), 'utf8')), appData)
+    const uDir = process.env.IMPERIUM_SMOKE_USERDATA
+        || path.join(os.tmpdir(), 'imperium-smoke-userdata')
+    // Structural guard, not etiquette: the seed target must be outside the real
+    // profile's directory tree, or the run aborts. Nothing under %APPDATA% is
+    // ever written by this driver again.
+    const resolvedSeed = path.resolve(uDir)
+    if(!resolvedSeed.startsWith(path.resolve(os.tmpdir()))){
+        return { ok: false, reason: `smoke userData ${resolvedSeed} is not under the temp dir — refusing` }
+    }
+    if(resolvedSeed.startsWith(path.resolve(realUserData))){
+        return { ok: false, reason: `smoke userData ${resolvedSeed} overlaps the real profile ${realUserData} — refusing` }
     }
     fs.rmSync(uDir, { recursive: true, force: true })
     fs.mkdirSync(uDir, { recursive: true })
@@ -257,6 +265,7 @@ async function runSmoke(options, deps = {}){
         env: Object.assign({}, process.env, {
             IMPERIUM_SMOKE_LAUNCH: '1',
             IMPERIUM_SMOKE: '1',
+            IMPERIUM_SMOKE_USERDATA: uDir,
             ELECTRON_ENABLE_LOGGING: '1'
         }),
         stdio: ['ignore', 'pipe', 'pipe']

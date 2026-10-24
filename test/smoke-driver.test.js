@@ -7,8 +7,8 @@ const { EventEmitter } = require('events')
 
 const smoke = require('./smoke/launch-smoke.cjs')
 
-// runSmoke wipes and reseeds %APPDATA%/<productName>; never let the tests do
-// that to the real launcher config of whoever runs them.
+// runSmoke seeds the ISOLATED temp smoke userData (never %APPDATA%); the APPDATA
+// stub only exercises the real-profile overlap guard below.
 process.env.APPDATA = fs.mkdtempSync(path.join(os.tmpdir(), 'imperium-smoke-appdata-'))
 
 /* ------------------------------------------------------------------ */
@@ -234,11 +234,15 @@ test('runSmoke passes when the game log reaches the title screen', { timeout: 20
     assert.strictEqual(fixture.events.killed, 1, 'the process tree must be cleaned up')
     // Mesa was placed next to javaw.exe before the launch.
     assert.strictEqual(fs.existsSync(path.join(fixture.javaHome, 'bin', 'opengl32.dll')), true)
-    // The seeded config landed in the userData-shaped path.
-    const uDir = smoke.userDataDir(
-        JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8')),
-        process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'))
+    // The seeded config landed in the ISOLATED smoke userData — and never in the
+    // profile-shaped path under APPDATA (the 2026-10-24 clobber regression).
+    const uDir = path.join(os.tmpdir(), 'imperium-smoke-userdata')
     assert.strictEqual(fs.existsSync(path.join(uDir, 'config.json')), true)
+    const profileShaped = smoke.userDataDir(
+        JSON.parse(fs.readFileSync(path.resolve(__dirname, '..', 'package.json'), 'utf8')),
+        process.env.APPDATA)
+    assert.strictEqual(fs.existsSync(path.join(profileShaped, 'config.json')), false,
+        'runSmoke must never seed the real profile path')
     // The launcher log and the game log snapshot were kept as artifacts.
     assert.strictEqual(fs.existsSync(path.join(fixture.artifactsDir, 'launcher-stdout.log')), true)
     assert.strictEqual(fs.existsSync(path.join(fixture.artifactsDir, 'latest.log')), true)

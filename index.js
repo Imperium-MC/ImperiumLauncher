@@ -15,6 +15,23 @@ const LangLoader                        = require('./app/assets/js/langloader')
 // existing profile over before ANY module resolves config.json from it
 // (configmanager computes its path at require time, so this must run
 // ahead of the launcher core below).
+//
+// SMOKE ISOLATION (2026-10-24): a smoke run must never read OR write the
+// real profile. The 10-20/21 runs seeded their offline-account config into
+// %APPDATA%\<productName>, and its placeholder account (accessToken '0') plus
+// deleted-temp dataDirectory made real launches fail. Re-pointing userData
+// FIRST makes every later resolver — userdatamigration, configmanager, the
+// driver's seed target — land in run-owned temp space, structurally unable
+// to touch the player's config on any machine. The driver reads the same
+// env var (launch-smoke.cjs), so both sides agree on the directory.
+if(process.env.IMPERIUM_SMOKE_LAUNCH === '1'){
+    const electronApp = require('electron').app
+    const smokeUserData = process.env.IMPERIUM_SMOKE_USERDATA
+        || path.join(electronApp.getPath('temp'), 'imperium-smoke-userdata')
+    require('fs').mkdirSync(smokeUserData, { recursive: true })
+    electronApp.setPath('userData', smokeUserData)
+}
+
 require('./app/main/userdatamigration').init()
 
 // Main-process launcher core (configuration, distribution index, launch
