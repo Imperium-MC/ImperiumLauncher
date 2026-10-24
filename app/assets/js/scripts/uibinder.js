@@ -168,21 +168,10 @@ async function validateSelectedAccount(){
 
                 if(accLen > 0) {
                     loginOptionsViewOnCancel = getCurrentView()
+                    // The removed account was definitively rejected, so
+                    // cancelling falls back to the account main selected.
                     loginOptionsViewCancelHandler = () => {
-                        if(isMicrosoft) {
-                            ConfigManager.addMicrosoftAuthAccount(
-                                removedAcc.uuid,
-                                removedAcc.accessToken,
-                                removedAcc.username,
-                                removedAcc.expiresAt,
-                                removedAcc.microsoft.access_token,
-                                removedAcc.microsoft.refresh_token,
-                                removedAcc.microsoft.expires_at
-                            )
-                        } else {
-                            ConfigManager.addMojangAuthAccount(removedAcc.uuid, removedAcc.accessToken, removedAcc.username, removedAcc.displayName)
-                        }
-                        ConfigManager.save()
+                        updateSelectedAccount(ConfigManager.getSelectedAccount())
                         validateSelectedAccount()
                     }
                     loginOptionsCancelEnabled(true)
