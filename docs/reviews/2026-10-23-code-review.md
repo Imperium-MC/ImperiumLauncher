@@ -121,3 +121,36 @@ Pass-1 P3s confirmed with exact locations: `getSelectedServer(def=true)` returns
 3. **Make config persistence atomic and corruption-preserving** (tmp+rename; salvage auth keys on parse failure). Tokens are the least-replaceable data the launcher holds.
 4. **Ship the CI split**: tests+lint on every push, artifacts-only builds, `needs: smoke` release job for `v*` tags. Converts the smoke test from a parallel signal into a gate.
 5. **Sanitize `configSnapshot`** (pickAccount above), then the zip-slip guard and MODS_ADD preload-side source allowlist — each <20 lines, closes the renderer-compromise escalation paths.
+
+---
+
+## Pass 3 Addendum — RomanicaLauncher (2026-10-24)
+
+> Method note: at pass-3 start the local `origin/master` ref was 2 commits behind the remote — `2e761fa` + `5a34db0` (Oct 24: "fix(contracts): crash clamps aligned to backend, truncated object shape, distro served from the Romanica org"). Those (now pulled; still unreleased) commits fix pass 2's crash-report contract drift and flip `REMOTE_DISTRO_URL` to the Romanica org. Findings below were re-verdicted against remote-master content.
+
+### Live distro validation — HEALTHY, players can launch right now
+
+Ran the repo's own `scripts/validate-distro.cjs` against the URL shipped launchers actually poll (`Imperium-MC/ImperiumLauncher@master/distribution/distribution.json`), default mode (full hashes ≤ 25 MiB — every pack artifact qualifies): **0 failures.** 17/17 URLs resolve; 16/17 fully hash-verified byte-exact (1 hash-exempt: the Fabric VersionManifest, by design); 10/10 `fabric.mod.json` readable; 75 jar-in-jar providers resolved; all version/dependency edges satisfied; RSS (`romanica.net/news.rss`) 200 and in CSP; update feed `v0.2.6/latest.yml` 200 and well-formed.
+
+**Drift verdict corrections:** the served file is byte-identical to remote master — the pass-2 "served 0.2.5 vs committed 0.2.4" drift was an artifact of a stale local ref; the org rename is a GitHub **rename** (redirects, no fork), so raw content resolves server-side. Schema conforms to helios-core 2.3 (`required`/`javaOptions`/`ram` all consumed). Served versions: server pack 0.2.6, MC 26.3, client beta.24, fabric-loader 0.20.1, FLK 1.14.2.
+
+**Cutover posture:** all releases v0.2.3+ target `Romanica-MC/RomanicaLauncher`; only v0.2.2 predates the owner flip. But **every shipped installer still polls the old-org raw URL** until a release ships `5a34db0` — safe today via the redirect; if anyone ever re-creates `Imperium-MC/ImperiumLauncher` as a new repo, v0.2.2 installs lose update + distro feeds simultaneously. Cut a release promptly and hard-claim the old name.
+
+### New findings
+
+1. **[P2] No single-instance lock** — `app.requestSingleInstanceLock()` nowhere; a second instance races `ConfigManager` writes and can drive a concurrent launch. One-line fix.
+2. **[P2] No main-process crash handling** — zero `uncaughtException`/`unhandledRejection` handlers anywhere in main; failures surface as Electron's default dialog and never reach the (well-built) crash-report pipeline, which only watches the game process.
+3. **[P3] Discord rich presence is structurally dead**: distro-level `discord` clientId is the literal `"REPLACE_WITH_BOT_CLIENT_ID"` and no server-level block exists, so `initRPC` never runs. If ever enabled, `updateDetails` → `client.setActivity()` has no catch against a failed-handshake client → unhandled main-process rejection. Decide: real clientId + server block, or delete the distro key (and null `proc` in the non-RPC branch — pass 2 #1 — at the same time).
+4. **[P3] Account-switch overlay pre-selects `i === 0` instead of the selected account** (`overlay.js:301`; same bias `uibinder.js:206`) — confirming silently switches accounts. Server listings do it correctly (`overlay.js:283`).
+5. **[P3] Logout UI fades the row unconditionally while the removal may still fail/hang** (`settings.js:529-545`) — UI says gone, config still holds it, reappears next boot.
+6. **[P3] `img-src 'self' https: data:` is the CSP's broad spot** (`app.ejs:3`) — arbitrary https images are loadable/traceable; narrow to the hosts the UI actually uses (mc-heads.net etc.). Also a third stale old-org URL: `settings.js:1536` (releases.atom, works via redirect today).
+
+**Checked and cleared:** mod-config sync always rebuilds before save paths (null-deref unreachable); settings-save IPC ordering safe; MOJANG/SERVER_STATUS handlers never reject.
+
+### Recommendations
+
+1. Cut a release with `2e761fa`+`5a34db0` promptly (removes the redirect dependency for all shipped installers) and hard-claim `Imperium-MC/ImperiumLauncher`.
+2. `requestSingleInstanceLock()` + main-process exception handlers feeding the crash-report path.
+3. Decide Discord RPC one way (real clientId or delete the key + null `proc`).
+4. Fix the account-switch selection and logout fade-ordering (<10 lines each).
+5. Publish mac DMGs or hide the mac update UI; narrow `img-src`.
