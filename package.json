@@ -25,12 +25,12 @@
     "node": "22.x.x"
   },
   "dependencies": {
-    "adm-zip": "^0.5.16",
+    "adm-zip": "^0.6.1",
     "discord-rpc-patch": "^4.0.1",
     "dompurify": "^3.4.17",
     "ejs": "^3.1.10",
     "ejs-electron": "^3.0.0",
-    "electron-updater": "^6.7.3",
+    "electron-updater": "^6.8.11",
     "fs-extra": "^11.3.3",
     "github-syntax-dark": "^0.5.0",
     "got": "^11.8.5",
@@ -39,12 +39,12 @@
     "jquery": "^3.7.1",
     "lodash.merge": "^4.6.2",
     "semver": "^7.7.3",
-    "toml": "^3.0.0"
+    "toml": "^5.0.1"
   },
   "devDependencies": {
     "@stylistic/eslint-plugin": "^5.6.1",
-    "electron": "^39.2.7",
-    "electron-builder": "^26.4.0",
+    "electron": "^44.9.3",
+    "electron-builder": "^26.18.0",
     "eslint": "^9.39.2"
   },
   "repository": {
