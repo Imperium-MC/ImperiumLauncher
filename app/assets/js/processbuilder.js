@@ -487,7 +487,7 @@ class ProcessBuilder {
                 for(let rule of args[i].rules){
                     if(rule.os != null){
                         if(rule.os.name === getMojangOS()
-                            && (rule.os.version == null || new RegExp(rule.os.version).test(os.release))){
+                            && (rule.os.version == null || new RegExp(rule.os.version).test(os.release()))){
                             if(rule.action === 'allow'){
                                 checksum++
                             }
