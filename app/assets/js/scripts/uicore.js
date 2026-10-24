@@ -36,8 +36,7 @@ if(!isDev){
                 loggerAutoUpdater.info('New update available', info.version)
 
                 if(Imperium.env.platform === 'darwin'){
-                    // ROMANICA CUTOVER: repo path flips when the GitHub org renames
-                    info.darwindownload = `https://github.com/Imperium-MC/ImperiumLauncher/releases/download/v${info.version}/Romanica-Launcher-setup-${info.version}${Imperium.env.arch === 'arm64' ? '-arm64' : '-x64'}.dmg`
+                    info.darwindownload = `https://github.com/Romanica-MC/RomanicaLauncher/releases/download/v${info.version}/Romanica-Launcher-setup-${info.version}${Imperium.env.arch === 'arm64' ? '-arm64' : '-x64'}.dmg`
                     showUpdateUI(info)
                 }
 

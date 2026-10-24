@@ -10,7 +10,6 @@ compression: 'maximum'
 # Update feed for electron-updater. Builds generate app-update.yml from
 # this block; releases are published manually, never from a local build
 # unless -p is passed explicitly.
-# ROMANICA CUTOVER: repo URLs flip when the GitHub org renames
 publish:
   provider: 'github'
   owner: 'Romanica-MC'
@@ -51,7 +50,6 @@ linux:
   maintainer: 'Romanica'
   vendor: 'Romanica'
   synopsis: 'Romanica Launcher'
-  # ROMANICA CUTOVER: address -> romanica.net (or play.romanica.net) when DNS is live
   description: 'Official Romanica launcher. Keeps the Imperium Client pack in sync and joins play.romanica.net.'
   category: 'Game'
 
