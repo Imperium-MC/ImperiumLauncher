@@ -114,7 +114,113 @@ let config = null
  * Save the current configuration to a file.
  */
 exports.save = function(){
-    fs.writeFileSync(configPath, JSON.stringify(config, null, 4), 'UTF-8')
+    // Write-then-rename so a crash mid-write never truncates the only copy
+    // of the stored accounts.
+    const tmpPath = configPath + '.tmp'
+    const data = JSON.stringify(config, null, 4)
+    fs.writeFileSync(tmpPath, data, 'UTF-8')
+    try {
+        fs.renameSync(tmpPath, configPath)
+    } catch(err){
+        // Windows refuses the rename while another process (often an
+        // antivirus scan) holds config.json open. A direct write still beats
+        // losing the change.
+        logger.warn('Atomic config save failed, writing in place.', err)
+        fs.writeFileSync(configPath, data, 'UTF-8')
+        fs.removeSync(tmpPath)
+    }
+}
+
+function freshDefaults(){
+    return JSON.parse(JSON.stringify(DEFAULT_CONFIG))
+}
+
+const isPlainObject = (v) => v != null && typeof v === 'object' && !Array.isArray(v)
+const isNullableString = (v) => v === null || typeof v === 'string'
+
+// Losing these logs the player out or resets their Java setup, so they are
+// recovered from a corrupt file when they still parse on their own.
+const SALVAGE_KEYS = {
+    clientToken: isNullableString,
+    selectedAccount: isNullableString,
+    authenticationDatabase: isPlainObject,
+    javaConfig: isPlainObject
+}
+
+/**
+ * Read one top-level value out of a config file that no longer parses as
+ * a whole. save() writes 4-space indented JSON, so top-level keys sit at
+ * exactly that indent.
+ *
+ * @param {string} text The corrupt file contents.
+ * @param {string} key The top-level key.
+ * @returns {*} The parsed value, or undefined when it cannot be recovered.
+ */
+function salvageKey(text, key){
+    const marker = new RegExp(`(?:^|\\n) {4}"${key}": `).exec(text)
+    if(marker == null){
+        return undefined
+    }
+    const start = marker.index + marker[0].length
+    let depth = 0
+    let inString = false
+    let end = -1
+    for(let i = start; i < text.length && end < 0; i++){
+        const c = text[i]
+        if(inString){
+            if(c === '\\'){
+                i++
+            } else if(c === '"'){
+                inString = false
+            }
+        } else if(c === '"'){
+            inString = true
+        } else if(c === '{' || c === '['){
+            depth++
+        } else if(c === '}' || c === ']'){
+            depth--
+            if(depth === 0){
+                end = i + 1
+            }
+        } else if(depth === 0 && (c === ',' || c === '\n')){
+            end = i
+        }
+    }
+    if(end < 0){
+        return undefined
+    }
+    try {
+        return JSON.parse(text.slice(start, end))
+    } catch(_err){
+        return undefined
+    }
+}
+
+/**
+ * Move a corrupt config aside and rebuild a default config, carrying over
+ * whatever stored accounts and Java settings can still be read.
+ *
+ * @param {string|null} raw The corrupt file contents, if they were readable.
+ */
+function recoverCorruptConfig(raw){
+    const backupPath = `${configPath}.corrupt-${Date.now()}`
+    try {
+        fs.renameSync(configPath, backupPath)
+        logger.warn(`Kept the corrupt configuration at ${backupPath}.`)
+    } catch(err){
+        logger.error('Unable to keep a copy of the corrupt configuration.', err)
+    }
+    config = freshDefaults()
+    if(raw == null){
+        return
+    }
+    for(const [key, valid] of Object.entries(SALVAGE_KEYS)){
+        const value = salvageKey(raw, key)
+        if(value !== undefined && valid(value)){
+            config[key] = value
+            logger.info(`Recovered ${key} from the corrupt configuration.`)
+        }
+    }
 }
 
 /**
@@ -133,25 +239,27 @@ exports.load = function(){
             fs.moveSync(configPathLEGACY, configPath)
         } else {
             doLoad = false
-            config = DEFAULT_CONFIG
+            config = freshDefaults()
             exports.save()
         }
     }
     if(doLoad){
         let doValidate = false
+        let raw = null
         try {
-            config = JSON.parse(fs.readFileSync(configPath, 'UTF-8'))
+            raw = fs.readFileSync(configPath, 'UTF-8')
+            config = JSON.parse(raw)
             doValidate = true
         } catch (err){
             logger.error(err)
             logger.info('Configuration file contains malformed JSON or is corrupt.')
             logger.info('Generating a new configuration file.')
             fs.ensureDirSync(path.join(configPath, '..'))
-            config = DEFAULT_CONFIG
+            recoverCorruptConfig(raw)
             exports.save()
         }
         if(doValidate){
-            config = validateKeySet(DEFAULT_CONFIG, config)
+            config = validateKeySet(freshDefaults(), config)
             exports.save()
         }
     }
