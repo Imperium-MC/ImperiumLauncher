@@ -117,7 +117,7 @@ test('mapResponse produces the UI-facing result for each endpoint shape', () => 
         { ok: true, url: 'https://api.romanica.net/crash/abc123', id: 'abc123', truncated: false }
     )
     assert.deepStrictEqual(
-        CrashReport.mapResponse(200, { url: 'https://api.romanica.net/crash/x', truncated: true }),
+        CrashReport.mapResponse(200, { url: 'https://api.romanica.net/crash/x', truncated: { logTail: true, crashReport: false } }),
         { ok: true, url: 'https://api.romanica.net/crash/x', id: null, truncated: true }
     )
     assert.deepStrictEqual(CrashReport.mapResponse(200, { id: 'no-url' }), { ok: false, error: 'bad_response' })

@@ -12,7 +12,7 @@
             "name": "Romanica",
             "description": "Story-driven Roman prison server.",
             "icon": "https://raw.githubusercontent.com/Romanica-MC/RomanicaLauncher/master/app/assets/images/SealCircle.png",
-            "version": "0.2.5",
+            "version": "0.2.6",
             "address": "play.romanica.net",
             "minecraftVersion": "26.3",
             "mainServer": true,
@@ -27,7 +27,7 @@
             },
             "modules": [
                 {
-                    "id": "net.fabricmc:fabric-loader:0.19.5",
+                    "id": "net.fabricmc:fabric-loader:0.20.1",
                     "name": "Fabric Loader",
                     "type": "Fabric",
                     "required": {
@@ -35,21 +35,21 @@
                         "def": true
                     },
                     "artifact": {
-                        "size": 1984980,
-                        "MD5": "23bf6a8c5ba938db7d13959a2630357f",
-                        "sha256": "93044e4dd46de5d8136701292f05e868da096d2c9fddb4793e4fdbcc63efc695",
-                        "url": "https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.19.5/fabric-loader-0.19.5.jar"
+                        "size": 1988880,
+                        "MD5": "2e3dc8eebfde75fc8078c931090cd46f",
+                        "sha256": "d0c5a082e07410aaff9de7ab196aa6b4236002870f9ba3ad5c1260fcce5110ad",
+                        "url": "https://maven.fabricmc.net/net/fabricmc/fabric-loader/0.20.1/fabric-loader-0.20.1.jar"
                     },
                     "subModules": [
                         {
-                            "id": "fabric-loader-0.19.5-26.3",
+                            "id": "fabric-loader-0.20.1-26.3",
                             "name": "Fabric Version Manifest",
                             "type": "VersionManifest",
                             "artifact": {
                                 "size": 2778,
-                                "MD5": "b04baa5dc1f3d98c91a7f09d9e06af74",
-                                "sha256": "a914dae48795e350318ba8a47072dbcc4ba2163b9ce415fa451e6928a02e2479",
-                                "url": "https://meta.fabricmc.net/v2/versions/loader/26.3/0.19.5/profile/json"
+                                "MD5": "d60a077fa2306832b535a1f641edcd5d",
+                                "sha256": "6d1d14c8d89c3404613a8c196e15946d7c84e9322ef17fbc3a7a0cb9b3cdef9a",
+                                "url": "https://meta.fabricmc.net/v2/versions/loader/26.3/0.20.1/profile/json"
                             }
                         },
                         {
@@ -103,13 +103,13 @@
                             }
                         },
                         {
-                            "id": "net.fabricmc:sponge-mixin:0.17.4+mixin.0.8.7",
+                            "id": "net.fabricmc:sponge-mixin:0.17.5+mixin.0.8.7",
                             "name": "net.fabricmc:sponge-mixin",
                             "type": "Library",
                             "artifact": {
-                                "size": 1539080,
-                                "MD5": "9e33b145b2a46fbc70daf532e3705066",
-                                "url": "https://maven.fabricmc.net/net/fabricmc/sponge-mixin/0.17.4+mixin.0.8.7/sponge-mixin-0.17.4+mixin.0.8.7.jar"
+                                "size": 1551593,
+                                "MD5": "5fd69fb11801c52d88a854ffe05eb839",
+                                "url": "https://maven.fabricmc.net/net/fabricmc/sponge-mixin/0.17.5+mixin.0.8.7/sponge-mixin-0.17.5+mixin.0.8.7.jar"
                             }
                         }
                     ]
@@ -126,7 +126,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth:fabric-language-kotlin:1.14.2+kotlin.2.4.21",
+                    "id": "com.modrinth:fabric-language-kotlin:1.14.2-kotlin.2.4.21",
                     "name": "Fabric Language Kotlin 1.14.2+kotlin.2.4.21",
                     "type": "FabricMod",
                     "required": {
@@ -141,18 +141,18 @@
                     }
                 },
                 {
-                    "id": "com.modrinth:fabric-api:0.164.0+26.3",
-                    "name": "[26.3] Fabric API 0.164.0+26.3",
+                    "id": "com.modrinth:fabric-api:0.165.0-26.3",
+                    "name": "[26.3] Fabric API 0.165.0+26.3",
                     "type": "FabricMod",
                     "required": {
                         "value": true,
                         "def": true
                     },
                     "artifact": {
-                        "size": 1775592,
-                        "MD5": "b575042bbfb302fd2f987b7f296387f4",
-                        "sha256": "5a75198715a50a86787658617b03b97da9936d32df04896748c12135ba709de3",
-                        "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/LEklt8GT/fabric-api-0.164.0%2B26.3.jar"
+                        "size": 1778588,
+                        "MD5": "8181fce1be2e6ad90f8c09f9a7db1467",
+                        "sha256": "18442e2ad466d6ef41c37dbb4cb68495e6ca6658b1f1ee9be76143d155ef2c88",
+                        "url": "https://cdn.modrinth.com/data/P7dR8mSH/versions/EQKgpeKu/fabric-api-0.165.0%2B26.3.jar"
                     }
                 },
                 {
@@ -201,7 +201,7 @@
                     }
                 },
                 {
-                    "id": "com.modrinth:immediatelyfast:1.17.1+26.3-fabric",
+                    "id": "com.modrinth:immediatelyfast:1.17.1-26.3-fabric",
                     "name": "ImmediatelyFast 1.17.1",
                     "type": "FabricMod",
                     "required": {

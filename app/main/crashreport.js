@@ -25,9 +25,12 @@ const ENDPOINT = 'https://api.romanica.net/api/v2/client/crash-report'
 const { redactText } = require('./redact')
 
 const LIMITS = {
-    cause: 1024,
-    mod: 256,
-    clientVersion: 128,
+    // Aligned to the backend's clamps (crashReports.ts): the server re-clamps to
+    // these same values, so pre-truncating here means what we send is what lands
+    // (cross-repo audit 2026-10-23 — the old 1024/256/128 silently disagreed).
+    cause: 200,
+    mod: 200,
+    clientVersion: 64,
     mcVersion: 64,
     logTail: 32 * 1024,
     crashReport: 64 * 1024
@@ -151,7 +154,8 @@ function mapResponse(status, json){
                 ok: true,
                 url: json.url,
                 id: typeof json.id === 'string' ? json.id : null,
-                truncated: json.truncated === true
+                // Backend sends {logTail,crashReport} booleans (audit 2026-10-23); truthy = trimmed.
+                truncated: !!(json.truncated && (json.truncated.logTail || json.truncated.crashReport))
             }
         }
         return { ok: false, error: 'bad_response' }
