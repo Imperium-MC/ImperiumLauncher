@@ -56,3 +56,68 @@ Weak spots are concentrated in Helios-inherited code that was ported rather than
 4. **Keep tokens out of the renderer mirror:** strip `authenticationDatabase` tokens from `configSnapshot()`/`bootstrap()`, expose `uuid`/`displayName`/`type`, and resolve the avatar/launch data main-side.
 5. **Harden the two filesystem edges:** add a `..`/absolute-segment guard to the pre-1.19 native extraction (processbuilder.js:829), and case-fold roots before `startsWith` in `pathContained`/trash-item on win32.
 6. **Code-sign the Windows installer** (even a cheap OV cert removes SmartScreen friction and gives electron-updater a real integrity anchor), and plan to move `REMOTE_DISTRO_URL` (distromanager.js:7) off `raw.githubusercontent.com` onto `api.romanica.net` — you already run that host for crash reports, and it centralizes the supply chain you're defending with all those hashes.
+
+---
+
+## Deep-Dive Addendum — RomanicaLauncher (2026-10-23, pass 2)
+
+> **Branch note:** this pass executed against the checked-out `feat/launch-progress` (HEAD `ca51ff5`), then every touched file was diffed against `master` to reconcile. Files carrying the findings below (`authmanager.js`, `configmanager.js`, `processbuilder.js`, `ipc.js`, `dropinmodutil.js`, `landing.js`, `uicore.js`, `distromanager.js`, `launchercore.js`, `assetdl.js`) are **byte-identical on both branches**, so the findings hold for master. One correction: `app/main/redact.js` **does exist on master** (added with the Oct 18-22 launch-progress work, wired into `crashreport.js:25,114` and tested by `test/redact.test.js`) — the "no redaction" item that the pass-2 run initially reported applies only to the stale WIP branch, and pass 1's redaction praise stands for master.
+
+### Verification runs (on `feat/launch-progress`)
+
+- `npm test`: **69/69 pass, 0 fail.**
+- `npx eslint app test scripts`: **0 errors, 0 warnings** (notably it does not flag implicit globals — `no-undef` is effectively not enforced for these script contexts).
+- Grep audits: `removeAuthAccount` call sites (6); process spawns exactly two (`processbuilder.js:85` java, `assetdl.js` self-fork — no `exec`, no `shell:true` anywhere); zero `http://` in shipped code; all `shell.*` uses root-contained or behind `isAllowedLink`.
+
+### Root-cause analysis of pass-1 findings
+
+**[P1] Transient failure deletes stored account — confirmed, and the trigger is narrower than pass-1 stated.** helios-core's `MojangRestAPI.validate` maps **204 → `{data:true, SUCCESS}`** and **403 → `{data:false, SUCCESS}`** (`node_modules/helios-core/dist/mojang/rest/MojangRestAPI.js:264-277`), so the `SUCCESS` branch already handles both valid and definitively-invalid tokens — **the only way `validateSelectedMojangAccount` returns `undefined` is `responseStatus: ERROR`** (network failure, 5xx, rate limit). `ipc.js:449-451` coerces that to `valid=false` → `removeAuthAccount` + save. The Microsoft path over-deletes the same way: `fullMicrosoftAuthFlow`'s catch (authmanager.js:230-233) converts a thrown network exception into the same displayable as an HTTP-auth failure, and `validateSelectedMicrosoftAccount`'s `catch(_err){ return false }` (392-394, 411-413) deletes on both. The renderer's "cancel → re-add" path (uibinder.js:171-186) re-inserts dead tokens so the failure loop repeats next boot.
+
+Fix principle: **"definitively invalid" = the authority answered HTTP and rejected the credential; anything that never got a response is transient and must fail open.**
+- Mojang (rewrite `validateSelectedMojangAccount`): on non-SUCCESS log a warning and `return true` (fail open); on 403 attempt refresh; on refresh failure return false only for `ERROR_INVALID_TOKEN`/`ERROR_INVALID_CREDENTIALS`/`ERROR_GONE`, else fail open.
+- Microsoft: attach the raw response to each of the four rejection displayables in `fullMicrosoftAuthFlow` (191, 201, 205-216, 220), then in both `catch` blocks return `!(err?.raw?.error?.response?.statusCode != null || [NO_PROFILE, NO_XBOX_ACCOUNT, XBL_BANNED, UNDER_18].includes(err?.raw?.microsoftErrorCode))`. Leave `ipc.js:445-461` structurally intact; delete the dead-token re-add path at `uibinder.js:171-186` in the same commit.
+
+**[P2] CI/release gating.** Confirmed: neither workflow runs tests or eslint; `build.yml` carries `contents: write` + `GH_TOKEN` on every push, and electron-builder publishes draft releases on tag pushes by default — racing `smoke.yml` with no ordering. Fix: split into `build.yml` (all branches, `GH_TOKEN: ''`, artifacts-only, plus a Test-and-lint step) and `release.yml` (`tags: v*`, `needs: smoke`, publish step only after smoke passes).
+
+**[P2] configSnapshot token mirror.** Confirmed: `authenticationDatabase` ships `accessToken`, `microsoft.access_token`, and the long-lived MS **refresh** token on every `BOOTSTRAP`/`CONFIG_APPLY`/`CONFIG_SAVE`/`CONFIG_REFRESH`/auth envelope. Renderer audit shows the UI consumes only `uuid`, `type`, `username`, `displayName` (settings.js:635-660, overlay.js:296-305, uibinder.js:72/144) — the only token consumer is the dead-token re-add path killed above. Exact sanitizer at the choke point:
+```js
+function pickAccount(acc){
+    const safe = { uuid: acc.uuid, type: acc.type, username: acc.username, displayName: acc.displayName }
+    if(acc.type === 'microsoft'){ safe.msExpiresAt = acc.microsoft?.expires_at ?? null }
+    return safe
+}
+// configSnapshot():
+authenticationDatabase: Object.fromEntries(
+    Object.entries(ConfigManager.getAuthAccounts()).map(([uuid, acc]) => [uuid, pickAccount(acc)]))
+```
+
+**[P2] Pre-1.19 natives zip-slip (processbuilder.js:813-837).** Confirmed: `path.join(extractDir, fileName)` keeps `..` segments; an entry named `..\..\x.dll` writes outside the natives dir with launcher privileges before the JVM spawns. Exposure requires a hostile natives zip (Mojang CDN/manifest compromise — defense-in-depth), fix is two lines: `if(fileName.includes('..') || path.isAbsolute(fileName) || fileName.includes('\\')){ logger.warn(...); continue }`. No zip-slip test exists — add one with a crafted `AdmZip`.
+
+Pass-1 P3s confirmed with exact locations: `getSelectedServer(def=true)` returns `DEFAULT_CONFIG.clientToken` (configmanager.js:287-289 — mirrored in bridge.js:194-195); dead `mods.sub_modules` Array check (processbuilder.js:931-936); unescaped `displayName` regex in `SERVER_JOINED_REGEX` — escape it; case-sensitive `pathContained` on win32 (ipc.js:95-104, index.js:113 — fix via `fs.realpath` + `path.relative(root, resolved)` not starting with `..`, also defeats 8.3 short names/junctions); `setJavaExecutable` accepts any string but `launchPrepare` re-validates via `validateSelectedJvm` (launchservice.js:96-105) — residual risk is only planting a real JVM elsewhere.
+
+### New findings
+
+1. **[P2] No launch mutex; concurrent launches corrupt pipeline state.** `ipcMain.handle(BRIDGE.LAUNCH, () => launchservice.launch())` (ipc.js:492) has no in-flight guard; the renderer guard is only "the button gets hidden" (landing.js:135), leaving a full IPC round-trip window where a double-click re-enters; Retry-All (landing.js:375) and the post-java-scan path (landing.js:455) can overlap a fresh click. Two concurrent `launch()` runs fork two receivers and the second `pb.build()` (launchservice.js:465) overwrites the first; `proc` is also never nulled on game exit when Discord RPC is absent (the close handler is registered only inside the `discord != null` branch, 478-487). Fix: module-level `launching` flag set at the top of `launch()`, cleared in `finally`, `{ ok:false, busy:true }` on re-entry. (Verified absent on master too.)
+2. **[P2] Non-atomic config save + corruption handling nukes the auth database.** `ConfigManager.save()` is a bare `fs.writeFileSync` (configmanager.js:116-118); a crash mid-write truncates config.json, and `load()`'s parse-failure branch regenerates `DEFAULT_CONFIG` and immediately overwrites the file (145-152) — silently discarding every stored account, clientToken, and java config. Fix: write `config.json.tmp` + `fs.renameSync`; on parse failure rename to `config.json.corrupt-<ts>` and salvage `authenticationDatabase`/`clientToken`/`selectedAccount`/`javaConfig` if those keys parse.
+3. **[P3] Transmitter promises never reject when the receiver child dies silently.** `ImperiumRepair.verifyFiles`/`download` (assetdl.js:427-458, 467-504) settle only on protocol messages; a native crash/OOM kill leaves them pending forever (verified: no `close` handler on the receiver in either branch). Fix: `this.receiver.once('close', onClose)` rejecting with "receiver exited unexpectedly", removed on resolve.
+4. **[P3] `toggleDropinMod` can rename the whole mods directory.** `fullName.indexOf(DISABLED_EXT)` is −1 for an already-enabled mod → `substring(0, -1)` = `''` → `path.join(modsDir, '')` === modsDir → `fs.rename(modsDir, modsDir + '.disabled')` (dropinmodutil.js:126-139); IPC accepts any `MOD_NAME_REGEX` match. Guard: `if(enable && !fullName.endsWith(DISABLED_EXT)) reject(...)`.
+5. **[P3] MODS_ADD is a destructive arbitrary-file move + exfil primitive.** `srcPaths` validated only as absolute (ipc.js:539); `addDropinMods` uses `fs.moveSync` (dropinmodutil.js:88) — a compromised renderer can relocate any readable file into the instance and read it back. Fix: track a preload-side Set of paths observed by `webUtils.getPathForFile` and reject anything else (contextBridge keeps it invisible to page JS); switch to copy-then-delete.
+6. **[P3] `os.release` used as a value, not a function** (processbuilder.js:490): `new RegExp(rule.os.version).test(os.release)` tests against the stringified function object — any manifest rule gated on `os.version` silently drops its argument. Change to `os.release()`.
+7. **[P3] Stale macOS updater URL + cutover leftovers**: `uicore.js:30` hardcodes `github.com/Imperium-MC/ImperiumLauncher/releases/...` (404s post-cutover); same drift in `dev-app-update.yml` and `package.json` repository URLs. The distro URL itself is cross-repo MISMATCH #4 in the audit doc.
+8. **[P3] Mojang logout can brick sign-out**: `removeMojangAccount` only removes locally if `MojangRestAPI.invalidate` succeeds (authmanager.js:283-299) — when Mojang is unreachable the user cannot sign out at all. Invalidate is best-effort; remove locally and log.
+9. **[P3] Token leak to stdout**: `authmanager.js:145` `console.log(response)` prints the full Mojang session (accessToken, clientToken) in production builds. Delete.
+10. **[P3] Hygiene bundle**: overlay.js:193 references out-of-scope `i` (ReferenceError path); implicit globals `greenCount`/`greyCount` (landing.js:251-252) and `for(dropin of ...)` (settings.js:907, 1026); `assetdl.streamArtifact` writes straight to the final path (network-failure retries don't remove the partial — only hash mismatches do, assetdl.js:243 vs 308; `<path>.part` + rename would close the window; ENOSPC also burns the full 4-attempt ladder per file).
+
+### Cross-repo notes
+
+- **Distro trust root is the launcher's own repo, on a moving branch, under the old org name**: `REMOTE_DISTRO_URL` = `raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/distribution/distribution.json` — same repo as the code (single compromise = binary + content), master-tracked (a bad push ships to all clients instantly), and the checkout's origin is `Romanica-MC/RomanicaLauncher`. The two distros have **diverged** (remote master v0.2.5 vs committed v0.2.4) and `validate-distro.cjs` validates the local file only — nightly CI can pass while players download a different index. Fix: validate `REMOTE_DISTRO_URL` itself and converge the repo naming. `validate-distro.cjs` checks distro↔artifact consistency (URLs, sizes, hashes, jar-in-jar), not provenance — a tampered distro with recomputed hashes passes by construction.
+- **CSP ↔ distro coupling**: `connect-src 'self' https://romanica.net https://github.com` must contain every future `rss` host the distro declares (landing.js:913-931 fetches it from the renderer); a host change in distribution.json silently bricks the news panel. Worth a CI check.
+- **Crash-report contract**: happy path is in sync (field names, limits, 5/hour/IP); drift: backend returns `truncated: {logTail: bool, crashReport: bool}` (`crashReports.ts:279-284`) while the launcher checks `json.truncated === true` (crashreport.js:142) — always false; launcher clamps (cause 1024/mod 256/version 128) exceed the backend's (200/200/64) — server-side clamping makes them decoration. Full audit: see [the cross-repo audit doc in RomanicaPlugin](https://github.com/Romanica-MC/RomanicaPlugin/blob/master/docs/reviews/2026-10-23-cross-repo-audit.md).
+
+### Revised recommendations
+
+1. **Fix the auth deletion P1** with the transient/definitive split (code above); remove the dead-token re-add path in the same commit. Highest user pain: a connectivity blip at boot logs players out.
+2. **Add the main-process launch mutex** (+ null `proc` on game close in the non-RPC branch) — prevents the corrupting double-launch.
+3. **Make config persistence atomic and corruption-preserving** (tmp+rename; salvage auth keys on parse failure). Tokens are the least-replaceable data the launcher holds.
+4. **Ship the CI split**: tests+lint on every push, artifacts-only builds, `needs: smoke` release job for `v*` tags. Converts the smoke test from a parallel signal into a gate.
+5. **Sanitize `configSnapshot`** (pickAccount above), then the zip-slip guard and MODS_ADD preload-side source allowlist — each <20 lines, closes the renderer-compromise escalation paths.
