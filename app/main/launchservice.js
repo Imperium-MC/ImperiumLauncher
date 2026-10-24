@@ -38,6 +38,9 @@ const loggerLanding     = LoggerUtil.getLogger('Landing')
 let proc = null
 // Is DiscordRPC enabled
 let hasRPC = false
+// Set while a launch() is running; the renderer's hidden button is not a
+// guard against a double click or an overlapping Retry All.
+let launching = false
 
 let emit = () => {}
 let core = null
@@ -172,22 +175,23 @@ exports.javaDownload = async function(effectiveJavaOptions){
 
     if(received != asset.size){
         loggerLanding.warn(`Java Download: Expected ${asset.size} bytes but received ${received}`)
-        try {
-            if(!await validateLocalFile(asset.path, asset.algo, asset.hash)){
-                loggerLaunchSuite.error(`Hashes do not match, ${asset.id} may be corrupted.`)
-                return {
-                    ok: false,
-                    title: L('landing.systemScan.javaDownloadFailureTitle'),
-                    desc: L('landing.downloadJava.javaDownloadCorruptedError')
-                }
-            }
-        } catch(err){
-            loggerLanding.error('Unhandled error in Java Download', err)
+    }
+    // Always verify: a same-size tampered archive must not reach extraction.
+    try {
+        if(!await validateLocalFile(asset.path, asset.algo, asset.hash)){
+            loggerLaunchSuite.error(`Hashes do not match, ${asset.id} may be corrupted.`)
             return {
                 ok: false,
                 title: L('landing.systemScan.javaDownloadFailureTitle'),
-                desc: L('landing.systemScan.javaDownloadFailureText')
+                desc: L('landing.downloadJava.javaDownloadCorruptedError')
             }
+        }
+    } catch(err){
+        loggerLanding.error('Unhandled error in Java Download', err)
+        return {
+            ok: false,
+            title: L('landing.systemScan.javaDownloadFailureTitle'),
+            desc: L('landing.systemScan.javaDownloadFailureText')
         }
     }
 
@@ -255,6 +259,27 @@ exports.validateJvm = async function(execPath){
  * the failure has already been emitted as a failure event.
  */
 exports.launch = async function(login = true){
+    if(launching){
+        loggerLaunchSuite.warn('Launch requested while another launch is in progress, ignoring.')
+        return { ok: false, busy: true }
+    }
+    launching = true
+    try {
+        return await runLaunch(login)
+    } finally {
+        launching = false
+    }
+}
+
+/**
+ * @returns {boolean} Whether a game process started by this launcher is
+ * still running.
+ */
+exports.isGameRunning = function(){
+    return proc != null
+}
+
+async function runLaunch(login){
     emit({ kind: 'details', text: L('landing.dlAsync.loadingServerInfo') })
 
     let distro
@@ -411,16 +436,18 @@ exports.launch = async function(login = true){
         const pb = new ProcessBuilder(serv, versionData, modLoaderData, authUser, app.getVersion())
         emit({ kind: 'details', text: L('landing.dlAsync.launchingGame') })
 
-        const SERVER_JOINED_REGEX = new RegExp(`\\[.+\\]: \\[CHAT\\] ${authUser.displayName} joined the game`)
+        const escapedName = authUser.displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const SERVER_JOINED_REGEX = new RegExp(`\\[.+\\]: \\[CHAT\\] ${escapedName} joined the game`)
 
+        let child = null
         const onLoadComplete = () => {
             emit({ kind: 'gameLaunched' })
             if(hasRPC){
                 DiscordWrapper.updateDetails(L('landing.discord.loading'))
-                proc.stdout.on('data', gameStateChange)
+                child.stdout.on('data', gameStateChange)
             }
-            proc.stdout.removeListener('data', tempListener)
-            proc.stderr.removeListener('data', gameErrorListener)
+            child.stdout.removeListener('data', tempListener)
+            child.stderr.removeListener('data', gameErrorListener)
         }
         const start = Date.now()
 
@@ -458,11 +485,12 @@ exports.launch = async function(login = true){
 
         try {
             // Build Minecraft process.
-            proc = pb.build()
+            child = pb.build()
+            proc = child
 
             // Bind listeners to stdout.
-            proc.stdout.on('data', tempListener)
-            proc.stderr.on('data', gameErrorListener)
+            child.stdout.on('data', tempListener)
+            child.stderr.on('data', gameErrorListener)
 
             emit({ kind: 'details', text: L('landing.dlAsync.doneEnjoyServer') })
 
@@ -470,13 +498,17 @@ exports.launch = async function(login = true){
             if(distro.rawDistribution.discord != null && serv.rawServer.discord != null){
                 DiscordWrapper.initRPC(distro.rawDistribution.discord, serv.rawServer.discord)
                 hasRPC = true
-                proc.on('close', (_code, _signal) => {
+            }
+            child.on('close', (_code, _signal) => {
+                if(hasRPC){
                     loggerLaunchSuite.info('Shutting down Discord Rich Presence..')
                     DiscordWrapper.shutdownRPC()
                     hasRPC = false
+                }
+                if(proc === child){
                     proc = null
-                })
-            }
+                }
+            })
 
         } catch(err){
             loggerLaunchSuite.error('Error during launch', err)
