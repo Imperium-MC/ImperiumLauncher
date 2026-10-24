@@ -435,7 +435,8 @@ async function runLaunch(login){
         const pb = new ProcessBuilder(serv, versionData, modLoaderData, authUser, app.getVersion())
         emit({ kind: 'details', text: L('landing.dlAsync.launchingGame') })
 
-        const SERVER_JOINED_REGEX = new RegExp(`\\[.+\\]: \\[CHAT\\] ${authUser.displayName} joined the game`)
+        const escapedName = authUser.displayName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+        const SERVER_JOINED_REGEX = new RegExp(`\\[.+\\]: \\[CHAT\\] ${escapedName} joined the game`)
 
         let child = null
         const onLoadComplete = () => {

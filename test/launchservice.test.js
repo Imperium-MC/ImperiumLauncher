@@ -138,3 +138,8 @@ test('the game process is released when it exits without Discord RPC', async () 
     FakeProcessBuilder.lastChild.emit('close', 0, null)
     assert.strictEqual(launchservice.isGameRunning(), false)
 })
+
+test('a player name with regex metacharacters does not break the launch', async () => {
+    account.displayName = 'Mar(cus'
+    assert.strictEqual((await launchservice.launch()).ok, true)
+})
