@@ -175,22 +175,23 @@ exports.javaDownload = async function(effectiveJavaOptions){
 
     if(received != asset.size){
         loggerLanding.warn(`Java Download: Expected ${asset.size} bytes but received ${received}`)
-        try {
-            if(!await validateLocalFile(asset.path, asset.algo, asset.hash)){
-                loggerLaunchSuite.error(`Hashes do not match, ${asset.id} may be corrupted.`)
-                return {
-                    ok: false,
-                    title: L('landing.systemScan.javaDownloadFailureTitle'),
-                    desc: L('landing.downloadJava.javaDownloadCorruptedError')
-                }
-            }
-        } catch(err){
-            loggerLanding.error('Unhandled error in Java Download', err)
+    }
+    // Always verify: a same-size tampered archive must not reach extraction.
+    try {
+        if(!await validateLocalFile(asset.path, asset.algo, asset.hash)){
+            loggerLaunchSuite.error(`Hashes do not match, ${asset.id} may be corrupted.`)
             return {
                 ok: false,
                 title: L('landing.systemScan.javaDownloadFailureTitle'),
-                desc: L('landing.systemScan.javaDownloadFailureText')
+                desc: L('landing.downloadJava.javaDownloadCorruptedError')
             }
+        }
+    } catch(err){
+        loggerLanding.error('Unhandled error in Java Download', err)
+        return {
+            ok: false,
+            title: L('landing.systemScan.javaDownloadFailureTitle'),
+            desc: L('landing.systemScan.javaDownloadFailureText')
         }
     }
 

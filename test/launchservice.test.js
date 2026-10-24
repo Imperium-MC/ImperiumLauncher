@@ -1,6 +1,8 @@
 const test         = require('node:test')
 const assert       = require('node:assert')
+const crypto       = require('crypto')
 const EventEmitter = require('events')
+const fs           = require('fs-extra')
 const os           = require('os')
 const path         = require('path')
 
@@ -142,4 +144,42 @@ test('the game process is released when it exits without Discord RPC', async () 
 test('a player name with regex metacharacters does not break the launch', async () => {
     account.displayName = 'Mar(cus'
     assert.strictEqual((await launchservice.launch()).ok, true)
+})
+
+/* ------------------------------------------------------------------ */
+/* JDK download verification                                           */
+/* ------------------------------------------------------------------ */
+
+async function jdkFixture(t, served){
+    const dir = await fs.mkdtemp(path.join(os.tmpdir(), 'romanica-jdk-'))
+    t.after(() => fs.remove(dir))
+    const expected = Buffer.from('the real temurin archive bytes')
+    javaStub.nextAsset = {
+        id: 'OpenJDK25U-jre_x64_windows_hotspot.zip',
+        url: 'https://example.invalid/jdk.zip',
+        path: path.join(dir, 'jdk.zip'),
+        size: expected.length,
+        algo: 'sha256',
+        hash: crypto.createHash('sha256').update(expected).digest('hex')
+    }
+    dlStub.nextDownload = async (_url, dest, onProgress) => {
+        const body = served(expected)
+        await fs.writeFile(dest, body)
+        onProgress({ transferred: body.length })
+    }
+}
+
+const JAVA_OPTS = { suggestedMajor: 25, supported: '>=25' }
+
+test('a same-size tampered JDK download is rejected', async (t) => {
+    await jdkFixture(t, (expected) => Buffer.alloc(expected.length, 0x41))
+    const res = await launchservice.javaDownload(JAVA_OPTS)
+    assert.strictEqual(res.ok, false)
+    assert.strictEqual(res.desc, 'landing.downloadJava.javaDownloadCorruptedError')
+})
+
+test('a JDK download that matches its hash is installed', async (t) => {
+    await jdkFixture(t, (expected) => expected)
+    const res = await launchservice.javaDownload(JAVA_OPTS)
+    assert.strictEqual(res.ok, true)
 })
