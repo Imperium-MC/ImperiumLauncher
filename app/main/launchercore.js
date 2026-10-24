@@ -215,6 +215,25 @@ exports.buildSummary = function(distro){
 }
 
 /**
+ * The renderer's view of a stored account. Tokens stay in the main
+ * process: a compromised renderer (the news panel renders remote HTML)
+ * must not be able to read them.
+ *
+ * @param {Object} acc A stored auth account.
+ * @returns {Object|null}
+ */
+exports.pickAccount = function(acc){
+    if(acc == null){
+        return null
+    }
+    const safe = { uuid: acc.uuid, type: acc.type, username: acc.username, displayName: acc.displayName }
+    if(acc.type === 'microsoft'){
+        safe.msExpiresAt = acc.microsoft?.expires_at ?? null
+    }
+    return safe
+}
+
+/**
  * Structured config snapshot for the renderer mirror. Plain JSON only.
  *
  * @returns {Object} Config object plus environment values.
@@ -237,10 +256,10 @@ exports.configSnapshot = function(){
                 }
             },
             newsCache: JSON.parse(JSON.stringify(ConfigManager.getNewsCache())),
-            clientToken: ConfigManager.getClientToken(),
             selectedServer: ConfigManager.getSelectedServer(),
             selectedAccount: ConfigManager.getSelectedAccount() != null ? ConfigManager.getSelectedAccount().uuid : null,
-            authenticationDatabase: JSON.parse(JSON.stringify(ConfigManager.getAuthAccounts())),
+            authenticationDatabase: Object.fromEntries(
+                Object.entries(ConfigManager.getAuthAccounts()).map(([uuid, acc]) => [uuid, exports.pickAccount(acc)])),
             modConfigurations: JSON.parse(JSON.stringify(ConfigManager.getModConfigurations())),
             javaConfig: JSON.parse(JSON.stringify(javaConfig))
         },

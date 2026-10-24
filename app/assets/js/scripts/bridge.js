@@ -187,10 +187,6 @@ const ConfigManager = (function(){
             return dirs.instance
         },
 
-        getClientToken(){
-            return config.clientToken
-        },
-
         getSelectedServer(def = false){
             return !def ? config.selectedServer : config.clientToken
         },
@@ -208,38 +204,6 @@ const ConfigManager = (function(){
             return config.authenticationDatabase[uuid]
         },
 
-        addMojangAuthAccount(uuid, accessToken, username, displayName){
-            config.selectedAccount = uuid
-            config.authenticationDatabase[uuid] = {
-                type: 'mojang',
-                accessToken,
-                username: username.trim(),
-                uuid: uuid.trim(),
-                displayName: displayName.trim()
-            }
-            apply('addMojangAuthAccount', [uuid, accessToken, username, displayName])
-            return config.authenticationDatabase[uuid]
-        },
-
-        addMicrosoftAuthAccount(uuid, accessToken, name, mcExpires, msAccessToken, msRefreshToken, msExpires){
-            config.selectedAccount = uuid
-            config.authenticationDatabase[uuid] = {
-                type: 'microsoft',
-                accessToken,
-                username: name.trim(),
-                uuid: uuid.trim(),
-                displayName: name.trim(),
-                expiresAt: mcExpires,
-                microsoft: {
-                    access_token: msAccessToken,
-                    refresh_token: msRefreshToken,
-                    expires_at: msExpires
-                }
-            }
-            apply('addMicrosoftAuthAccount', [uuid, accessToken, name, mcExpires, msAccessToken, msRefreshToken, msExpires])
-            return config.authenticationDatabase[uuid]
-        },
-
         removeAuthAccount(uuid){
             if(config.authenticationDatabase[uuid] != null){
                 delete config.authenticationDatabase[uuid]
@@ -249,7 +213,6 @@ const ConfigManager = (function(){
                         config.selectedAccount = keys[0]
                     } else {
                         config.selectedAccount = null
-                        config.clientToken = null
                     }
                 }
                 apply('removeAuthAccount', [uuid])
