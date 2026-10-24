@@ -20,6 +20,13 @@ If you couldn't verify something, write **"Not verified: <what and why>"** in th
 - A CI step that runs zero tests must fail, not go green. Check the reported count.
 - Smoke and integration checks read only output from *this* run, never files left over from a previous one.
 - Tests never touch real user data (configs, saves, `%APPDATA%`). Use temp directories.
+- **Mocks prove your code, not the outside world.** Anything that talks to a third party (Microsoft, Xbox, Mojang, Discord, PayNow, GitHub) also needs one check against the real service before you call it working, for example a `curl` of the real URL showing the expected page or status. Mocked tests passed on a Microsoft URL that returned 404 in production.
+- **A fallback or "no errors seen" verdict is not a pass.** If a check can pass without the thing ever happening (no game log, no response, zero tests), it must fail instead.
+
+## Where the work is
+
+- Current priorities, in order: **RomanicaClient#12** (latest comment). Read it before starting anything new.
+- Deploy and release only from the default branch (`main`/`master`). Branches that drift from it ship without its fixes.
 
 ## Finish the job
 
@@ -46,6 +53,7 @@ If you couldn't verify something, write **"Not verified: <what and why>"** in th
 
 ## Lessons from past misses (don't repeat)
 
+- The CI smoke run for 0.2.6 "passed" on the fallback verdict, but its artifacts had no `latest.log`: the game never logged anything. Quote the game log from the run, and if there isn't one, it's a fail.
 - The natives "fix" shipped in five releases (0.1.4 to 0.2.4) and was wrong each time. The real search path is the `-Djava.library.path` argument in the version manifest. It was only proven by a launch with no workaround.
 - `npm test` once deleted the owner's real launcher config. Tests now stub `APPDATA`; keep it that way.
 - The smoke driver passed on the previous run's `latest.log`, then killed the launcher and the just-started game with it. Every "PASS" before PR #9 was hollow.
