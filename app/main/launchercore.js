@@ -246,7 +246,8 @@ exports.configSnapshot = function(){
         },
         firstLaunch: ConfigManager.isFirstLaunch(),
         defaults: {
-            dataDirectory: ConfigManager.getDataDirectory(true)
+            dataDirectory: ConfigManager.getDataDirectory(true),
+            selectedServer: ConfigManager.getSelectedServer(true)
         },
         dirs: {
             launcher: ConfigManager.getLauncherDirectory(),

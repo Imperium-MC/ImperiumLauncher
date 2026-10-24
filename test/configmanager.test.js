@@ -89,3 +89,10 @@ test('regenerated defaults are a copy, not the DEFAULT_CONFIG object', () => {
     assert.strictEqual(ConfigManager.getDataDirectory(true), defaultDir,
         'mutating the live config must not change the defaults')
 })
+
+test('getSelectedServer(true) returns the default server, not the client token', () => {
+    fs.writeFileSync(configPath, '{{{ not json')
+    ConfigManager.load()
+    ConfigManager.setClientToken('client-token-value')
+    assert.strictEqual(ConfigManager.getSelectedServer(true), null)
+})
