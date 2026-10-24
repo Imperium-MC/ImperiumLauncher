@@ -11,6 +11,9 @@ const logger = LoggerUtil.getLogger('ConfigManager')
 
 const sysRoot = process.env.APPDATA || (process.platform == 'darwin' ? process.env.HOME + '/Library/Application Support' : process.env.HOME)
 
+// Kept from before the Romanica rename (as is package.json "name", which
+// electron-builder and the updater key on): moving either strands every
+// player's installed game files and settings.
 const dataPath = path.join(sysRoot, '.imperiumlauncher')
 
 const launcherDir = app.getPath('userData')

@@ -3,11 +3,11 @@
   "version": "0.2.7",
   "productName": "Romanica Launcher",
   "description": "Official launcher for Romanica, based on Helios Launcher",
-  "author": "Romanica (https://github.com/Imperium-MC/ImperiumLauncher)",
+  "author": "Romanica (https://romanica.net)",
   "license": "MIT",
-  "homepage": "https://github.com/Imperium-MC/ImperiumLauncher",
+  "homepage": "https://github.com/Romanica-MC/RomanicaLauncher",
   "bugs": {
-    "url": "https://github.com/Imperium-MC/ImperiumLauncher/issues"
+    "url": "https://github.com/Romanica-MC/RomanicaLauncher/issues"
   },
   "private": true,
   "main": "index.js",
@@ -49,6 +49,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Imperium-MC/ImperiumLauncher.git"
+    "url": "git+https://github.com/Romanica-MC/RomanicaLauncher.git"
   }
 }

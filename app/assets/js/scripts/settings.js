@@ -1533,7 +1533,7 @@ function populateAboutVersionInformation(){
  */
 function populateReleaseNotes(){
     $.ajax({
-        url: 'https://github.com/Imperium-MC/ImperiumLauncher/releases.atom',
+        url: 'https://github.com/Romanica-MC/RomanicaLauncher/releases.atom',
         success: (data) => {
             const version = 'v' + Imperium.appVersion()
             const entries = $(data).find('entry')

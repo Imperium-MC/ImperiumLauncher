@@ -37,7 +37,7 @@ const ALLOWED_URLS = [
     'https://romanica.net/news.rss',
     'https://romanica.net/',
     'https://www.romanica.net/news.rss',
-    'https://github.com/Imperium-MC/ImperiumLauncher/releases',
+    'https://github.com/Romanica-MC/RomanicaLauncher/releases',
     'https://docs.oracle.com/en/java/javase/21/docs/specs/man/java.html',
     'https://minecraft.net/',
     'https://discord.gg/9qdP3Uqx3q'
