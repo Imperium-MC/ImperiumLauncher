@@ -125,8 +125,13 @@ exports.deleteDropinMod = async function(modsDir, fullName){
  */
 exports.toggleDropinMod = function(modsDir, fullName, enable){
     return new Promise((resolve, reject) => {
+        const disabled = fullName.endsWith(DISABLED_EXT)
+        if(enable === !disabled){
+            reject(new Error(`${fullName} is already ${enable ? 'enabled' : 'disabled'}.`))
+            return
+        }
         const oldPath = path.join(modsDir, fullName)
-        const newPath = path.join(modsDir, enable ? fullName.substring(0, fullName.indexOf(DISABLED_EXT)) : fullName + DISABLED_EXT)
+        const newPath = path.join(modsDir, enable ? fullName.slice(0, -DISABLED_EXT.length) : fullName + DISABLED_EXT)
 
         fs.rename(oldPath, newPath, (err) => {
             if(err){
