@@ -12,6 +12,12 @@ The format is Helios' own. [distro.md](distro.md) documents every field, and [he
 | Now (placeholder) | `https://raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/distribution/distribution.json` |
 | Planned | A Romanica-hosted URL such as `https://launcher.romanica.net/distribution.json` (Cloudflare R2 or Pages), set in milestone 2. ROMANICA CUTOVER: depends on romanica.net DNS |
 
+> **DISTRO HOSTING — THREE STATES (verified 2026-10-24):**
+> 1. **Released installers (v0.2.2–v0.2.6):** poll `raw.githubusercontent.com/Imperium-MC/ImperiumLauncher/master/...` (old org name — works via GitHub rename redirect; do NOT re-create that repo name).
+> 2. **origin/master @ `5a34db0`+ (unreleased until v0.2.7):** flipped to `Romanica-MC/RomanicaLauncher`.
+> 3. **v0.2.7 (`1ee2116`):** released Oct 24 with the Romanica-MC URL, Electron 44, client beta.25.
+> Keep this table current whenever `distromanager.js` changes.
+
 The placeholder has the server entry but no modules, so the launcher loads and reaches the login screen. Pressing Play fails with `No mod loader found!`.
 
 If the index can't be downloaded, the launcher falls back to its last cached copy in `%APPDATA%\Romanica Launcher\distribution.json` (the userData directory). With no cache either, it can't start. Keep the URL stable, and always serve valid JSON from it.
